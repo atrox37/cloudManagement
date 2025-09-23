@@ -1,0 +1,15 @@
+/*@import url('~/element-plus/dist/index.css');*/
+
+.alarm-contain-border {
+  width: 100%;
+  height: auto;
+  margin: 5px 0 0 0;
+}
+.el-form{
+  height: 50%;
+  overflow: auto;
+}
+.dialog-alarm{
+  --el-dialog-width: 80%;
+  height: 30% !important;
+}

@@ -1,0 +1,7 @@
+@import url('~/element-plus/dist/index.css');
+.el-divider--horizontal{
+  margin: 0 0;
+}
+::v-deep .el-drawer__header{
+  margin: 0;
+}

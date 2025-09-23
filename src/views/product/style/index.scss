@@ -1,0 +1,16 @@
+@import url('~/element-plus/dist/index.css');
+
+.search-box{
+  width: 100%;
+  box-sizing: border-box;
+  padding: 18px 18px 0 18px;
+  margin: 10px 0;
+  background: #FFFFFF;
+  border-radius: var(--el-border-radius-base);
+}
+.el-header{
+  --el-header-height: auto;
+}
+.el-main{
+  --el-main-padding: 0 20px;
+}

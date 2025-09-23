@@ -1,0 +1,37 @@
+@import url('~/element-plus/dist/index.css');
+.tiny-template-header{
+  height: 100px;
+  width: 100%;
+  padding: 15px 10px 10px 10px;
+  box-sizing: border-box;
+}
+.tiny-template-input{
+  width: 300px;
+}
+.tiny-container{
+  width: 100%;
+  height: calc(100% - 100px);
+  padding: 0px 10px 0px 10px;
+}
+.tiny-main,.tiny-footer{
+  padding: 0;
+}
+.tiny-main{
+  background-color: #FFFFFF;
+}
+.tiny-footer{
+  background-color: #FFFFFF;
+}
+.title_label{
+  color: var(--el-color-info);
+  padding: 5px 0 15px 0;
+  box-sizing: border-box;
+}
+.tab-container{
+  width: calc(100% - 20px);
+  height: calc(100% - 80px);
+  padding: 0px;
+  margin: 0 10px 10px 10px;
+  box-sizing: border-box;
+  background: white;
+}

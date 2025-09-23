@@ -1,0 +1,49 @@
+@import url('~/element-plus/dist/index.css');
+@import "tab-content.css";
+
+::v-deep .device-header-item {
+  background-color: var(--el-color-danger-light-9);
+}
+.online-style{
+  color: green;
+}
+.offline-style{
+  color: red;
+}
+.form-title{
+  margin: 10px;
+}
+.form-style{
+  margin: 10px 20px;
+  background: #FFFFFF;
+}
+::v-deep .el-tabs__content{
+  height: calc(100% - var(--el-tabs-header-height) - 15px);
+}
+.el-tab-pane{
+  width: auto;
+  height: 100%;
+  box-sizing: content-box;
+}
+.el-tabs__header{
+  width: auto;
+  height: 40px;
+  margin: 0;
+}
+.el-tabs__content{
+  width: auto;
+  height: calc(100% - 40px);
+  box-sizing: border-box;
+}
+.el-tabs__nav-wrap {
+  height: 100%
+}
+.el-tabs__nav-scroll{
+  height: 100%
+}
+.el-tabs__nav{
+  height: 100%
+}
+.el-tabs__item{
+  height: 100%
+}

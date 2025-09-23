@@ -1,0 +1,79 @@
+{
+  "name": "elementui",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite --mode development",
+    "staging": "vite --mode staging",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@amap/amap-jsapi-loader": "^1.0.1",
+    "@element-plus/icons-vue": "^2.0.10",
+    "@fortawesome/fontawesome-svg-core": "^6.7.1",
+    "@fortawesome/free-brands-svg-icons": "^6.7.1",
+    "@fortawesome/free-regular-svg-icons": "^6.7.1",
+    "@fortawesome/free-solid-svg-icons": "^6.7.1",
+    "@fortawesome/vue-fontawesome": "^3.0.8",
+    "@logicflow/core": "^1.1.26",
+    "@logicflow/extension": "^1.1.26",
+    "ace-builds": "^1.36.2",
+    "animate.css": "^4.1.1",
+    "axios": "^0.27.2",
+    "core-js": "^3.6.5",
+    "cronstrue": "^3.3.0",
+    "echarts": "^5.5.1",
+    "element-plus": "^2.9.6",
+    "nprogress": "^0.2.0",
+    "pinia": "^2.1.3",
+    "pinia-plugin-persistedstate": "^4.1.3",
+    "sockjs": "^0.3.24",
+    "stompjs": "^2.3.3",
+    "vue": "^3.4.29",
+    "vue-class-component": "^8.0.0-0",
+    "vue-echarts": "^7.0.3",
+    "vue-router": "^4.2.5",
+    "vue3-ace-editor": "^2.2.4",
+    "vue3-organization-chart": "^1.9.4"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@typescript-eslint/eslint-plugin": "^4.18.0",
+    "@typescript-eslint/parser": "^4.18.0",
+    "@vitejs/plugin-vue": "^4.4.0",
+    "@vue/compiler-sfc": "^3.0.0",
+    "@vue/eslint-config-prettier": "^6.0.0",
+    "@vue/eslint-config-typescript": "^7.0.0",
+    "eslint": "^6.7.2",
+    "eslint-plugin-prettier": "^3.3.1",
+    "eslint-plugin-vue": "^7.0.0",
+    "prettier": "^2.2.1",
+    "sass": "^1.26.5",
+    "sass-loader": "^8.0.2",
+    "typescript": "~4.4.4",
+    "vite": "^4.4.11"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/vue3-essential",
+      "eslint:recommended",
+      "@vue/typescript/recommended",
+      "@vue/prettier",
+      "@vue/prettier/@typescript-eslint"
+    ],
+    "parserOptions": {
+      "ecmaVersion": 2020
+    },
+    "rules": {}
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}

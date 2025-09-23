@@ -1,0 +1,34 @@
+@import url('~/element-plus/dist/index.css');
+.tab-container{
+  width: 100%;
+  height: calc(100% - 70px);
+  padding: 10px;
+  box-sizing: border-box;
+}
+.el-tab-pane{
+  width: auto;
+  height: 100%;
+  box-sizing: border-box;
+}
+.el-tabs__header{
+  width: auto;
+  height: 40px;
+  margin: 0;
+}
+.el-tabs__content{
+  width: auto;
+  height: calc(100% - 40px);
+  box-sizing: border-box;
+}
+::v-deep .el-tabs__nav-wrap {
+  height: 100%
+}
+::v-deep .el-tabs__nav-scroll{
+  height: 100%
+}
+::v-deep .el-tabs__nav{
+  height: 100%
+}
+::v-deep .el-tabs__item{
+  height: 100%
+}

@@ -1,0 +1,14 @@
+@import url('~/element-plus/dist/index.css');
+
+.el-tree{
+    width: 100%;
+    height: 400px;
+    overflow: auto;
+    background-color: var(--el-fill-color-extra-light);
+}
+.el-tag{
+    margin-right: 10px;
+}
+.el-tag{
+    margin: 0 0 1 0;
+}

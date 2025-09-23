@@ -1,0 +1,17 @@
+@import url('~/element-plus/dist/index.css');
+@import "tab-content.css";
+
+.tiny-label-tag{
+  width: 100%;
+}
+.input_content{
+  width: 330px !important;
+}
+.tiny-ex-content{
+  width: 450px !important;
+}
+.el-header{
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
