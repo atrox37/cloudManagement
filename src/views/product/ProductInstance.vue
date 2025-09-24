@@ -97,15 +97,6 @@ export default defineComponent({
     const productData = ref({});
     const loading = ref(true);
 
-    let productId = null
-    const router = useRouter()
-    const route = useRoute()
-    const {proxy} = getCurrentInstance()
-    const titleLabel = ref("产品详情")
-    const activeName = ref("first")
-    const productData = ref({})
-    const loading = ref(true)
-
     const deviceMetaRef = ref(null);
     const deviceUnit = reactive([]);
     const productFormRef = ref(null);
@@ -135,13 +126,13 @@ export default defineComponent({
       // 重新加载数据
       requestApi();
     };
-    watch(dialogEditVisible, (v) => {
-      if (v) {
-        dialogEditData.value = JSON.parse(
-          JSON.stringify(productData.value.productPo)
-        );
-      }
-    });
+    // watch(dialogEditVisible, (v) => {
+    //   if (v) {
+    //     dialogEditData.value = JSON.parse(
+    //       JSON.stringify(productData.value.productPo)
+    //     );
+    //   }
+    // });
     const backClick = function () {
       router.go(-1);
     };
@@ -217,7 +208,6 @@ export default defineComponent({
       backClick,
       handleClick,
       updateMetaApi,
-      editDialog,
       submitTree,
       productRuleOpen,
       productRuleClose,

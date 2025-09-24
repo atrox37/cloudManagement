@@ -142,6 +142,7 @@
 <script>
   import {defineComponent, onMounted, ref, reactive, getCurrentInstance,computed} from "vue"
   import {ElMessage} from "element-plus";
+  import MD5 from 'crypto-js/md5'
 export default defineComponent({
   name: "UserPage",
   setup(props,context){
@@ -281,6 +282,9 @@ export default defineComponent({
     const saveUpdateApi=()=>{
       uploading.value=true
       let param=JSON.parse(JSON.stringify(selectUser.sysUserPo))
+      if(param.password != undefined && param.password != ''){
+        param.password=MD5(param.password).toString()
+      }
       delete param.updateTime
       proxy.$http.sysUserSaveUpdate(param).then(value=>{
         reloadApi()
