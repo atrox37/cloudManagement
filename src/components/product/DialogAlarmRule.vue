@@ -34,14 +34,14 @@
             size="small"
           ></el-input-number>
         </div>
-        <div v-if="sourceAlarm.rulePo.ruleData.type == 'cron'">
+        <!-- <div v-if="sourceAlarm.rulePo.ruleData.type == 'cron'">
           <el-input v-model="sourceAlarm.rulePo.ruleData.cron"></el-input>
-        </div>
+        </div> -->
       </el-form-item>
       <el-form-item label="触发条件">
-        <AlarmItem
+        <ProductAlarmItem
           ref="alarmItems"
-          :deviceData="sourceDevice"
+          :productData="sourceproduct"
           v-for="(columns, key) in alarmColumn"
           @delGroup="delGroup(key)"
           :key="key"
@@ -53,7 +53,7 @@
             margin: 5px 0 0 0;
             overflow: hidden;
           "
-        ></AlarmItem>
+        ></ProductAlarmItem>
         <el-row style="width: 100%">
           <el-col :span="24" class="center-flex-contain" style="padding: 5px">
             <el-button
@@ -64,16 +64,6 @@
             />
           </el-col>
         </el-row>
-      </el-form-item>
-      <el-form-item label="处理方式">
-        <!--<AlarmHandlerItem ref="alarmNotifys" v-for="(item,index) in ruleNotifyData" :key="index" :notifyPo="item" :deviceData="sourceDevice"></AlarmHandlerItem>-->
-        <AlarmHandler
-          ref="alarmNotifys"
-          :rulePo="sourceAlarm.rulePo"
-          :deviceData="sourceDevice"
-          :notifyData="ruleNotifyData"
-          :notifyConfig="notifyConfig"
-        ></AlarmHandler>
       </el-form-item>
     </el-form>
     <template #footer>
@@ -98,21 +88,18 @@ import {
   getCurrentInstance,
 } from "vue";
 import { Plus, Delete } from "@element-plus/icons-vue";
-import AlarmItem from "@/components/device/item/AlarmItem.vue";
-import AlarmHandlerItem from "@/components/device/item/AlarmHandlerItem.vue";
-import AlarmNotify from "@/components/device/item/AlarmNotify.vue";
-import AlarmHandler from "@/components/device/item/AlarmHandler.vue";
+import ProductAlarmItem from "@/components/product/item/ProductAlarmItem.vue";
 import { ElMessage } from "element-plus";
 export default defineComponent({
   name: "DialogAlarm",
-  components: { AlarmItem, AlarmHandlerItem, AlarmNotify, AlarmHandler },
+  components: { ProductAlarmItem },
   props: {
     status: {
       type: Boolean,
       required: true,
       default: false,
     },
-    deviceData: {
+    productData: {
       type: Object,
       required: true,
       default: () => ({}),
@@ -126,21 +113,21 @@ export default defineComponent({
   emits: ["close", "reload"],
   setup(props, context) {
     const { proxy } = getCurrentInstance();
-    const sourceDevice = toRef(props, "deviceData");
+    const sourceproduct = toRef(props, "productData");
     const sourceAlarm = toRef(props, "alarmData");
     const sourcestatus = toRef(props, "status");
     const alarmItems = ref([]);
     const notifyConfig = reactive([]);
     const alarmNotifys = ref(null);
 
-    const ruleNotifyData = reactive([]);
+    // const ruleNotifyData = reactive([]);
 
     const alarmColumn = ref([]);
     watch(sourceAlarm, (value) => {
       alarmColumn.value.length = 0;
       alarmColumn.value.push(...value.columns);
-      ruleNotifyData.length = 0;
-      ruleNotifyData.push(...value.ruleDtos);
+      // ruleNotifyData.length = 0;
+      // ruleNotifyData.push(...value.ruleDtos);
       console.log("change alarmColumn");
       if (alarmNotifys.value != null) {
         console.log("sourcestatus change:");
@@ -177,7 +164,7 @@ export default defineComponent({
     };
     const saveAlarm = () => {
       var data = {
-        rulePo: sourceAlarm.value.rulePo,
+        rulePo: sourceAlarm.value.rulePo || {},
         columns: [],
         ruleDtos: [],
         delMeta: [],
@@ -202,7 +189,7 @@ export default defineComponent({
       data.delMeta.push(...alarmNotifys.value.getDelRuleMate());
       console.log("saveAlarm");
 
-      proxy.$http.deviceRuleSave(data).then((value) => {
+      proxy.$http.productRuleSave(data).then((value) => {
         console.log("保存成功");
         ElMessage({
           showClose: true,
@@ -228,9 +215,9 @@ export default defineComponent({
       notifyConfig,
       alarmNotifys,
       alarmItems,
-      ruleNotifyData,
+      // ruleNotifyData,
       alarmColumn,
-      sourceDevice,
+      sourceproduct,
       sourcestatus,
       sourceAlarm,
       addGroup,
@@ -245,7 +232,7 @@ export default defineComponent({
 .dialog-alarm .el-dialog {
   border-radius: 20px;
   --el-dialog-width: 80%;
-  height: 30%;
+  // height: 30%;
   background-color: #42b983;
 }
 .text-style {
@@ -253,7 +240,10 @@ export default defineComponent({
   font-size: 20ex;
 }
 ::v-deep .el-dialog {
-  height: 30%;
+  // height: 30%;
   background-color: #42b983;
+}
+:deep(.el-dialog.gload-dialog .el-dialog__body){
+  height: calc(100% - 72px) !important;
 }
 </style>
