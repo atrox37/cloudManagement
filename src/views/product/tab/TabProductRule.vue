@@ -37,13 +37,18 @@
       <el-table-column header-align="center" align="center">
         <template #header>
           <el-button @click="add()" class="login_btn" type="primary"
-            >添加</el-button
+          >添加
+          </el-button
           >
         </template>
         <template #default="scope">
-          <el-button @click="edit(scope.row)" class="login_btn" type="primary">
-            修改
-          </el-button>
+          <el-button-group>
+            <el-button @click="edit(scope.row,scope.$index)" class="login_btn" type="primary">
+              修改
+            </el-button>
+            <el-button @click="deleteClick(scope.$index)">删除</el-button>
+          </el-button-group>
+
         </template>
       </el-table-column>
     </el-table>
@@ -57,7 +62,7 @@ import {
   ref,
   onMounted,
   reactive,
-  getCurrentInstance,
+  getCurrentInstance
 } from "vue";
 import DialogProductRule from "@/components/product/DialogProductRule.vue";
 import cronstrue from "cronstrue/i18n";
@@ -66,6 +71,12 @@ import { productParse } from "@/util/request";
 export default defineComponent({
   name: "TabProductRule",
   components: { DialogProductRule },
+  props: {
+    productData: {
+      type: Object,
+      required: false
+    }
+  },
   emits: ["open"],
   setup(props, context) {
     const { proxy } = getCurrentInstance();
@@ -73,14 +84,10 @@ export default defineComponent({
       status: false,
       loading: false,
       rule: {},
-      column: [],
+      column: []
     });
     // 演示数据（父组件未传入时仍能展示）
-    const data = ref(
-      JSON.parse(
-        '{"properties":[{"id":"num","name":"num名字","tagId":"1","rw":"write","valueType":{"extra":{"point":1},"type":"number","unit":"percent"}},{"id":"data","name":"data名字","tagId":"2","rw":"write","valueType":{"extra":{"point":1},"type":"number","unit":"data"}},{"id":"mm","name":"mm","tagId":"1","rw":"write","valueType":{"extra":{"enumData":[{"key":"1","value":"开"},{"key":"0","value":"关"}]},"type":"enum","unit":"data"}},{"id":"mm2","name":"mm2","tagId":"1","rw":"write","valueType":{"extra":{"length":null},"type":"string","unit":"percent"}},{"id":"str","name":"str","tagId":"1","rw":"write","valueType":{"extra":{"length":null},"type":"string","unit":"percent"}},{"id":"p","name":"p","tagId":"1","rw":"write","valueType":{"extra":{"length":null},"type":"string","unit":"data"}}],"functions":[{"id":"funid","name":"funname","async":false,"inputs":[{"id":"arg1","name":"arg1name","valueType":{"extra":{"enumData":[{"key":"1","value":"开"},{"key":"0","value":"关"}]},"type":"enum","unit":"data"}},{"id":"arg2","name":"arg2name","valueType":{"extra":{"length":null},"type":"string","unit":"percent"}},{"id":"arg3","name":"arg3name","valueType":{"extra":{"point":0},"type":"number","unit":"percent"}},{"id":"a1","name":"a1","valueType":{"extra":{"point":0},"type":"number","unit":"percent"}},{"id":"a2","name":"a2","valueType":{"extra":{"point":0},"type":"number","unit":"percent"}},{"id":"a3","name":"a3","valueType":{"extra":{"point":0},"type":"number","unit":"percent"}},{"id":"a4","name":"a4","valueType":{"extra":{"point":0},"type":"number","unit":"percent"}},{"id":"a5","name":"a5","valueType":{"extra":{"point":0},"type":"number","unit":"percent"}}],"outputs":[{"id":"arg1","name":"arg1name","valueType":{"extra":{"length":null},"type":"string","unit":"count"}}]},{"id":"funid2","name":"功能2","async":true,"inputs":[{"id":"arg1","name":"arg1name","valueType":{"extra":{"point":0},"type":"number","unit":"percent"}}],"outputs":[{"id":"result1","name":"result1name","valueType":{"extra":{"point":0},"type":"number","unit":"percent"}}]}],"propertyTags":[{"id":"1","name":"遥测"},{"id":"2","name":"遥调"}],"rules":[{"name":"默认规则","ruleData":{"type":"time","count":2,"collTime":5,"cron":"0/10 * * * * ?"},"ruleMeta":{"sql":"select * where (num > ? and data > ?) or (mm = ?)","param":{"mm":["1"],"data":[1.0],"num":[10.0]}}}],"trees":[]}'
-      )
-    );
+    const data = ref(props.productData.metadata);
 
     const handlerCroe = (row) =>
       cronstrue.toString(row.ruleData.cron, { locale: "zh_CN" });
@@ -142,13 +149,13 @@ export default defineComponent({
       }
     };
 
-    const parseApi = (row) => {
+    const parseApi = (row,index) => {
       proxy.$http.productParse(row.ruleMeta).then(
         (result) => {
           console.log("success");
           // ruleData.column.length = 0
           // ruleData.column.push(...result.data)
-          context.emit("open", { columns: result.data, rulePo: row });
+          context.emit("open", { columns: result.data, rulePo: row},index,data.value);
         },
         (error) => {
           console.log("error");
@@ -156,10 +163,13 @@ export default defineComponent({
       );
     };
 
-    const edit = (row) => {
+    const edit = (row,index) => {
       ruleData.rule = JSON.parse(JSON.stringify(row));
       console.log("edit");
-      parseApi(row);
+      parseApi(row,index);
+    };
+    const deleteClick = (index) => {
+      data.rules.splice(index, 1);
     };
     const add = () => {
       console.log("add");
@@ -179,8 +189,9 @@ export default defineComponent({
       formatSql,
       add,
       edit,
+      deleteClick
     };
-  },
+  }
 });
 </script>
 

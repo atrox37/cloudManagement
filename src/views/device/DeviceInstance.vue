@@ -1,8 +1,5 @@
 <template>
-  <div
-    v-if="lazyLoad"
-    style="width: 100%; height: 100%; padding: 0; margin: 0px"
-  >
+  <div v-if="lazyLoad" style="width: 100%;height:100%;padding: 0;margin: 0px">
     <ContentHeader>
       <template #more>
         <el-descriptions
@@ -42,10 +39,7 @@
       @tab-click="handleClick"
     >
       <el-tab-pane label="基本信息" name="first">
-        <DeviceDetail
-          :deviceData="deviceData"
-          @editClick="editDialogClick"
-        ></DeviceDetail>
+        <DeviceDetail :deviceData="deviceData" :deviceTags="deviceTags" @detailSave="detailSaveClick" @tagSave="updateTagApi"></DeviceDetail>
       </el-tab-pane>
       <el-tab-pane label="模型属性" name="five">
         <DeviceMeta
@@ -169,18 +163,19 @@ import DeviceDetail from "@/views/device/info/DeviceDetail.vue";
 import DeviceRun from "@/views/device/info/DeviceRun.vue";
 import DeviceFunction from "@/views/device/info/DeviceFunction.vue";
 import DeviceLog from "@/views/device/info/DeviceLog.vue";
-import DeviceChildren from "@/views/device/info/DeviceChildren.vue";
-import ContentHeader from "@/components/menuContain/ContentHeader.vue";
-import MenuContainerHeader from "@/components/menuContain/MenuContainerHeader.vue";
-import DeviceMeta from "@/views/device/info/DeviceMeta.vue";
-import DeviceAlarm from "@/views/device/info/DeviceAlarm.vue";
-import DialogDeviceEdit from "@/components/device/DialogDeviceEdit.vue";
-import DialogAlarm from "@/components/device/DialogAlarm.vue";
-import DialogProperty from "@/components/device/DeviceProperty.vue";
-import DialogChildrenAdd from "@/components/device/DialogChildrenAdd.vue";
-import DialogPropertyControl from "@/components/device/DialogPropertyControl.vue";
+import DeviceChildren from '@/views/device/info/DeviceChildren.vue'
+import ContentHeader from '@/components/menuContain/ContentHeader.vue'
+import MenuContainerHeader from '@/components/menuContain/MenuContainerHeader.vue'
+import DeviceMeta from '@/views/device/info/DeviceMeta.vue'
+import DeviceAlarm from '@/views/device/info/DeviceAlarm.vue'
+import DialogDeviceEdit from '@/components/device/DialogDeviceEdit.vue'
+import DialogAlarm from '@/components/device/DialogAlarm.vue'
+import DialogProperty from '@/components/device/DeviceProperty.vue'
+import DialogChildrenAdd from '@/components/device/DialogChildrenAdd.vue'
+import DialogPropertyControl from '@/components/device/DialogPropertyControl.vue'
 import { column } from "element-plus/es/components/table-v2/src/common";
-import { ElMessage } from "element-plus";
+import { ElMessage } from 'element-plus';
+import { deviceTag, deviceUpdate } from "@/util/request";
 
 export default defineComponent({
   name: "DeviceInstance",
@@ -198,7 +193,7 @@ export default defineComponent({
     DialogAlarm,
     DialogProperty,
     DialogChildrenAdd,
-    DialogPropertyControl,
+    DialogPropertyControl
   },
   setup() {
     const { proxy } = getCurrentInstance();
@@ -222,6 +217,7 @@ export default defineComponent({
       { name: "产品", value: "测试产品" },
     ]);
     const deviceRunView = ref();
+    const deviceTags = reactive([]);
     const deviceUnit = reactive([]);
     const activeName = ref("first");
 
@@ -289,8 +285,21 @@ export default defineComponent({
 
     const editDialogClick = () => {
       dialogEdit.value = true;
-    };
-    let stomp = null;
+    }
+    const detailSaveClick=(po)=>{
+      var devicePo = JSON.parse(JSON.stringify(po));
+      delete devicePo.createTime
+      delete devicePo.updateTime
+      delete devicePo.metadata
+      delete devicePo.status
+      delete devicePo.statusTime
+      delete devicePo.treeNode
+      delete devicePo.parentId
+      delete devicePo.productId
+      console.log('detailSaveClick')
+      updateDeviceInstance(devicePo)
+    }
+    let stomp = null
     let socket = null;
 
     const connectFunc = function () {
@@ -512,8 +521,55 @@ export default defineComponent({
             plain: true,
           });
         }
-      };
-    };
+      }
+    }
+
+    const updateTagApi=(tags)=>{
+      console.log('updateTagApi')
+      let params=[]
+      for(let item of tags){
+        if(!(item.id == undefined&&(item.tagValue == undefined||item.tagValue==''))){
+          item.deviceId=deviceId
+          params.push(item)
+        }
+      }
+      if(params.length>0){
+        console.log("updateTagApi");
+        proxy.$http.deviceUpdate(params).then(v=>{
+          console.log('updateTagApi success')
+          ElMessage({
+            message: '操作成功',
+            type: 'success',
+            plain: true,
+          })
+        },e=>{
+          ElMessage({
+            message: '操作失败',
+            type: 'error',
+            plain: true,
+          })
+        })
+      }
+    }
+
+    const tagApi=(tags)=>{
+      proxy.$http.deviceTag({terms: [{column: 't.device_id', value: deviceId}]}).then(value => {
+        for(let item of value.data){
+          for(let i in tags){
+            if(item.tagKey == tags[i].tagKey){
+              tags[i].tagValue=item.tagValue
+              tags[i].id=item.id
+              break
+            }
+          }
+        }
+        deviceTags.length=0
+        deviceTags.push(...tags)
+        console.log('tagAPi success')
+      },error => {
+        console.log('tagAPi success')
+      })
+    }
 
     const requestApi = function () {
       let params = { terms: [{ column: "t.id", value: deviceId }] }; //id:deviceId
@@ -522,6 +578,7 @@ export default defineComponent({
         deviceData.value = value.data;
         deviceMeta.value = value.data.deviceInstancePo;
         lazyLoad.value = true;
+        tagApi(value.data.deviceInstancePo.metadata.tags);
       });
     };
     const requestGatewayApi = () => {
@@ -684,7 +741,7 @@ export default defineComponent({
       console.log("alarmOpen");
       dialogAlarmState.value = true;
       dialogAlarmData.value = data;
-      
+
     };
 
     const propertyDialogShow = (meas) => {
@@ -756,6 +813,7 @@ export default defineComponent({
       disConnectFunc();
     });
     return {
+      deviceTags,
       dialogPropertyControl,
       deviceStatusTag,
       gatewayData,
@@ -784,6 +842,7 @@ export default defineComponent({
       dialogChildrenData,
       logData,
       tabFunctionData,
+      detailSaveClick,
       updateDeviceInstanceBase,
       editDialogClick,
       funcExecution,
@@ -805,6 +864,7 @@ export default defineComponent({
       writeProperty,
       propertyControlCancel,
       propertyControlSubmit,
+      updateTagApi
     };
   },
 });

@@ -39,7 +39,7 @@
           <el-option label="每周" value="周"></el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="触发时间">
+      <el-form-item label="采集时间">
         <div v-if="sourceAlarm.rulePo.ruleData.type == 'time'">
           <el-input-number
             v-model="sourceAlarm.rulePo.ruleData.collTime"
@@ -111,7 +111,7 @@ import ProductAlarmItem from "@/components/product/item/ProductAlarmItem.vue";
 import cronstrue from "cronstrue/i18n";
 import { ElMessage } from "element-plus";
 export default defineComponent({
-  name: "DialogAlarm",
+  name: "DialogAlarmRule",
   components: { ProductAlarmItem },
   props: {
     status: {
@@ -133,7 +133,7 @@ export default defineComponent({
       }),
     },
   },
-  emits: ["close", "reload"],
+  emits: ["close", "reload","save"],
   setup(props, context) {
     const { proxy } = getCurrentInstance();
     const sourceproduct = toRef(props, "productData");
@@ -234,41 +234,8 @@ export default defineComponent({
       context.emit("close");
     };
     const saveAlarm = () => {
-      var data = {
-        rulePo: sourceAlarm.value.rulePo || {},
-        columns: [],
-        ruleDtos: [],
-        delMeta: [],
-      };
-      for (var item of alarmItems.value) {
-        if (item.getProperty().length > 0) {
-          data.columns.push(item.getProperty());
-        }
-      }
-      for (var item of alarmNotifys.value.getNotifyD()) {
-        /**var handlerType=JSON.stringify(item.ruleMetaPo.handlerType)
-                    item.ruleMetaPo.handlerType=handlerType**/
-        item.ruleMetaPo.handlerType = JSON.stringify(
-          item.ruleMetaPo.handlerType
-        );
-        if (item.ruleMetaPo.id == null) {
-          data.ruleDtos.push({ ruleMetaPo: item.ruleMetaPo });
-        } else {
-          data.ruleDtos.push({ ruleMetaPo: item.ruleMetaPo });
-        }
-      }
-      data.delMeta.push(...alarmNotifys.value.getDelRuleMate());
       console.log("saveAlarm");
-
-      proxy.$http.productRuleSave(data).then((value) => {
-        console.log("保存成功");
-        ElMessage({
-          showClose: true,
-          message: "保存成功",
-          type: "success",
-        });
-        context.emit("reload");
-      });
+      context.emit("save",sourceAlarm.value)
     };
 
     onMounted(() => {

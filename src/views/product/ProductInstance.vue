@@ -46,6 +46,7 @@
     :productData="productData.productPo"
     :alarmData="productRuleData"
     :status="dialogProductRuleState"
+    @save="productRuleSave"
     @close="productRuleClose"
     @reload="productRuleReload"
   ></DialogAlarmRule>
@@ -73,6 +74,7 @@ import {
   reactive,
 } from "vue";
 import { ElMessage } from "element-plus";
+import { productSerialize } from "@/util/request";
 
 export default defineComponent({
   name: "ProductInstance",
@@ -104,6 +106,7 @@ export default defineComponent({
     const treeLoad = ref(false);
     const dialogProductRuleState = ref(false);
     const productRuleData = ref(null);
+    const productRuleIndex = ref(-1)
     const unitApi = () => {
       proxy.$http.unitApi().then((value) => {
         deviceUnit.length = 0;
@@ -111,11 +114,11 @@ export default defineComponent({
         console.log("unitApi");
       });
     };
-    const productRuleOpen = (data) => {
+    const productRuleOpen = (data,index,meta) => {
       console.log("productRuleOpen");
       productRuleData.value = data;
+      productRuleIndex.value=index;
       dialogProductRuleState.value = true;
-      
     };
     
     const productRuleClose = () => {
@@ -191,6 +194,13 @@ export default defineComponent({
       console.log('submitTree')
       updateApi(param)
     }
+    const productRuleSave=(rulePo)=>{
+      let param={metadata:productData.value.productPo.metadata,columns:rulePo.columns,rulePo:rulePo.rulePo}
+      proxy.$http.productSerialize(param).then(v=>{
+        productData.value.productPo.metadata.rules[productRuleIndex.value]=v.data
+        console.log("productRuleSave")
+      })
+    }
     onMounted(() => {
       console.log("sss");
       unitApi();
@@ -212,6 +222,7 @@ export default defineComponent({
       productRuleOpen,
       productRuleClose,
       productRuleReload,
+      productRuleSave,
       productRuleData,
       dialogProductRuleState,
     };

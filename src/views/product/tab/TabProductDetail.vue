@@ -39,7 +39,7 @@
       <el-descriptions-item label="标签">
         <el-space wrap>
           <el-tag closable v-for="(item,index) in copyData.productPo.metadata.tags" @close="tagClose(index)"
-                  @click="tagClick(index)">{{ item.name }}
+                  @click="tagClick(index)">{{ item.tagName }}
           </el-tag>
           <el-button size="small" @click="addTag">+ New Tag</el-button>
         </el-space>
@@ -48,11 +48,11 @@
   </div>
   <el-dialog v-model="tagDialog.status" title="标签">
     <el-form ref="tagForm" :model="tagDialog.tag" label-width="80px" :rules="rules" status-icon>
-      <el-form-item label="标签key" prop="tagkey">
-        <el-input v-model="tagDialog.tag.key" placeholder="请输入英文key" />
+      <el-form-item label="标签key" prop="tagKey">
+        <el-input v-model="tagDialog.tag.tagKey" placeholder="请输入英文key" />
       </el-form-item>
-      <el-form-item label="标签名" prop="tagname">
-        <el-input v-model="tagDialog.tag.name" placeholder="请输入标签名" />
+      <el-form-item label="标签名" prop="tagName">
+        <el-input v-model="tagDialog.tag.tagName" placeholder="请输入标签名" />
       </el-form-item>
       <el-form-item label="是否必填">
         <el-radio-group v-model="tagDialog.tag.optional">
@@ -92,7 +92,7 @@ export default defineComponent({
   emits: ["dialogClick","submit"],
   setup(props, context) {
     const {proxy} = getCurrentInstance()
-    const tagDialog = reactive({ status: false, index: -1, tag: { key: "", name: "", value: "", optional: false } });
+    const tagDialog = reactive({ status: false, index: -1, tag: { tagKey: "", tagName: "", tagValue: "", optional: false } });
     const dimensionTree = ref([]);
     const dimensionAllTree = computed(() => {
       const rootTree=[]
@@ -108,13 +108,13 @@ export default defineComponent({
     });
     const validateSelect = (rule, value, callback) => {
       console.log("validateSelect:" + rule.field);
-      if (rule.field == "tagkey") {
-        if (tagDialog.tag.key == undefined || tagDialog.tag.key == "") {
+      if (rule.field == "tagKey") {
+        if (tagDialog.tag.tagKey == undefined || tagDialog.tag.tagKey == "") {
           callback(("标签key不能为空"));
         } else {
           var exit = false;
           for (var item of copyData.value.productPo.metadata.tags) {
-            if (item.key == tagDialog.tag.key) {
+            if (item.tagKey == tagDialog.tag.tagKey) {
               exit = true;
               break;
             }
@@ -125,8 +125,8 @@ export default defineComponent({
             callback();
           }
         }
-      } else if (rule.field == "tagname") {
-        if (tagDialog.tag.key == undefined || tagDialog.tag.key == "") {
+      } else if (rule.field == "tagName") {
+        if (tagDialog.tag.tagName == undefined || tagDialog.tag.tagName == "") {
           callback(("标签名不能为空"));
         } else {
           callback();
@@ -144,8 +144,8 @@ export default defineComponent({
     };
 
     const rules = ref({
-      tagkey: [{ validator: validateSelect, trigger: "blur" }],
-      tagname: [{ validator: validateSelect, trigger: "blur" }]
+      tagKey: [{ validator: validateSelect, trigger: "blur" }],
+      tagName: [{ validator: validateSelect, trigger: "blur" }]
     });
     const initData = () => {
       copyData.value = JSON.parse(JSON.stringify(data.value));
@@ -156,7 +156,7 @@ export default defineComponent({
     const addTag = () => {
       console.log("addTag");
       tagDialog.index = -1;
-      tagDialog.tag = { key: "", name: "", value: "", optional: false };
+      tagDialog.tag = { tagKey: "", tagName: "", tagValue: "", optional: false };
       tagDialog.status = true;
     };
     const tagClose = (index) => {

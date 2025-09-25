@@ -25,7 +25,7 @@
   height: 100%;
   box-sizing: content-box;
 }
-.el-tabs__header{
+::v-deep .el-tabs__header{
   width: auto;
   height: 40px;
   margin: 0;

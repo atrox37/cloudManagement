@@ -33,6 +33,12 @@ export const userPermissionApi = function(p: any){
 export const unitApi=()=>{
     return get('/api/iot-app/configuration/unit',{})
 }
+export const deviceTag=(p)=>{
+    return post('/api/iot-app/device_tag/_search_all',p)
+}
+export const deviceUpdate=(p)=>{
+    return post('/api/iot-app/device_tag/_save_or_update_batch',p)
+}
 export const deviceSearch = function (p: any) {
     return post('/api/iot-app/device/_search_one',p)
 }
@@ -50,6 +56,9 @@ export const deleteDeviceInstanceApi = function (p:any){
 }
 export const productParse = function (p: any) {
     return post('/api/iot-app/product/_parse',p)
+}
+export const productSerialize = function (p: any) {
+    return post('/api/iot-app/product/_serialize',p)
 }
 export const productPage = function (p: any) {
     return post('/api/iot-app/product/_page',p)
