@@ -28,8 +28,8 @@
           <el-option
             v-for="itemChild in scope.row.condition"
             :key="itemChild.value"
-            :label="itemChild.label"
-            :value="itemChild.value"
+            :label="itemChild.value"
+            :value="itemChild.key"
           />
         </el-select>
       </template>

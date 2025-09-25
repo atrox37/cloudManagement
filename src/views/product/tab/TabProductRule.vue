@@ -37,7 +37,11 @@
       <el-table-column header-align="center" align="center">
         <template #header>
           <el-button @click="add()" class="login_btn" type="primary"
-          >添加
+          ><el-icon><Plus /></el-icon>添加
+          </el-button
+          >
+          <el-button @click="saveAll" class="login_btn" type="primary"
+          ><el-icon><Finished /></el-icon>保存
           </el-button
           >
         </template>
@@ -67,6 +71,7 @@ import {
 import DialogProductRule from "@/components/product/DialogProductRule.vue";
 import cronstrue from "cronstrue/i18n";
 import { productParse } from "@/util/request";
+import { Finished, Plus } from "@element-plus/icons-vue";
 
 export default defineComponent({
   name: "TabProductRule",
@@ -162,7 +167,10 @@ export default defineComponent({
         }
       );
     };
-
+    const saveAll = () => {
+      // console.log("save");
+      context.emit("save",data.value);
+    };
     const edit = (row,index) => {
       ruleData.rule = JSON.parse(JSON.stringify(row));
       console.log("edit");
@@ -189,13 +197,17 @@ export default defineComponent({
       formatSql,
       add,
       edit,
-      deleteClick
+      deleteClick,
+      saveAll,
+      Finished,
+      Plus
+
     };
   }
 });
 </script>
 
-<style>
+<style scoped>
 .tab-pan-content {
   width: 100%;
   height: 100%;
@@ -206,5 +218,9 @@ export default defineComponent({
 .cell-pre {
   white-space: pre-wrap;
   margin: 0;
+}
+
+:deep(.el-icon){
+  margin-right: 5px;
 }
 </style>

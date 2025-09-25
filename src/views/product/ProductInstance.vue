@@ -36,6 +36,7 @@
         <TabProductRule
           :productData="productData.productPo"
           @open="productRuleOpen"
+          @save="updateMetaApi"
         ></TabProductRule>
       </el-tab-pane>
     </el-tabs>
@@ -199,6 +200,8 @@ export default defineComponent({
       proxy.$http.productSerialize(param).then(v=>{
         productData.value.productPo.metadata.rules[productRuleIndex.value]=v.data
         console.log("productRuleSave")
+        dialogProductRuleState.value=false
+        
       })
     }
     onMounted(() => {

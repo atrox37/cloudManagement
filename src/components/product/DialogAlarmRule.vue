@@ -32,11 +32,10 @@
           v-model="sourceAlarm.rulePo.ruleData.cronJg"
           style="margin-left: 10px; width: 100px"
         >
-          <el-option label="每秒" value="秒"></el-option>
-          <el-option label="每分钟" value="分钟"></el-option>
-          <el-option label="每小时" value="小时"></el-option>
-          <el-option label="每天" value="天"></el-option>
-          <el-option label="每周" value="周"></el-option>
+          <el-option label="秒" value="秒"></el-option>
+          <el-option label="分" value="分"></el-option>
+          <el-option label="时" value="时"></el-option>
+          <el-option label="天" value="天"></el-option>
         </el-select>
       </el-form-item>
       <el-form-item label="采集时间">
@@ -105,11 +104,11 @@ import {
   onUpdated,
   toRef,
   getCurrentInstance,
+  watchEffect,
 } from "vue";
 import { Plus, Delete } from "@element-plus/icons-vue";
 import ProductAlarmItem from "@/components/product/item/ProductAlarmItem.vue";
-import cronstrue from "cronstrue/i18n";
-import { ElMessage } from "element-plus";
+import { quickConvert, cronToDescription } from "@/utils/cronConverter";
 export default defineComponent({
   name: "DialogAlarmRule",
   components: { ProductAlarmItem },
@@ -133,7 +132,7 @@ export default defineComponent({
       }),
     },
   },
-  emits: ["close", "reload","save"],
+  emits: ["close", "reload", "save"],
   setup(props, context) {
     const { proxy } = getCurrentInstance();
     const sourceproduct = toRef(props, "productData");
@@ -145,24 +144,6 @@ export default defineComponent({
     const alarmItems = ref([]);
     const notifyConfig = reactive([]);
     const alarmNotifys = ref(null);
-    // const ruleNotifyData = reactive([]);
-    const handlerCroe = (cron) => {
-      try {
-        if (!cron || typeof cron !== "string") {
-          return cron || "";
-        }
-        // 检查是否是有效的cron表达式（至少5个部分）
-        const cronParts = cron.trim().split(/\s+/);
-        if (cronParts.length < 5) {
-          console.warn("无效的cron表达式:", cron);
-          return cron;
-        }
-        return cronstrue.toString(cron, { locale: "zh_CN" });
-      } catch (error) {
-        console.warn("处理cron表达式失败:", error, "原始值:", cron);
-        return cron || "";
-      }
-    };
 
     watch(
       () => props.alarmData,
@@ -174,13 +155,13 @@ export default defineComponent({
 
           // 如果有 cron 值，通过 handlerCroe 方法处理
           if (processedData.rulePo?.ruleData?.cron) {
-            const cronDescription = handlerCroe(
-              processedData.rulePo.ruleData.cron
+            const cronDescription = cronToDescription(
+              processedData.rulePo?.ruleData?.cron
             );
             // 将处理后的描述保存到新的字段中，保留原始cron值
             const arr = cronDescription.split(" ");
-            processedData.rulePo.ruleData.cronNum = parseFloat(arr[1]);
-            processedData.rulePo.ruleData.cronJg = arr[2];
+            processedData.rulePo.ruleData.cronNum = parseFloat(arr[0]);
+            processedData.rulePo.ruleData.cronJg = arr[1];
           }
 
           sourceAlarm.value = processedData;
@@ -193,6 +174,19 @@ export default defineComponent({
       },
       { deep: true, immediate: true }
     );
+
+    watchEffect(() => {
+      if (
+        sourceAlarm.value.rulePo.ruleData.cronNum &&
+        sourceAlarm.value.rulePo.ruleData.cronJg
+      ) {
+        sourceAlarm.value.rulePo.ruleData.cron = quickConvert(
+          sourceAlarm.value.rulePo.ruleData.cronNum +
+            " " +
+            sourceAlarm.value.rulePo.ruleData.cronJg
+        );
+      }
+    });
     const alarmColumn = ref([]);
     watch(sourceAlarm, (value) => {
       alarmColumn.value.length = 0;
@@ -234,8 +228,9 @@ export default defineComponent({
       context.emit("close");
     };
     const saveAlarm = () => {
-      console.log("saveAlarm");
-      context.emit("save",sourceAlarm.value)
+
+
+      context.emit("save", sourceAlarm.value);
     };
 
     onMounted(() => {
