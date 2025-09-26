@@ -217,7 +217,7 @@
             }
             const addClick=()=>{
                 console.log('addClick')
-                dialogCreateProduct.value={status:true,loading:false,product:{name:'',type:'device',metadata:{properties:[],functions:[],propertyTags:[]}}}
+                dialogCreateProduct.value={status:true,loading:false,product:{name:'',sn:'',type:'device',metadata:{properties:[],functions:[],propertyTags:[],trees:[],rules:[],tags:[]}}}
             }
             const creatProduct=()=>{
                 dialogCreateProduct.value.loading=true

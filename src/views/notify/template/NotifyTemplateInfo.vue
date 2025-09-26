@@ -38,7 +38,7 @@
     </el-form>
     <el-container class="tiny-container">
       <el-main class="tiny-main">
-        <el-table :data="page.record" border stripe @row-click="editClick">
+        <el-table :data="page.record" border stripe >
           <el-table-column prop="templateUserPo.id" label="Id" width="50"/>
           <el-table-column prop="templateUserPo.name" label="名称" width="180"/>
           <el-table-column prop="templateUserPo.receiver" label="接受对象"/>
@@ -77,8 +77,8 @@
     </el-container>
   </div>
   <Loading :loading="loading"></Loading>
-  <TestEmail title="邮箱模板测试" submitLabel="发送" :data="testEmail" @click="testClick"></TestEmail>
-  <TestEmail title="邮箱模板新增编辑" submitLabel="保存" :data="selectEmail" @click="selectClick"></TestEmail>
+  <TestEmail title="邮箱模板测试" :user="accountUser" submitLabel="发送" :data="testEmail" @click="testClick"></TestEmail>
+<!--  <TestEmail title="邮箱模板新增编辑" submitLabel="保存" :data="selectEmail" @click="selectClick"></TestEmail>-->
   <el-drawer v-model="drawableContent" size="25%" title="模板内容" @close="drawClose">
     <template #default>
       <NotifyEmailTemplate v-if="templateData.configPo.code == 'email'" ref="drawableEmailRef"
@@ -95,7 +95,7 @@ import TestEmail from '@/views/notify/template/test/TestEmail.vue'
 import {defineComponent, reactive, ref, getCurrentInstance, onMounted, watch, toRef} from "vue"
 import {useRoute, useRouter} from "vue-router";
 import {ElMessage} from 'element-plus'
-import {notifyTemplateUpdate, notifyTemplateUserDelete, notifyTemplateUserUpdate} from "@/util/request";
+import { notifyTemplateUpdate, notifyTemplateUserDelete, notifyTemplateUserUpdate, sysUserPage } from "@/util/request";
 
 export default defineComponent({
   name: "NotifyTemplateInfo",
@@ -130,6 +130,7 @@ export default defineComponent({
       receiver: "",
       loading: false
     })
+    const accountUser=reactive([])
 
     let queryData;
 
@@ -292,6 +293,17 @@ export default defineComponent({
       console.log('testClick->%s', JSON.stringify(param))
       sendTemplateApi(param)
     }
+
+    const accountApi=()=>{
+      proxy.$http.sysUserPage({current:1,size:-1}).then(v=>{
+        accountUser.length=0;
+        accountUser.push(...v.data.records)
+        console.log('accountApi')
+      },e=>{
+        console.log('accountApi')
+      })
+    }
+
     const selectClick = (selectData) => {
       console.log('selectClick:' + JSON.stringify(selectData.receiverPo))
 
@@ -328,6 +340,7 @@ export default defineComponent({
     onMounted(() => {
       queryData = route.query
       console.log('onMounted')
+      accountApi()
       supportConfigApi()
       requestInfoApi()
       userPageApi()
@@ -346,6 +359,7 @@ export default defineComponent({
       contentModel,
       templateData,
       templateContentData,
+      accountUser,
       testClick,
       onTest,
       selectClick,

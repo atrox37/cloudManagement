@@ -37,7 +37,7 @@
       <el-descriptions-item label="创建时间">{{ data.deviceInstancePo.createTime }}</el-descriptions-item>
       <el-descriptions-item label="更新时间">{{ data.deviceInstancePo.updateTime }}</el-descriptions-item>
     </el-descriptions>
-    <el-descriptions border title="设备标签" style="margin-top: 30px">
+    <el-descriptions v-if="copyTags.length>0" border title="设备标签" style="margin-top: 30px">
       <template #extra>
         <el-button style="margin-top: 5px" @click="saveClick">保存</el-button>
       </template>
