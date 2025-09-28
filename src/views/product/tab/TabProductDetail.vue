@@ -5,10 +5,7 @@
         <span>{{ copyData.productPo.name }}</span>
       </template>
       <template #extra>
-        <el-button type="primary" size="small" class="form-title" @click="editClick">
-          <el-icon>
-            <Edit />
-          </el-icon>
+        <el-button type="primary" size="small" class="form-title" @click="editClick">保存
         </el-button>
       </template>
       <el-descriptions-item label="名称">

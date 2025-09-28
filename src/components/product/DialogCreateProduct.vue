@@ -4,6 +4,9 @@
       <el-form-item label="产品名称" prop="productName">
         <el-input v-model="productDialog.product.name"></el-input>
       </el-form-item>
+      <el-form-item label="产品型号" prop="productSn">
+        <el-input v-model="productDialog.product.sn"></el-input>
+      </el-form-item>
       <el-form-item label="产品类型">
         <el-select v-model="productDialog.product.type">
           <el-option
@@ -68,10 +71,20 @@ export default defineComponent({
         } else {
           callback();
         }
+      }else if (rule.field == "productSn") {
+        if (
+          productDialog.value.product.sn == undefined ||
+          productDialog.value.product.sn == ""
+        ) {
+          callback("产品型号不能为空");
+        } else {
+          callback();
+        }
       }
     };
     const rules = ref({
       productName: [{ validator: validateSelect, trigger: "blur" }],
+      productSn: [{ validator: validateSelect, trigger: "blur" }]
     });
     const submitClick = () => {
       console.log("submitClick!");

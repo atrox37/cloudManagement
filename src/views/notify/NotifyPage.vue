@@ -65,16 +65,18 @@
         </el-footer>
     </el-container>
     <NotifyEmailConfig :data="configData" @close="closeDraw" @save="saveDraw"></NotifyEmailConfig>
+    <NotifyAwsEmailConfig :data="configData" @close="closeDraw" @save="saveDraw"></NotifyAwsEmailConfig>
 </template>
 
 <script>
     import {defineComponent, reactive, ref, getCurrentInstance, onMounted, toRef} from "vue"
     import NotifyEmailConfig from '@/views/notify/components/NotifyEmailConfig.vue'
+    import NotifyAwsEmailConfig from '@/views/notify/components/NotifyAwsEmailConfig.vue'
     import {notifyType} from '@/model/notify/NotifyType'
     import {useRouter} from "vue-router";
     export default defineComponent({
         name: "NotifyPage",
-        components:{NotifyEmailConfig},
+        components:{NotifyEmailConfig,NotifyAwsEmailConfig},
         setup(context){
             const {proxy} = getCurrentInstance()
             const router = useRouter()
@@ -127,6 +129,8 @@
                 console.log('addClick:'+type)
                 if(type=='email'){
                     configData.data={name:'',code:'email',config:{type:'email',host:'',port:0,pass:'',from:''}}
+                }else if(type=='aws-email'){
+                    configData.data={name:'',code:'aws-email',config:{type:'type',from:'',host:'',smtpUsername:0,smtpPassword:''}}
                 }
                 configData.state=true
                 /*configData.data=row.configPo

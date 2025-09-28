@@ -49,13 +49,16 @@
         <img ref="captchaRef" alt="图片" @click="captchaclick" />
       </el-form-item>
       <el-form-item class="login_btn_box clearfix">
-        <el-button
-          @click="login()"
-          class="login_btn"
-          type="primary"
-          :loading="loading"
+        <div class="right-flex-contain">
+          <el-button
+            @click="login()"
+            class="login_btn"
+            type="primary"
+            :loading="loading"
           >登陆</el-button
-        >
+          >
+        </div>
+
       </el-form-item>
     </el-form>
   </el-card>

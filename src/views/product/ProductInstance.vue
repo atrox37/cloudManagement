@@ -218,6 +218,7 @@ export default defineComponent({
       activeName,
       productData,
       treeLoad,
+      updateCopyApi,
       backClick,
       handleClick,
       updateMetaApi,
