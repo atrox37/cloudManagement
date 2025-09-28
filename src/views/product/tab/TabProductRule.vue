@@ -37,22 +37,23 @@
       <el-table-column header-align="center" align="center">
         <template #header>
           <el-button @click="add()" class="login_btn" type="primary"
-          ><el-icon><Plus /></el-icon>添加
-          </el-button
-          >
+            ><el-icon><Plus /></el-icon>添加
+          </el-button>
           <el-button @click="saveAll" class="login_btn" type="primary"
-          ><el-icon><Finished /></el-icon>保存
-          </el-button
-          >
+            ><el-icon><Finished /></el-icon>保存
+          </el-button>
         </template>
         <template #default="scope">
           <el-button-group>
-            <el-button @click="edit(scope.row,scope.$index)" class="login_btn" type="primary">
+            <el-button
+              @click="edit(scope.row, scope.$index)"
+              class="login_btn"
+              type="primary"
+            >
               修改
             </el-button>
             <el-button @click="deleteClick(scope.$index)">删除</el-button>
           </el-button-group>
-
         </template>
       </el-table-column>
     </el-table>
@@ -66,7 +67,7 @@ import {
   ref,
   onMounted,
   reactive,
-  getCurrentInstance
+  getCurrentInstance,
 } from "vue";
 import DialogProductRule from "@/components/product/DialogProductRule.vue";
 import cronstrue from "cronstrue/i18n";
@@ -79,8 +80,8 @@ export default defineComponent({
   props: {
     productData: {
       type: Object,
-      required: false
-    }
+      required: false,
+    },
   },
   emits: ["open"],
   setup(props, context) {
@@ -89,7 +90,7 @@ export default defineComponent({
       status: false,
       loading: false,
       rule: {},
-      column: []
+      column: [],
     });
     // 演示数据（父组件未传入时仍能展示）
     const data = ref(props.productData.metadata);
@@ -154,13 +155,18 @@ export default defineComponent({
       }
     };
 
-    const parseApi = (row,index) => {
+    const parseApi = (row, index) => {
       proxy.$http.productParse(row.ruleMeta).then(
         (result) => {
           console.log("success");
           // ruleData.column.length = 0
           // ruleData.column.push(...result.data)
-          context.emit("open", { columns: result.data, rulePo: row},index,data.value);
+          context.emit(
+            "open",
+            { columns: result.data, rulePo: row },
+            index,
+            data.value
+          );
         },
         (error) => {
           console.log("error");
@@ -169,18 +175,30 @@ export default defineComponent({
     };
     const saveAll = () => {
       // console.log("save");
-      context.emit("save",data.value);
+      context.emit("save", data.value);
     };
-    const edit = (row,index) => {
+    const edit = (row, index) => {
       ruleData.rule = JSON.parse(JSON.stringify(row));
       console.log("edit");
-      parseApi(row,index);
+      parseApi(row, index);
     };
     const deleteClick = (index) => {
-      data.rules.splice(index, 1);
+      data.value.rules.splice(index, 1);
     };
     const add = () => {
-      console.log("add");
+      const index = data.value.rules.length;
+      context.emit(
+        "open",
+        {
+          columns: [],
+          rulePo: {
+            name: "",
+            ruleData: { type: "time", cron: "", collTime: 0, count: 0 },
+          },
+        },
+        index,
+        data.value
+      );
     };
 
     onMounted(() => {
@@ -200,10 +218,9 @@ export default defineComponent({
       deleteClick,
       saveAll,
       Finished,
-      Plus
-
+      Plus,
     };
-  }
+  },
 });
 </script>
 
@@ -220,7 +237,7 @@ export default defineComponent({
   margin: 0;
 }
 
-:deep(.el-icon){
+:deep(.el-icon) {
   margin-right: 5px;
 }
 </style>

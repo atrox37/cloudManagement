@@ -135,7 +135,6 @@
             const sourceDevice=toRef(props,'deviceData')
             const ruleDataPo=toRef(props,'rulePo')
 
-
             const popoverVisible=ref(false)
             const notifyConfig=toRef(props,'notifyConfig')
             const functions=reactive([])

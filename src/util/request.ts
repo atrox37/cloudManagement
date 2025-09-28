@@ -219,3 +219,6 @@ export const devicePropertyHistory=function (p:any) {
 export const deviceLogData=function (p: any) {
     return post('/api/register-app/timeseries/log/_page',p)
 }
+export const getNotifyTemplateUserList=function (p: any) {
+    return post('/api/sys-app/sys_user/_page',p)
+}

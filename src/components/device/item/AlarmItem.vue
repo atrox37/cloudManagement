@@ -1,4 +1,5 @@
 <template>
+    <!-- {{ dataCondition }} -->
     <el-table :data="dataCondition" class="border-dash-table" border>
         <el-table-column label="属性" >
             <template #default="scope">
@@ -29,7 +30,7 @@
                 <el-select v-if="scope.row.valueType=='enum'" v-model="scope.row.value">
                     <el-option
                             v-for="itemChild in scope.row.enumData"
-                            :key="itemChild.key"
+                            :key="itemChild.value"
                             :label="itemChild.value"
                             :value="itemChild.key"/>
                 </el-select>

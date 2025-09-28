@@ -177,8 +177,8 @@ export default defineComponent({
 
     watchEffect(() => {
       if (
-        sourceAlarm.value.rulePo.ruleData.cronNum &&
-        sourceAlarm.value.rulePo.ruleData.cronJg
+        sourceAlarm.value.rulePo?.ruleData?.cronNum &&
+        sourceAlarm.value.rulePo?.ruleData?.cronJg
       ) {
         sourceAlarm.value.rulePo.ruleData.cron = quickConvert(
           sourceAlarm.value.rulePo.ruleData.cronNum +
@@ -228,8 +228,12 @@ export default defineComponent({
       context.emit("close");
     };
     const saveAlarm = () => {
-
-
+      for (var item of alarmItems.value) {
+        if (item.getProperty().length > 0) {
+          sourceAlarm.value.columns = [];
+          sourceAlarm.value.columns.push(item.getProperty());
+        }
+      }
       context.emit("save", sourceAlarm.value);
     };
 
