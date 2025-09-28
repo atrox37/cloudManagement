@@ -24,9 +24,8 @@
             </el-footer>
         </el-container>
         <template #footer>
-            <el-button>取消</el-button>
+          <el-button :loading="page.submitloading" @click="closeClick">关闭</el-button>
             <el-button type="primary" :loading="page.submitloading" @click="submitClick">保存</el-button>
-
         </template>
 
     </el-dialog>
@@ -44,7 +43,7 @@
                 default: () => ({status:false,treeNode:null,deviceData:{}})
             }
         },
-        emits:['submit'],
+        emits:['submit','close'],
         setup(props, context) {
             const childrenData=toRef(props,'data')
             const {proxy} = getCurrentInstance()
@@ -101,6 +100,9 @@
                 addSelectApi()
                 //context.emit('submit',addSelect)
             }
+            const closeClick=()=>{
+              context.emit('close')
+            }
             watch(childrenData.status,value => {
                 console.log('watch childrenData')
             })
@@ -112,6 +114,7 @@
                 pageChange,
                 handleSelectionChange,
                 submitClick,
+                closeClick,
                 addSelectApi
             }
         }

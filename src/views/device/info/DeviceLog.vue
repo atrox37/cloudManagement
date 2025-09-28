@@ -65,7 +65,7 @@
             const msgType=ref(messageTypes)
             const tableData=toRef(props,'data')
             const terms=reactive([])
-            const page=reactive({current: 1,size:10})
+            const page=reactive({current: 1,size:10,sorts: [{column: "ts",order: "desc"}]})
             const initData=()=>{
                 terms.length=0
                 page.current=1

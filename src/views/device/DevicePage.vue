@@ -30,7 +30,7 @@
 
     </el-header>
     <el-main>
-      <el-table height="100%" :data="tableData" v-loading="loading" stripe @row-click="rowClick"
+      <el-table height="100%" :data="tableData" v-loading="loading" stripe @row-click="rowClick" @sort-change="sortChange" :default-sort="tableSort"
                 style="width: 100%">
         <el-table-column prop="deviceInstancePo.id" label="ID" width="40" header-align="center" align="center" />
         <el-table-column prop="deviceInstancePo.name" label="设备名称" min-width="150" header-align="center"
@@ -49,7 +49,7 @@
                          align="center" />
         <el-table-column prop="sysUserPo.username" label="创建人" width="150" header-align="center"
                          align="center" />
-        <el-table-column prop="deviceInstancePo.createTime" label="创建时间" width="180" header-align="center"
+        <el-table-column prop="deviceInstancePo.createTime" label="创建时间" width="180" header-align="center" sortable
                          align="center" />
         <el-table-column label="状态" header-align="center" align="center" width="100">
           <template #default="scope">
@@ -120,7 +120,8 @@ export default defineComponent({
   setup() {
     const router = useRouter();
     const { proxy } = getCurrentInstance();
-    let pageInfo = reactive({ size: 10, current: 1, total: 0, terms: [] });
+    let pageInfo = reactive({ size: 10, current: 1, total: 0, terms: [],sorts:[] });
+    const tableSort=reactive({ prop: 'deviceInstancePo.createTime', order: 'descending' })
     const loading = ref(true);
     const searchParams = reactive([]);
     const selectData = ref(null);
@@ -198,6 +199,19 @@ export default defineComponent({
         deviceCreateData.status = false;
       });
     };
+
+    const sortChange=(data)=>{
+      console.log('sortChange');
+      if(data.prop=='deviceInstancePo.createTime'&&(data.order==null||data.order=='descending')){
+        pageInfo.sorts.length=0
+        pageInfo.sorts.push({column:'t.create_time',order:'desc'})
+        tableSort.order="descending"
+      }else{
+        tableSort.order="ascending"
+        pageInfo.sorts.length=0
+        pageInfo.sorts.push({column:'t.create_time',order:'asc'})
+      }
+    }
 
     const queryClick = () => {
       pageInfo.current = 1;
@@ -305,6 +319,8 @@ export default defineComponent({
       selectList,
       selectData,
       searchParams,
+      tableSort,
+      sortChange,
       createDeviceClick,
       addClick,
       deleteClick,

@@ -39,7 +39,7 @@
       @tab-click="handleClick"
     >
       <el-tab-pane label="基本信息" name="first">
-        <DeviceDetail :deviceData="deviceData" :deviceTags="deviceTags" @detailSave="detailSaveClick" @tagSave="updateTagApi"></DeviceDetail>
+        <DeviceDetail :deviceData="deviceData" :parentData="parentData" :deviceTags="deviceTags" @detailSave="detailSaveClick" @tagSave="updateTagApi"></DeviceDetail>
       </el-tab-pane>
       <el-tab-pane label="模型属性" name="five">
         <DeviceMeta
@@ -135,6 +135,7 @@
     ref="dialogChildrenRef"
     :data="dialogChildrenData"
     @submit="addChildrenSubmit"
+    @close="closeChildrenClick"
   ></DialogChildrenAdd>
   <DialogPropertyControl
     :data="dialogPropertyControl"
@@ -201,6 +202,7 @@ export default defineComponent({
     const gatewayData = ref([]);
     const dialogEdit = ref(false);
     const lazyLoad = ref(false);
+    const parentData=ref(null);
     const deviceData = ref({});
     const deviceMeta = ref({});
     const deviceFuncRef = ref();
@@ -579,8 +581,17 @@ export default defineComponent({
         deviceMeta.value = value.data.deviceInstancePo;
         lazyLoad.value = true;
         tagApi(value.data.deviceInstancePo.metadata.tags);
+        if(value.data.deviceInstancePo.parentId!=null){
+          parentApi(value.data.deviceInstancePo.parentId)
+        }
       });
     };
+    const parentApi=(parentId)=>{
+        let params = { terms: [{ column: "t.id", value: parentId }] }; //id:deviceId
+        proxy.$http.deviceSearch(params).then((value) => {
+          console.log("parentApi");
+        })
+    }
     const requestGatewayApi = () => {
       let params = { size: -1 };
       proxy.$http.gatewayPage(params).then((value) => {
@@ -703,7 +714,7 @@ export default defineComponent({
         { column: "property", value: dialogProperty.value.id },
       ];
       if (terms != null && terms.length > 0) termsData.push(...terms);
-      var param = { current: page.current, size: page.size, terms: termsData };
+      var param = { current: page.current, size: page.size, terms: termsData,sorts:[{column:"ts",order:"desc"}] };
       console.log("property data");
       proxy.$http.devicePropertyData(param).then((value) => {
         console.log("devicePropertyData-->" + JSON.stringify(value.data));
@@ -782,6 +793,10 @@ export default defineComponent({
       deviceChildrenRef.value.initPage();
     };
 
+    const closeChildrenClick=()=>{
+      dialogChildrenData.status = false;
+    }
+
     const readProperty = (data) => {
       console.log("readProperty");
       readExecution(data.id);
@@ -823,6 +838,7 @@ export default defineComponent({
       titleLabel,
       deviceUnit,
       deviceTab,
+      parentData,
       deviceData,
       deviceMeta,
       deviceRunView,
@@ -859,6 +875,7 @@ export default defineComponent({
       queryDevicePropertyData,
       delChildrenClick,
       addChildrenClick,
+      closeChildrenClick,
       addChildrenSubmit,
       readProperty,
       writeProperty,
