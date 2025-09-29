@@ -1,17 +1,25 @@
-import axios from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import router from '../router/index'
 import { ElMessage } from 'element-plus'
 
-axios.defaults.headers.head['Content-Type'] = 'application/json;charset=utf-8'
-axios.defaults.timeout = 10000
-//请求拦截器
-axios.interceptors.request.use(config => {
+// 创建独立实例，避免修改全局默认只读属性
+const http: AxiosInstance = axios.create({
+    timeout: 10000,
+    headers: {
+        'Content-Type': 'application/json;charset=utf-8'
+    }
+})
+
+// 请求拦截器
+http.interceptors.request.use(config => {
     config.headers = config.headers || {}
     const token=window.sessionStorage.getItem('token')
     if(config.url == '/api/sys-app/login'||config.url == '/api/sys-app/common/captcha64'){
+        // @ts-ignore
         config.headers.LOGINTYPE = 'PASS'
     }else{
         if(token){
+            // @ts-ignore
             config.headers.Authorization = token
         }
     }
@@ -20,7 +28,8 @@ axios.interceptors.request.use(config => {
     console.log('http:error')
 })
 
-axios.interceptors.response.use(function (response) {
+// 响应拦截器
+http.interceptors.response.use(function (response) {
     console.log('reject--->'+response.status)
     if(response.status == 401){
         router.replace({
@@ -42,7 +51,7 @@ export function post(url: string,params: any){
             console.log(`requestData: ${ paramsStr }`)
 
         }
-        axios.post(url,params).then(res => {
+        http.post(url,params).then(res => {
             resolve(res.data)
         }).catch(error => {
             if(error.response!=undefined
@@ -72,7 +81,7 @@ export function post(url: string,params: any){
 
 export function postHeader(url: string,params: any,header: any){
     return new Promise((resolve, reject) => {
-        axios.post(url,params,{headers:header}).then(res => {
+        http.post(url,params,{headers:header}).then(res => {
             resolve(res.data)
         }).catch(error => {
             if(error.response.data.msg!=undefined){
@@ -95,7 +104,7 @@ export function postHeader(url: string,params: any,header: any){
 export function get(url: string,p: any) {
     return new Promise((resolve,reject) => {
         console.log(`发送get请求${url}`)
-        axios.get(url,p?{params: p}:{params: {}}).then(res=>{
+        http.get(url,p?{params: p}:{params: {}}).then(res=>{
             resolve(res.data)
         }).catch(error => {
             if(error.response.data.msg!=undefined){

@@ -3,15 +3,22 @@ import { fileURLToPath, URL } from 'node:url'
 import { defineConfig,loadEnv  } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import commonjs from '@rollup/plugin-commonjs'
-import {useRouter} from "vue-router";
 
 
 export default (({mode})=>{
   return defineConfig({
     base: "./",
     plugins: [
-      useRouter(),vue(),commonjs()
+      vue(),commonjs()
     ],
+    optimizeDeps: {
+      include: ['ace-builds', 'vue3-ace-editor']
+    },
+    build: {
+      rollupOptions: {
+        // 不再将 ace 的模块 external，交由 Vite 处理并产出 URL 资源
+      }
+    },
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),

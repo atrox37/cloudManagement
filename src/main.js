@@ -24,17 +24,29 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate' //引入持�
 import "animate.css"
 
 import { VAceEditor } from "vue3-ace-editor"
-import "ace-builds/webpack-resolver"
-import "ace-builds/src-noconflict/ext-language_tools"
-import 'ace-builds/src-noconflict/mode-json';
-import "ace-builds/src-noconflict/theme-chrome" // 默认设置的主题
+import ace from 'ace-builds'
 
-//自动提示规则
-import "ace-builds/src-noconflict/snippets/javascript"
-import "ace-builds/src-noconflict/snippets/sql"
-import "ace-builds/src-noconflict/snippets/json"
-import "ace-builds/src-noconflict/snippets/java"
-import "ace-builds/src-noconflict/snippets/text"
+// 使用 Vite 的资源 URL 映射，确保生产环境可用
+import themeChromeUrl from 'ace-builds/src-noconflict/theme-chrome?url'
+import modeJsonUrl from 'ace-builds/src-noconflict/mode-json?url'
+import workerJsonUrl from 'ace-builds/src-noconflict/worker-json?url'
+import extLanguageToolsUrl from 'ace-builds/src-noconflict/ext-language_tools?url'
+import snippetsJsUrl from 'ace-builds/src-noconflict/snippets/javascript?url'
+import snippetsSqlUrl from 'ace-builds/src-noconflict/snippets/sql?url'
+import snippetsJsonUrl from 'ace-builds/src-noconflict/snippets/json?url'
+import snippetsJavaUrl from 'ace-builds/src-noconflict/snippets/java?url'
+import snippetsTextUrl from 'ace-builds/src-noconflict/snippets/text?url'
+
+// 将模块名映射到打包后的实际 URL，避免运行时裸模块解析错误
+ace.config.setModuleUrl('ace/theme/chrome', themeChromeUrl)
+ace.config.setModuleUrl('ace/mode/json', modeJsonUrl)
+ace.config.setModuleUrl('ace/mode/json_worker', workerJsonUrl)
+ace.config.setModuleUrl('ace/ext/language_tools', extLanguageToolsUrl)
+ace.config.setModuleUrl('ace/snippets/javascript', snippetsJsUrl)
+ace.config.setModuleUrl('ace/snippets/sql', snippetsSqlUrl)
+ace.config.setModuleUrl('ace/snippets/json', snippetsJsonUrl)
+ace.config.setModuleUrl('ace/snippets/java', snippetsJavaUrl)
+ace.config.setModuleUrl('ace/snippets/text', snippetsTextUrl)
 
 
 library.add(fas,faUserSecret)
