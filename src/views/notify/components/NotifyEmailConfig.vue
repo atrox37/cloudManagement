@@ -1,5 +1,5 @@
 <template>
-    <el-drawer v-model="drawable" title="邮箱配置">
+    <el-drawer v-model="drawable" title="邮箱配置" >
         <template #default>
             <el-form :inline="false" :model="emailData.data" ref="formRef" :rules="rules" label-position="left" label-width="80px">
                 <el-form-item label="名称" prop="name">
@@ -47,8 +47,17 @@
         emits:['save','close'],
         setup(props,context){
             const emailData=toRef(props,'data')
-            const formRef=ref()
             const drawable=computed({
+              get:()=>{
+                return props.data.state && props.data.data.code=='email'
+              },
+              set:(v)=>{
+                props.data.state=v
+                //emailData.value.state=v
+              }
+            })
+            const formRef=ref()
+            /*const drawable=computed({
                 get(){
                     if(emailData.value.data.config==undefined){
                         return false
@@ -62,7 +71,7 @@
                 set(newValue){
                     emailData.value.state=newValue
                 }
-            })
+            })*/
             const validateSelect=(rule, value, callback)=>{
                 if(rule.field == 'name'){
                     if(emailData.value.data.name == undefined || emailData.value.data.name==''){

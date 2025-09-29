@@ -74,6 +74,7 @@
     import NotifyAwsEmailConfig from '@/views/notify/components/NotifyAwsEmailConfig.vue'
     import {notifyType} from '@/model/notify/NotifyType'
     import {useRouter} from "vue-router";
+    import { ElMessage } from "element-plus";
     export default defineComponent({
         name: "NotifyPage",
         components:{NotifyEmailConfig,NotifyAwsEmailConfig},
@@ -114,14 +115,18 @@
             const reload=()=>{
                 configData.loading=false
                 configData.state=false
-                page.value.current=1
                 pageApi()
             }
             const saveUpdate=()=>{
                 proxy.$http.notifyConfigSaveUpdate(configData.data).then(value => {
-                    reload()
+                  ElMessage({
+                    showClose: true,
+                    message: "操作成功",
+                    type: "success",
+                  });
+                  reload()
                 }, error => {
-                    reload()
+                  reload()
                 })
             }
             const addClick=(type)=>{
@@ -167,6 +172,8 @@
             const saveDraw=(data)=>{
                 console.log('saveDraw')
                 configData.loading=true
+                delete configData.updateTime
+                delete configData.createTime
                 saveUpdate()
             }
 

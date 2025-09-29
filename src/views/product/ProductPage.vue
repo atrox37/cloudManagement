@@ -54,7 +54,6 @@
                         <div class="center-flex-contain">
                             <el-button-group>
                                 <el-button @click.native.stop="deleteClick(scope.row,scope.$index)"><font-awesome-icon :icon="['fasr', 'trash']" /></el-button>
-                                <el-button @click.native.stop="shareClick(scope.row,scope.$index)"><font-awesome-icon :icon="['fas', 'share-nodes']" /></el-button>
                             </el-button-group>
                         </div>
                     </template>

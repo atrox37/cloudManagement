@@ -9,10 +9,10 @@
           <el-input v-model="config.data.config.host" placeholder="请输入名称" clearable />
         </el-form-item>
         <el-form-item label="smtp用户" prop="user">
-          <el-input-number v-model="config.data.config.smtpUsername" placeholder="请输入名称" clearable />
+          <el-input v-model="config.data.config.smtpUsername" placeholder="请输入名称" clearable />
         </el-form-item>
         <el-form-item label="smtp秘钥" prop="pass">
-          <el-input-number v-model="config.data.config.smtpPassword" placeholder="请输入名称" clearable />
+          <el-input v-model="config.data.config.smtpPassword" placeholder="请输入名称" clearable />
         </el-form-item>
         <el-form-item label="发送邮箱" prop="from">
           <el-input v-model="config.data.config.from" placeholder="请输入名称" clearable />
@@ -43,8 +43,17 @@ export default defineComponent({
     }
   },
   emits:['save','close'],
-  setup() {
+  setup(props,context) {
     const config=toRef(props,'data')
+    const formRef=ref()
+    const drawable=computed({
+      get:()=>{
+        return props.data.state && props.data.data.code=='aws-email'
+      },
+      set:(v)=>{
+        props.data.state=v
+      }
+    })
 
     const validateSelect=(rule, value, callback)=>{
       if(rule.field == 'name'){
@@ -60,19 +69,19 @@ export default defineComponent({
           callback()
         }
       }else if(rule.field == 'user'){
-        if(emailData.value.data.config.smtpUsername == undefined || emailData.value.data.config.smtpUsername==0){
+        if(config.value.data.config.smtpUsername == undefined || config.value.data.config.smtpUsername==0){
           callback(('aws用户不能为空'))
         }else{
           callback()
         }
       }else if(rule.field == 'from'){
-        if(emailData.value.data.config.from == undefined || emailData.value.data.config.from==''){
+        if(config.value.data.config.from == undefined || config.value.data.config.from==''){
           callback(('发送邮箱不能为空'))
         }else{
           callback()
         }
       }else if(rule.field == 'pass'){
-        if(emailData.value.data.config.smtpPassword == undefined || emailData.value.data.config.smtpPassword==''){
+        if(config.value.data.config.smtpPassword == undefined || config.value.data.config.smtpPassword==''){
           callback(('aws秘钥不能为空'))
         }else{
           callback()
@@ -95,14 +104,14 @@ export default defineComponent({
       formRef.value.validate((valid, fields) => {
         if (valid) {
           console.log('submitClick')
-          //context.emit('save',emailData.value.data)
+          context.emit('save',config.value.data)
         } else {
           console.log('error submit!', fields)
         }
       })
     }
 
-    return {rules,config,submitClick,closeClick};
+    return {formRef,drawable,rules,config,submitClick,closeClick};
   }
 });
 </script>
