@@ -40,6 +40,12 @@ body,html,#app{
   border-radius: 20px;
   height: 80%;
 }
+.el-dialog{
+  margin: 0 !important;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  top: 50%;
+}
 .el-dialog__body{
   overflow: auto;
   height: calc(100% - 88px);

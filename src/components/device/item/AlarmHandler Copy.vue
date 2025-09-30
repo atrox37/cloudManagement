@@ -24,18 +24,6 @@
     </el-table-column>
     <el-table-column label="通知模板">
       <template #default="scope">
-        <!-- <el-popover placement="top" title="通知模板" :width="350"> -->
-        <!-- <template #default>
-            <el-descriptions :column="1">
-              <el-descriptions-item label="title">{{
-                getCurrentTemplate(scope.row.notifyTemplatePo.id, "title")
-              }}</el-descriptions-item>
-              <el-descriptions-item label="content">{{
-                getCurrentTemplate(scope.row.notifyTemplatePo.id, "content")
-              }}</el-descriptions-item>
-            </el-descriptions>
-          </template> -->
-        <!-- <template #reference> -->
         <el-select
           v-model="scope.row.templateId"
           @change="(value) => notifyTemplateChange(scope.$index, value)"
@@ -47,8 +35,6 @@
             :value="item.templatePo.id"
           ></el-option>
         </el-select>
-        <!-- </template> -->
-        <!-- </el-popover> -->
       </template>
     </el-table-column>
     <el-table-column label="通知配置">
@@ -61,28 +47,6 @@
             :value="item.configPo.id"
           ></el-option>
         </el-select>
-        <!-- <el-popover placement="top" title="通知配置" :width="350"> -->
-        <!-- <template #default> -->
-        <!-- <el-descriptions :column="1">
-              <el-descriptions-item label="from">{{
-                getCurrentConfig(scope.row.notifyConfigPo.id, "from")
-              }}</el-descriptions-item>
-              <el-descriptions-item label="host">{{
-                getCurrentConfig(scope.row.notifyConfigPo.id, "host")
-              }}</el-descriptions-item>
-            </el-descriptions> -->
-        <!-- </template>
-          <template #reference>
-            <el-select v-model="scope.row.notifyConfigPo.id" disabled>
-              <el-option
-                v-for="item in notifyConfig"
-                :key="item.id"
-                :label="item.name"
-                :value="item.id"
-              ></el-option>
-            </el-select>
-          </template> -->
-        <!-- </el-popover> -->
       </template>
     </el-table-column>
     <el-table-column width="80" align="center">
@@ -108,6 +72,8 @@
 </template>
 
 <script>
+import { ref, watch, onMounted, getCurrentInstance } from 'vue';
+
 export default {
   name: "AlarmHandler",
   props: {
@@ -127,22 +93,21 @@ export default {
       default: () => [],
     },
   },
-  data() {
-    return {
-      notifyD: {}, // 深拷贝避免引用共享
-      userList: [],
-      notifyTemplateUserList: [],
-      templateUserLoad: false,
-      // notifyConfig: [],
-      // notifyTemplate: [],
-      notifyTemplateAndConfig: [],
-      delMap: new Map(),
-    };
-  },
-  watch: {
-    notifyData: {
-      handler(val) {
-        this.notifyD = JSON.parse(
+  setup(props) {
+    const notifyD = ref([]);
+    const userList = ref([]);
+    const notifyTemplateUserList = ref([]);
+    const templateUserLoad = ref(false);
+    // const notifyConfig = ref([]);
+    // const notifyTemplate = ref([]);
+    const notifyTemplateAndConfig = ref([]);
+    const delMap = ref(new Map());
+
+    // 监听notifyData变化，深拷贝赋值
+    watch(
+      () => props.notifyData,
+      (val) => {
+        notifyD.value = JSON.parse(
           JSON.stringify(
             val.map((item) => ({
               ...item.ruleMetaPo,
@@ -150,80 +115,97 @@ export default {
               handlerType: item.ruleMetaPo.handlerType.value,
             }))
           )
-        ); // 深拷贝避免引用共享
+        );
       },
-      deep: true,
-      immediate: true,
-    },
-  },
-  methods: {
-    addHandler() {
-      this.notifyD.push({
+      { deep: true, immediate: true }
+    );
+
+    function addHandler() {
+      notifyD.value.push({
         userId: "",
         templateId: "",
         configId: "",
         handlerType: "notify",
       });
-    },
-    delFunc(index) {
-      // 删除处理逻辑
-      // this.notifyD.splice(index, 1);
-      if (this.notifyD[index].id) {
+    }
+
+    function delFunc(index) {
+      if (notifyD.value[index].id) {
         const str =
-          this.notifyD[index].userId + "," + this.notifyD[index].templateId;
-        this.delMap.set(str, this.notifyD[index].id);
+          notifyD.value[index].userId + "," + notifyD.value[index].templateId;
+        delMap.value.set(str, notifyD.value[index].id);
       }
-      this.notifyD.splice(index, 1);
-    },
-    getCurrentConfig(id, props) {
-      const item = this.notifyConfig.find((item) => item.id == id);
-      return item ? item.config[props] : "";
-    },
-    getCurrentTemplate(id, props) {
-      const item = this.notifyTemplate.find((item) => item.id == id);
-      return item ? item.msgContent[props] : "";
-    },
-    notifyTemplateChange(index, value) {
-      const templateAndConfig = this.notifyTemplateAndConfig.find(
+      notifyD.value.splice(index, 1);
+    }
+
+    // 下面两个函数未被页面调用，保留原样
+    function getCurrentConfig(id, propsName) {
+      const item = notifyConfig.value.find((item) => item.id == id);
+      return item ? item.config[propsName] : "";
+    }
+
+    function getCurrentTemplate(id, propsName) {
+      const item = notifyTemplate.value.find((item) => item.id == id);
+      return item ? item.msgContent[propsName] : "";
+    }
+
+    function notifyTemplateChange(index, value) {
+      const templateAndConfig = notifyTemplateAndConfig.value.find(
         (item) => item.templatePo.id == value
       );
-      // 使用深拷贝避免对象引用共享
-      this.notifyD[index].templateId = value;
-      this.notifyD[index].configId = templateAndConfig.configPo.id;
-    },
-    getConfigAndTemplate() {
-      this.$http
+      notifyD.value[index].templateId = value;
+      notifyD.value[index].configId = templateAndConfig.configPo.id;
+    }
+
+    function getConfigAndTemplate() {
+      const $http = getCurrentInstance().proxy.$http;
+      $http
         .notifyTemplatePage({
           size: -1,
           current: 1,
         })
         .then((value) => {
-          // this.notifyConfig = value.data.records.map((item) => item.configPo);
-          // this.notifyTemplate = value.data.records.map(
-          //   (item) => item.templatePo
-          // );
-          this.notifyTemplateAndConfig = value.data.records;
+          notifyTemplateAndConfig.value = value.data.records;
         });
-    },
-    getnotifyTemplateUser() {
-      this.templateUserLoad = true;
-      this.$http
+    }
+
+    function getnotifyTemplateUser() {
+      templateUserLoad.value = true;
+      const $http = getCurrentInstance().proxy.$http;
+      $http
         .getNotifyTemplateUserList({ current: 1, size: -1 })
         .then((value) => {
-          this.userList = value.data.records;
-          this.notifyTemplateUserList = value.data.records.map((item) => ({
+          userList.value = value.data.records;
+          notifyTemplateUserList.value = value.data.records.map((item) => ({
             id: item.sysUserPo.id,
             label: item.sysUserPo.username,
           }));
         })
         .finally(() => {
-          this.templateUserLoad = false;
+          templateUserLoad.value = false;
         });
-    },
-  },
-  mounted() {
-    this.getnotifyTemplateUser();
-    this.getConfigAndTemplate();
+    }
+
+    onMounted(() => {
+      getnotifyTemplateUser();
+      getConfigAndTemplate();
+    });
+
+    return {
+      notifyD,
+      userList,
+      notifyTemplateUserList,
+      templateUserLoad,
+      notifyTemplateAndConfig,
+      delMap,
+      addHandler,
+      delFunc,
+      getCurrentConfig,
+      getCurrentTemplate,
+      notifyTemplateChange,
+      getConfigAndTemplate,
+      getnotifyTemplateUser,
+    };
   },
 };
 </script>
