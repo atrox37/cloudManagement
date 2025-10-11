@@ -26,6 +26,7 @@
         <el-input-number
           v-model="sourceAlarm.rulePo.ruleData.cronNum"
           size="small"
+          :min="1"
         ></el-input-number>
         <el-select
           size="small"
@@ -38,11 +39,13 @@
           <el-option label="天" value="天"></el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="采集时间">
+      <el-form-item label="采集时间(秒)">
         <div v-if="sourceAlarm.rulePo.ruleData.type == 'time'">
           <el-input-number
             v-model="sourceAlarm.rulePo.ruleData.collTime"
             size="small"
+            :min="0"
+            :max="collectTimeMax"
           ></el-input-number>
         </div>
 
@@ -54,6 +57,7 @@
         <el-input-number
           v-model="sourceAlarm.rulePo.ruleData.count"
           size="small"
+          :min="0"
         ></el-input-number>
       </el-form-item>
       <el-form-item label="触发条件">
@@ -105,6 +109,7 @@ import {
   toRef,
   getCurrentInstance,
   watchEffect,
+  computed,
 } from "vue";
 import { Plus, Delete } from "@element-plus/icons-vue";
 import ProductAlarmItem from "@/components/product/item/ProductAlarmItem.vue";
@@ -128,7 +133,16 @@ export default defineComponent({
       required: false,
       default: () => ({
         columns: [],
-        rulePo: { ruleData: { type: "", cron: "", collTime: 0, count: 0 } },
+        rulePo: {
+          ruleData: {
+            type: "",
+            cron: "",
+            collTime: 0,
+            count: 0,
+            cronNum: 0,
+            cronJg: "",
+          },
+        },
       }),
     },
   },
@@ -144,7 +158,61 @@ export default defineComponent({
     const alarmItems = ref([]);
     const notifyConfig = reactive([]);
     const alarmNotifys = ref(null);
-
+    // 采集时间不能大于轮询周期（采集时间单位为秒）
+    const collectTimeMax = computed(() => {
+      const { cronNum = 0, cronJg = "秒" } =
+        sourceAlarm.value.rulePo?.ruleData || {};
+      // 转为秒
+      return isNaN(Number(cronNum)) ? 0 : intervalToSeconds(cronNum, cronJg);
+    });
+    // 单位换算表
+    const intervalToSeconds = (val, unit) => {
+      let unitFactor = 1;
+      switch (unit) {
+        case "秒":
+          unitFactor = 1;
+          break;
+        case "分":
+          unitFactor = 60;
+          break;
+        case "时":
+          unitFactor = 3600;
+          break;
+        case "天":
+          unitFactor = 86400;
+          break;
+        default:
+          unitFactor = 1;
+      }
+      return (parseFloat(val) || 0) * unitFactor;
+    };
+        // 自动纠正 collTime 不大于轮询周期（采集时间单位为秒，所以直接与轮询周期的秒数比）
+        watch(
+      () => [
+        sourceAlarm.value.rulePo?.ruleData?.collTime,
+        sourceAlarm.value.rulePo?.ruleData?.cronNum,
+        sourceAlarm.value.rulePo?.ruleData?.cronJg,
+      ],
+      ([collTime, cronNum, cronJg]) => {
+        if (
+          typeof collTime === "undefined" || collTime === null ||
+          typeof cronNum === "undefined" || cronNum === null
+        ) {
+          return;
+        }
+        const cNum = parseFloat(cronNum);
+        const cTime = parseFloat(collTime);
+        if (isNaN(cNum) || isNaN(cTime)) return;
+        // 采集时间单位为秒，轮询周期要转换为秒
+        const cycleSec = intervalToSeconds(cNum, cronJg || "秒");
+        // collTime就是秒
+        if (cTime > cycleSec) {
+          // 如果采集时间大于轮询周期则自动重置采集时间
+          sourceAlarm.value.rulePo.ruleData.collTime = cycleSec;
+        }
+      },
+      { immediate: false }
+    );
     watch(
       () => props.alarmData,
       (value) => {
@@ -162,13 +230,16 @@ export default defineComponent({
             const arr = cronDescription.split(" ");
             processedData.rulePo.ruleData.cronNum = parseFloat(arr[0]);
             processedData.rulePo.ruleData.cronJg = arr[1];
+          } else {
+            processedData.rulePo.ruleData.cronNum = 1;
+            processedData.rulePo.ruleData.cronJg = "秒";
           }
 
           sourceAlarm.value = processedData;
         } else {
           sourceAlarm.value = {
             columns: [],
-            rulePo: { ruleData: { type: "", cron: "", collTime: 0, count: 0 } },
+            rulePo: { ruleData: { type: "", cron: "", collTime: 0, count: 0, cronNum: null, cronJg: null } },
           };
         }
       },
@@ -261,6 +332,7 @@ export default defineComponent({
       delGroup,
       saveAlarm,
       closeHandler,
+      collectTimeMax
     };
   },
 });

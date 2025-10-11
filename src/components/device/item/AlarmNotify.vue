@@ -1,4 +1,5 @@
 <template>
+    {{ notifyD }}
     <el-table :data="notifyD" border>
         <el-table-column label="类型" >
             <template #default="scope">

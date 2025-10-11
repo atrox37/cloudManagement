@@ -210,6 +210,9 @@ export const deviceAlarmParse=function (p: any) {
 export const deviceRuleSave=function (p: any) {
     return post('/api/iot-app/rule/save',p)
 }
+export const deviceAlarmDelete=function (p: any) {
+    return get('/api/iot-app/rule/_delete',p)
+}
 export const devicePropertyData=function(p: any){
     return post('/api/register-app/timeseries/property/_page',p)
 }

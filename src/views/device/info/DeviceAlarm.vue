@@ -6,7 +6,6 @@
         :data="pageData"
         v-loading="loading"
         stripe
-        @row-click="rowClick"
         style="width: 100%"
       >
         <el-table-column
@@ -33,16 +32,21 @@
             {{ scope.row.ruleData.type == "time" ? "周期" : "定时" }}
           </template>
         </el-table-column>
-        <el-table-column
-          label="规则"
-          width="200"
-          header-align="center"
-          align="center"
-        >
-          <template #default="scope">
-            {{ handlerCroe(scope.row) }}
-          </template>
-        </el-table-column>
+        <el-table-column label="轮询周期" header-align="center" align="center">
+        <template #default="scope">
+          {{ handlerCroe(scope.row) }}
+        </template>
+      </el-table-column>
+      <el-table-column label="采集时长" header-align="center" align="center">
+        <template #default="scope">
+          {{ handlerColTime(scope.row) }}
+        </template>
+      </el-table-column>
+      <el-table-column label="阈值次数" header-align="center" align="center">
+        <template #default="scope">
+          {{ handerCount(scope.row) }}
+        </template>
+      </el-table-column>
         <el-table-column
           label="状态"
           width="80"
@@ -55,7 +59,20 @@
             }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" header-align="center" align="center">
+        <el-table-column header-align="center" align="center">
+          <template #header>
+            <el-button @click="add()" class="login_btn" type="primary"
+              ><el-icon><Plus /></el-icon>添加
+            </el-button>
+          </template>
+          <template #default="scope">
+            <el-button-group>
+              <el-button @click="rowClick(scope.row)" type="primary">
+                修改
+              </el-button>
+              <el-button @click="deleteClick(scope.row)">删除</el-button>
+            </el-button-group>
+          </template>
         </el-table-column>
         <template #empty>
           <el-empty :image-size="60"></el-empty>
@@ -86,8 +103,7 @@ import {
   toRef,
   defineExpose,
 } from "vue";
-import { useRouter } from "vue-router";
-
+import cronstrue from "cronstrue/i18n";
 export default defineComponent({
   name: "DeviceAlarm",
   props: {
@@ -111,7 +127,13 @@ export default defineComponent({
       console.log("click->" + row.id);
       apiInfo(row.id);
     };
-
+    const deleteClick = (row) => {
+      console.log("deleteClick->" + row.id);
+      proxy.$http.deviceAlarmDelete({ id: row.id }).then((response) => {
+        console.log(JSON.stringify(response.data));
+        loadApi();
+      });
+    };
     const reloadApi = () => {
       pageSize.value = 10;
       pageIndex.value = 1;
@@ -140,12 +162,22 @@ export default defineComponent({
         context.emit("open", response.data);
       });
     };
-    const handlerCroe = (item) => {
-      if (item.ruleData.type == "time") {
-        return item.ruleData.time + "秒内触发" + item.ruleData.count + "次";
-      } else {
-        return "未知";
-      }
+    const handlerCroe = (row) =>
+      cronstrue.toString(row.ruleData.cron, { locale: "zh_CN" });
+    const handlerColTime = (row) => `采集${row.ruleData.collTime}秒`;
+    const handerCount = (row) => "阈值" + row.ruleData.count + "次";
+    const add = () => {
+      console.log("add");
+      context.emit("open", {
+        columns: [],
+        ruleDtos: [],
+        rulePo: {
+          name: "",
+          deviceId: data.value.deviceInstancePo.id,
+          state: 1,
+          ruleData: { type: "time", count: 0, collTime: 0, cron: "" },
+        },
+      });
     };
     const pageChange = (current) => {
       console.log("pageChange" + current);
@@ -165,7 +197,11 @@ export default defineComponent({
       pageChange,
       rowClick,
       handlerCroe,
+      handlerColTime,
+      handerCount,
       loadApi,
+      deleteClick,
+      add,
     };
   },
 });

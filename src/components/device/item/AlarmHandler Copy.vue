@@ -128,7 +128,9 @@ export default {
         handlerType: "notify",
       });
     }
-
+    function clearNotifyD() {
+      notifyD.value.length = 0;
+    }
     function delFunc(index) {
       if (notifyD.value[index].id) {
         const str =
@@ -203,6 +205,7 @@ export default {
       getCurrentConfig,
       getCurrentTemplate,
       notifyTemplateChange,
+      clearNotifyD,
       getConfigAndTemplate,
       getnotifyTemplateUser,
     };
