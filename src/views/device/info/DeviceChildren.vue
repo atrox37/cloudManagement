@@ -206,7 +206,7 @@ export default defineComponent({
     }
 
     const createTagId=()=>{
-      var id=Math.floor(Math.random()*1000+1);
+      var id=Math.floor(Math.random()*1000+1)+'';
       return id
     }
     const handleNodeClick=(node)=>{

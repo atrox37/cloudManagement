@@ -123,6 +123,9 @@ export const saveUpdateNetwork=function (p: any) {
 export const deleteNetwork=function (p: any) {
     return get('/api/iot-app/network/_delete',p)
 }
+export const uploadSSL=function(p: any){
+    return postHeader('/api/iot-app/network/_upload',p,{'Content-Type':'multipart/form-data'})
+}
 export const gatewayPage=function (p: any) {
     return post('/api/iot-app/gateway/_page',p)
 }
@@ -221,6 +224,9 @@ export const devicePropertyHistory=function (p:any) {
 }
 export const deviceLogData=function (p: any) {
     return post('/api/register-app/timeseries/log/_page',p)
+}
+export const boardData=function (p: any) {
+    return post('/api/register-app/timeseries/board/_page',p)
 }
 export const getNotifyTemplateUserList=function (p: any) {
     return post('/api/sys-app/sys_user/_page',p)

@@ -11,6 +11,12 @@
                 <el-form-item label="支持协议" v-if="supports.length>0">
                     <el-tag type="success" v-for="(item,index) in supports" :key="index">{{item.name}}</el-tag>
                 </el-form-item>
+                <el-form-item label="存储目标" prop="configuration.type">
+                  <el-radio-group :disabled="disbale" v-model="selectData.configuration.type">
+                    <el-radio-button label="S3" value="s3" />
+                    <el-radio-button label="Minio" value="minio" />
+                  </el-radio-group>
+                </el-form-item>
                 <el-form-item label="包名" prop="configuration.provider">
                     <input type="file" id="fileId" ref="fileInput" accept=".jar" style="display: none;"/>
                     <el-input v-model="selectData.configuration.provider" placeholder="请输入包名" clearable />
@@ -71,6 +77,9 @@
                 ],
                 'configuration.location':[
                     { required: true, message: '协议包必须上传', trigger: 'blur' }
+                ],
+                'configuration.type':[
+                  { required: true, message: '存储目标必须选择', trigger: 'blur' }
                 ]
             })
             const type=ref(protocolType)
@@ -86,6 +95,14 @@
                     return "编辑"
                 }
             })
+          const disbale=computed(()=>{
+            if(selectData.value.id==null){
+              return false
+            }else{
+              return true
+            }
+          })
+
             const supports=reactive([])
             const handlerSupport=(v)=>{
                 supports.length=0
@@ -122,19 +139,19 @@
                 context.emit('close')
             }
             const uploadClick=()=>{
-                fileInput.value.click()
+              fileInput.value.click()
             }
             watch(fileInput,(value => {
                 value.addEventListener('change',function(){
                     console.log('changeFile')
                     if(this.files.length>0){
-                        context.emit('upload',selectData.value.id==undefined?{file:this.files[0],provider:selectData.value.configuration.provider}:{id:selectData.value.id,file:this.files[0],provider:selectData.value.configuration.provider})
+                        context.emit('upload',selectData.value.id==undefined?{file:this.files[0],provider:selectData.value.configuration.provider,bucketType:selectData.value.configuration.type}:{id:selectData.value.id,file:this.files[0],provider:selectData.value.configuration.provider,bucketType:selectData.value.configuration.type})
                     }
 
                     fileInput.value.value=null
                 })
             }))
-            return {supports,rules,formRef,btnStatus,fileInput,title,drawerState,selectData,submitClick,closeClick,uploadClick}
+            return {supports,rules,formRef,btnStatus,fileInput,title,disbale,drawerState,selectData,submitClick,closeClick,uploadClick}
         }
     })
 </script>

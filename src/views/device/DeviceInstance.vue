@@ -39,7 +39,8 @@
       @tab-click="handleClick"
     >
       <el-tab-pane label="基本信息" name="first">
-        <DeviceDetail :deviceData="deviceData" :parentData="parentData" :deviceTags="deviceTags" @detailSave="detailSaveClick" @tagSave="updateTagApi"></DeviceDetail>
+        <DeviceDetail :deviceData="deviceData" :parentData="parentData" :deviceTags="deviceTags"
+                      @detailSave="detailSaveClick" @tagSave="updateTagApi"></DeviceDetail>
       </el-tab-pane>
       <el-tab-pane label="模型属性" name="five">
         <DeviceMeta
@@ -158,25 +159,25 @@ import {
   watch,
   onMounted,
   getCurrentInstance,
-  onBeforeUnmount,
+  onBeforeUnmount
 } from "vue";
 import DeviceDetail from "@/views/device/info/DeviceDetail.vue";
 import DeviceRun from "@/views/device/info/DeviceRun.vue";
 import DeviceFunction from "@/views/device/info/DeviceFunction.vue";
 import DeviceLog from "@/views/device/info/DeviceLog.vue";
-import DeviceChildren from '@/views/device/info/DeviceChildren.vue'
-import ContentHeader from '@/components/menuContain/ContentHeader.vue'
-import MenuContainerHeader from '@/components/menuContain/MenuContainerHeader.vue'
-import DeviceMeta from '@/views/device/info/DeviceMeta.vue'
-import DeviceAlarm from '@/views/device/info/DeviceAlarm.vue'
-import DialogDeviceEdit from '@/components/device/DialogDeviceEdit.vue'
+import DeviceChildren from "@/views/device/info/DeviceChildren.vue";
+import ContentHeader from "@/components/menuContain/ContentHeader.vue";
+import MenuContainerHeader from "@/components/menuContain/MenuContainerHeader.vue";
+import DeviceMeta from "@/views/device/info/DeviceMeta.vue";
+import DeviceAlarm from "@/views/device/info/DeviceAlarm.vue";
+import DialogDeviceEdit from "@/components/device/DialogDeviceEdit.vue";
 // import DialogAlarm from '@/components/device/DialogAlarm.vue'
-import DialogAlarm from '@/components/device/DialogAlarm Copy.vue'
-import DialogProperty from '@/components/device/DeviceProperty.vue'
-import DialogChildrenAdd from '@/components/device/DialogChildrenAdd.vue'
-import DialogPropertyControl from '@/components/device/DialogPropertyControl.vue'
+import DialogAlarm from "@/components/device/DialogAlarm Copy.vue";
+import DialogProperty from "@/components/device/DeviceProperty.vue";
+import DialogChildrenAdd from "@/components/device/DialogChildrenAdd.vue";
+import DialogPropertyControl from "@/components/device/DialogPropertyControl.vue";
 import { column } from "element-plus/es/components/table-v2/src/common";
-import { ElMessage } from 'element-plus';
+import { ElMessage } from "element-plus";
 import { deviceTag, deviceUpdate } from "@/util/request";
 
 export default defineComponent({
@@ -203,7 +204,7 @@ export default defineComponent({
     const gatewayData = ref([]);
     const dialogEdit = ref(false);
     const lazyLoad = ref(false);
-    const parentData=ref(null);
+    const parentData = ref(null);
     const deviceData = ref({});
     const deviceMeta = ref({});
     const deviceFuncRef = ref();
@@ -217,7 +218,7 @@ export default defineComponent({
     const titleLabel = ref("设备详情");
     const deviceTab = ref([
       { name: "设备名称", value: "测试设备" },
-      { name: "产品", value: "测试产品" },
+      { name: "产品", value: "测试产品" }
     ]);
     const deviceRunView = ref();
     const deviceTags = reactive([]);
@@ -230,18 +231,18 @@ export default defineComponent({
     const dialogChildrenData = reactive({
       status: false,
       treeNode: null,
-      deviceData: deviceData.value,
+      deviceData: deviceData.value
     });
     const propertyHistoryData = ref({});
     const logData = ref({});
     const dialogPropertyControl = reactive({
       state: { loading: false, dialog: false },
-      meta: {},
+      meta: {}
     });
     const tabFunctionData = reactive({
       loading: false,
       result: {},
-      resultStr: "",
+      resultStr: ""
     });
 
     const loading = computed(() => {
@@ -282,62 +283,68 @@ export default defineComponent({
           break;
       }
     };
-    const backClick = function () {
+    const backClick = function() {
       router.go(-1);
     };
 
     const editDialogClick = () => {
       dialogEdit.value = true;
-    }
-    const detailSaveClick=(po)=>{
+    };
+    const detailSaveClick = (po) => {
       var devicePo = JSON.parse(JSON.stringify(po));
-      delete devicePo.createTime
-      delete devicePo.updateTime
-      delete devicePo.metadata
-      delete devicePo.status
-      delete devicePo.statusTime
-      delete devicePo.treeNode
-      delete devicePo.parentId
-      delete devicePo.productId
-      console.log('detailSaveClick')
-      updateDeviceInstance(devicePo)
-    }
-    let stomp = null
+      delete devicePo.createTime;
+      delete devicePo.updateTime;
+      delete devicePo.metadata;
+      delete devicePo.status;
+      delete devicePo.statusTime;
+      delete devicePo.treeNode;
+      delete devicePo.parentId;
+      delete devicePo.productId;
+      console.log("detailSaveClick");
+      updateDeviceInstance(devicePo);
+    };
+    let stomp = null;
     let socket = null;
 
-    const connectFunc = function () {
+    const connectFunc = function() {
       disConnectFunc();
-      const socketUrl =
-        "http://" + import.meta.env.VITE_APP_URL + "/register-app/socket";
+      const socketUrl = "http://" + import.meta.env.VITE_APP_URL + "/register-app/socket";
+      //TODO 打包
+      //const socketUrl ="/api/register-app/socket";
       console.log("socketUrl:" + socketUrl);
       socket = new SockJS(socketUrl);
-      //socket = new SockJS('http://172.16.23.75:9000/register-app/socket')
       stomp = Stomp.over(socket);
+
+      const originalSend = socket._send;
+      socket._send = function(xhr) {
+        xhr.timeout = 60000; // 10秒超时
+        originalSend.call(this, xhr);
+      };
       connectToStomp();
     };
 
-    const connectToStomp = function () {
+    const connectToStomp = function() {
       let reportTopic = "/topic/report_property_" + deviceId;
       let lineTopic = "/topic/line_" + deviceId;
       console.log("reportTopic->" + reportTopic);
       stomp.connect(
         { Authorization: window.sessionStorage.getItem("token") },
-        function (frame) {
+        function(frame) {
           console.log("Connected: ");
-          stomp.subscribe(reportTopic, function (greeting) {
+          stomp.subscribe(reportTopic, function(greeting) {
             console.log(
               "report_property-->" + reportTopic + "--->" + greeting.body
             );
             deviceRunView.value.changeData(greeting.body);
           });
-          stomp.subscribe(lineTopic, function (greeting) {
+          stomp.subscribe(lineTopic, function(greeting) {
             console.log("line_" + lineTopic + "--->" + greeting.body);
             var lineData = JSON.parse(greeting.body);
             deviceData.value.deviceInstancePo.status = lineData.type;
           });
           receive();
         },
-        function (frame) {
+        function(frame) {
           console.log("connect fail");
           setTimeout(connectToStomp, 3000);
         }
@@ -355,85 +362,53 @@ export default defineComponent({
       }
     };
 
-    const propertyLoading = function (property, type, loadState) {
+    const propertyLoading = function(property, type, loadState) {
       for (var index in deviceData.value.deviceInstancePo.metadata.properties) {
-        if (
-          deviceData.value.deviceInstancePo.metadata.properties[index].id ==
-            property &&
-          type == "read"
-        ) {
-          deviceData.value.deviceInstancePo.metadata.properties[
-            index
-          ].loadRead = loadState;
+        if (deviceData.value.deviceInstancePo.metadata.properties[index].id == property && type == "read") {
+          deviceData.value.deviceInstancePo.metadata.properties[index].loadRead = loadState;
           break;
-        } else if (
-          deviceData.value.deviceInstancePo.metadata.properties[index].id ==
-            property &&
-          type == "write"
-        ) {
-          deviceData.value.deviceInstancePo.metadata.properties[
-            index
-          ].loadWrite = loadState;
+        } else if (deviceData.value.deviceInstancePo.metadata.properties[index].id == property && type == "write") {
+          deviceData.value.deviceInstancePo.metadata.properties[index].loadWrite = loadState;
           break;
         }
       }
     };
 
-    const receive = function () {
-      stomp.onreceive = function (m) {
+    const receive = function() {
+      stomp.onreceive = function(m) {
         console.log("收到消息" + m.body);
-        console.log(
-          "---->" +
-            JSON.stringify(
-              deviceData.value.deviceInstancePo.metadata.properties
-            )
-        );
+        console.log("---->" +JSON.stringify(deviceData.value.deviceInstancePo.metadata.properties));
 
-        if (
-          JSON.parse(m.body).replyType == "LOADING" &&
-          JSON.parse(m.body).targetMsg.type == "read-property"
-        ) {
+        if (JSON.parse(m.body).replyType == "LOADING" && JSON.parse(m.body).targetMsg.type == "read-property") {
           for (var p of JSON.parse(m.body).targetMsg.property) {
             propertyLoading(p, "read", true);
           }
         }
-        if (
-          JSON.parse(m.body).replyType == "TIMEOUT" &&
-          JSON.parse(m.body).type == "report-property"
-        ) {
+        if (JSON.parse(m.body).replyType == "TIMEOUT" && JSON.parse(m.body).type == "read-reply") {
           for (var p of JSON.parse(m.body).requestWsData.property) {
             propertyLoading(p, "read", false);
           }
           ElMessage({
             message: "读取超时",
             type: "error",
-            plain: true,
+            plain: true
           });
         }
-        if (
-          JSON.parse(m.body).replyType == "SUCCESS" &&
-          JSON.parse(m.body).type == "report-property"
-        ) {
+        if (JSON.parse(m.body).replyType == "SUCCESS" && JSON.parse(m.body).type == "read-reply") {
           for (var p of Object.keys(JSON.parse(m.body).properties)) {
             propertyLoading(p, "read", false);
           }
           ElMessage({
             message: "读取成功",
             type: "success",
-            plain: true,
+            plain: true
           });
         }
 
-        if (
-          JSON.parse(m.body).replyType == "LOADING" &&
-          JSON.parse(m.body).targetMsg.type == "write-property"
-        ) {
+        if (JSON.parse(m.body).replyType == "LOADING" && JSON.parse(m.body).targetMsg.type == "write-property") {
           propertyLoading(JSON.parse(m.body).targetMsg.property, "write", true);
         }
-        if (
-          JSON.parse(m.body).replyType == "TIMEOUT" &&
-          JSON.parse(m.body).type == "write-reply"
-        ) {
+        if (JSON.parse(m.body).replyType == "TIMEOUT" && JSON.parse(m.body).type == "write-reply") {
           propertyLoading(
             JSON.parse(m.body).requestWsData.property,
             "write",
@@ -442,13 +417,10 @@ export default defineComponent({
           ElMessage({
             message: "写入超时",
             type: "error",
-            plain: true,
+            plain: true
           });
         }
-        if (
-          JSON.parse(m.body).replyType == "SUCCESS" &&
-          JSON.parse(m.body).type == "write-reply"
-        ) {
+        if (JSON.parse(m.body).replyType == "SUCCESS" && JSON.parse(m.body).type == "write-reply") {
           propertyLoading(
             JSON.parse(m.body).requestWsData.property,
             "write",
@@ -457,13 +429,10 @@ export default defineComponent({
           ElMessage({
             message: "写入成功",
             type: "success",
-            plain: true,
+            plain: true
           });
         }
-        if (
-          JSON.parse(m.body).replyType == "FAIL" &&
-          JSON.parse(m.body).type == "write-reply"
-        ) {
+        if (JSON.parse(m.body).replyType == "FAIL" && JSON.parse(m.body).type == "write-reply") {
           propertyLoading(
             JSON.parse(m.body).requestWsData.property,
             "write",
@@ -472,21 +441,15 @@ export default defineComponent({
           ElMessage({
             message: "写入失败",
             type: "error",
-            plain: true,
+            plain: true
           });
         }
 
-        if (
-          JSON.parse(m.body).replyType == "LOADING" &&
-          JSON.parse(m.body).targetMsg.type == "request"
-        ) {
+        if (JSON.parse(m.body).replyType == "LOADING" && JSON.parse(m.body).targetMsg.type == "request") {
           tabFunctionData.loading = true;
           tabFunctionData.result = {};
         }
-        if (
-          JSON.parse(m.body).replyType == "SUCCESS" &&
-          JSON.parse(m.body).type == "request-reply"
-        ) {
+        if (JSON.parse(m.body).replyType == "SUCCESS" && JSON.parse(m.body).type == "request-reply") {
           tabFunctionData.loading = false;
           tabFunctionData.result = JSON.parse(m.body).resultMapData;
           tabFunctionData.resultStr = JSON.parse(m.body).resultStrData;
@@ -494,13 +457,10 @@ export default defineComponent({
           ElMessage({
             message: "操作成功",
             type: "success",
-            plain: true,
+            plain: true
           });
         }
-        if (
-          JSON.parse(m.body).replyType == "FAIL" &&
-          JSON.parse(m.body).type == "request-reply"
-        ) {
+        if (JSON.parse(m.body).replyType == "FAIL" && JSON.parse(m.body).type == "request-reply") {
           tabFunctionData.loading = false;
           tabFunctionData.result =
             JSON.parse(m.body).resultMapData == undefined
@@ -510,71 +470,68 @@ export default defineComponent({
           ElMessage({
             message: "返回结果失败",
             type: "error",
-            plain: true,
+            plain: true
           });
         }
-        if (
-          JSON.parse(m.body).replyType == "TIMEOUT" &&
-          JSON.parse(m.body).type == "request-reply"
-        ) {
+        if (JSON.parse(m.body).replyType == "TIMEOUT" &&JSON.parse(m.body).type == "request-reply") {
           tabFunctionData.loading = false;
           ElMessage({
             message: "请求超时",
             type: "error",
-            plain: true,
+            plain: true
           });
         }
-      }
-    }
+      };
+    };
 
-    const updateTagApi=(tags)=>{
-      console.log('updateTagApi')
-      let params=[]
-      for(let item of tags){
-        if(!(item.id == undefined&&(item.tagValue == undefined||item.tagValue==''))){
-          item.deviceId=deviceId
-          params.push(item)
+    const updateTagApi = (tags) => {
+      console.log("updateTagApi");
+      let params = [];
+      for (let item of tags) {
+        if (!(item.id == undefined && (item.tagValue == undefined || item.tagValue == ""))) {
+          item.deviceId = deviceId;
+          params.push(item);
         }
       }
-      if(params.length>0){
+      if (params.length > 0) {
         console.log("updateTagApi");
-        proxy.$http.deviceUpdate(params).then(v=>{
-          console.log('updateTagApi success')
+        proxy.$http.deviceUpdate(params).then(v => {
+          console.log("updateTagApi success");
           ElMessage({
-            message: '操作成功',
-            type: 'success',
-            plain: true,
-          })
-        },e=>{
+            message: "操作成功",
+            type: "success",
+            plain: true
+          });
+        }, e => {
           ElMessage({
-            message: '操作失败',
-            type: 'error',
-            plain: true,
-          })
-        })
+            message: "操作失败",
+            type: "error",
+            plain: true
+          });
+        });
       }
-    }
+    };
 
-    const tagApi=(tags)=>{
-      proxy.$http.deviceTag({terms: [{column: 't.device_id', value: deviceId}]}).then(value => {
-        for(let item of value.data){
-          for(let i in tags){
-            if(item.tagKey == tags[i].tagKey){
-              tags[i].tagValue=item.tagValue
-              tags[i].id=item.id
-              break
+    const tagApi = (tags) => {
+      proxy.$http.deviceTag({ terms: [{ column: "t.device_id", value: deviceId }] }).then(value => {
+        for (let item of value.data) {
+          for (let i in tags) {
+            if (item.tagKey == tags[i].tagKey) {
+              tags[i].tagValue = item.tagValue;
+              tags[i].id = item.id;
+              break;
             }
           }
         }
-        deviceTags.length=0
-        deviceTags.push(...tags)
-        console.log('tagAPi success')
-      },error => {
-        console.log('tagAPi success')
-      })
-    }
+        deviceTags.length = 0;
+        deviceTags.push(...tags);
+        console.log("tagAPi success");
+      }, error => {
+        console.log("tagAPi success");
+      });
+    };
 
-    const requestApi = function () {
+    const requestApi = function() {
       let params = { terms: [{ column: "t.id", value: deviceId }] }; //id:deviceId
       proxy.$http.deviceSearch(params).then((value) => {
         console.log("requestApi");
@@ -582,17 +539,17 @@ export default defineComponent({
         deviceMeta.value = value.data.deviceInstancePo;
         lazyLoad.value = true;
         tagApi(value.data.deviceInstancePo.metadata.tags);
-        if(value.data.deviceInstancePo.parentId!=null){
-          parentApi(value.data.deviceInstancePo.parentId)
+        if (value.data.deviceInstancePo.parentId != null) {
+          parentApi(value.data.deviceInstancePo.parentId);
         }
       });
     };
-    const parentApi=(parentId)=>{
-        let params = { terms: [{ column: "t.id", value: parentId }] }; //id:deviceId
-        proxy.$http.deviceSearch(params).then((value) => {
-          console.log("parentApi");
-        })
-    }
+    const parentApi = (parentId) => {
+      let params = { terms: [{ column: "t.id", value: parentId }] }; //id:deviceId
+      proxy.$http.deviceSearch(params).then((value) => {
+        console.log("parentApi");
+      });
+    };
     const requestGatewayApi = () => {
       let params = { size: -1 };
       proxy.$http.gatewayPage(params).then((value) => {
@@ -602,7 +559,7 @@ export default defineComponent({
     };
     const deviceLogApi = (page, terms) => {
       const t = [
-        { column: "device_id", value: deviceData.value.deviceInstancePo.id },
+        { column: "device_id", value: deviceData.value.deviceInstancePo.id }
       ];
       t.push(...terms);
       page.terms = t;
@@ -619,13 +576,13 @@ export default defineComponent({
       });
     };
 
-    const funcExecution = function (funId, data) {
+    const funcExecution = function(funId, data) {
       console.log("funcExecution-->" + funId + "   ->" + data);
       const functionData = {
         type: "request",
         deviceId: deviceId,
         function: funId,
-        args: data,
+        args: data
       };
       let functionDataStr = JSON.stringify(functionData);
       stomp.send(
@@ -634,11 +591,11 @@ export default defineComponent({
         functionDataStr
       );
     };
-    const readExecution = function (property) {
+    const readExecution = function(property) {
       const readData = {
         type: "read-property",
         deviceId: deviceId,
-        property: [property],
+        property: [property]
       };
       let readDataStr = JSON.stringify(readData);
       console.log(readData);
@@ -649,12 +606,12 @@ export default defineComponent({
       );
     };
 
-    const writeExecution = function (p, v) {
+    const writeExecution = function(p, v) {
       const writeData = {
         type: "write-property",
         deviceId: deviceId,
         property: p,
-        value: v,
+        value: v
       };
       let writeDataStr = JSON.stringify(writeData);
       console.log(writeDataStr);
@@ -673,7 +630,7 @@ export default defineComponent({
       const data = {
         id: deviceData.value.deviceInstancePo.id,
         metadata: metaData,
-        parentId: deviceData.value.deviceInstancePo.parentId,
+        parentId: deviceData.value.deviceInstancePo.parentId
       };
       updateDeviceInstance(data);
     };
@@ -688,7 +645,7 @@ export default defineComponent({
         name: baseData.name,
         gatewayId: baseData.gatewayId,
         orgId: baseData.orgId,
-        parentId: baseData.parentId,
+        parentId: baseData.parentId
       };
       console.log(JSON.stringify(data));
       updateDeviceInstance(data);
@@ -699,7 +656,7 @@ export default defineComponent({
         console.log("修改成功");
         ElMessage({
           message: "操作成功",
-          type: "success",
+          type: "success"
         });
         reload();
       });
@@ -707,15 +664,16 @@ export default defineComponent({
 
     const queryDevicePropertyData = (page, terms) => {
       var termsData = [
-        {
-          column: "product_id",
-          value: deviceData.value.deviceInstancePo.productId,
-        },
         { column: "device_id", value: deviceData.value.deviceInstancePo.id },
-        { column: "property", value: dialogProperty.value.id },
+        { column: "property", value: dialogProperty.value.id }
       ];
       if (terms != null && terms.length > 0) termsData.push(...terms);
-      var param = { current: page.current, size: page.size, terms: termsData,sorts:[{column:"ts",order:"desc"}] };
+      var param = {
+        current: page.current,
+        size: page.size,
+        terms: termsData,
+        sorts: [{ column: "ts", order: "desc" }]
+      };
       console.log("property data");
       proxy.$http.devicePropertyData(param).then((value) => {
         console.log("devicePropertyData-->" + JSON.stringify(value.data));
@@ -773,7 +731,7 @@ export default defineComponent({
           console.log("修改成功");
           ElMessage({
             message: "操作成功",
-            type: "success",
+            type: "success"
           });
           deviceChildrenRef.value.initPage();
           reload();
@@ -788,15 +746,15 @@ export default defineComponent({
     const addChildrenSubmit = (vs) => {
       ElMessage({
         message: "操作成功",
-        type: "success",
+        type: "success"
       });
       dialogChildrenData.status = false;
       deviceChildrenRef.value.initPage();
     };
 
-    const closeChildrenClick=()=>{
+    const closeChildrenClick = () => {
       dialogChildrenData.status = false;
-    }
+    };
 
     const readProperty = (data) => {
       console.log("readProperty");
@@ -884,7 +842,7 @@ export default defineComponent({
       propertyControlSubmit,
       updateTagApi
     };
-  },
+  }
 });
 </script>
 
