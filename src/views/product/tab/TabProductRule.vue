@@ -34,7 +34,7 @@
           <el-text class="cell-pre">{{ formatSql(scope.row) }}</el-text>
         </template>
       </el-table-column>
-      <el-table-column header-align="center" align="center">
+      <el-table-column header-align="center" align="center" min-width="200">
         <template #header>
           <el-button @click="add()" class="login_btn" type="primary"
             ><el-icon><Plus /></el-icon>添加

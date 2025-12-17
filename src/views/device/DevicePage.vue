@@ -201,15 +201,25 @@ export default defineComponent({
     };
 
     const sortChange=(data)=>{
-      console.log('sortChange');
-      if(data.prop=='deviceInstancePo.createTime'&&(data.order==null||data.order=='descending')){
-        pageInfo.sorts.length=0
-        pageInfo.sorts.push({column:'t.create_time',order:'desc'})
-        tableSort.order="descending"
-      }else{
-        tableSort.order="ascending"
-        pageInfo.sorts.length=0
-        pageInfo.sorts.push({column:'t.create_time',order:'asc'})
+      console.log('sortChange', data);
+      // 只处理创建时间列的排序
+      if(data.prop=='deviceInstancePo.createTime'){
+        // 清空之前的排序
+        pageInfo.sorts.length = 0;
+        
+        // 根据排序状态设置
+        if(data.order === 'ascending'){
+          // 升序
+          pageInfo.sorts.push({column:'t.create_time',order:'asc'});
+          tableSort.order = 'ascending';
+        } else if(data.order === 'descending'){
+          // 降序
+          pageInfo.sorts.push({column:'t.create_time',order:'desc'});
+          tableSort.order = 'descending';
+        } 
+        
+        // 重新加载数据
+        devicePageApi();
       }
     }
 
@@ -304,6 +314,9 @@ export default defineComponent({
 
     onMounted(() => {
       resetParam();
+      // 初始化排序设置，确保前端显示和后端数据一致
+      pageInfo.sorts.length = 0;
+      pageInfo.sorts.push({column:'t.create_time',order:'desc'});
       requestDimensionApi();
       devicePageApi();
     });

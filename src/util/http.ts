@@ -1,10 +1,10 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance } from 'axios/dist/axios';
 import router from '../router/index'
 import { ElMessage } from 'element-plus'
 
 // 创建独立实例，避免修改全局默认只读属性
 const http: AxiosInstance = axios.create({
-    timeout: 10000,
+    timeout: 100000,
     headers: {
         'Content-Type': 'application/json;charset=utf-8'
     }
