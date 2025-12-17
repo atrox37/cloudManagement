@@ -1,1 +1,0 @@
-function h(n,e){if(console.log(n.id+"<->"+n.name),e.value=n.id,e.label=n.name,e.children=[],n.children!=null&&n.children.length>0)for(let l in n.children){const i={};h(n.children[l],i),e.children.push(i)}}export{h};

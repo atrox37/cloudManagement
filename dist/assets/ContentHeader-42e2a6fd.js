@@ -1,1 +1,0 @@
-import{_ as n,d as t,o,c as s,r}from"./index-98295c2a.js";const a=t({name:"ContentHeader",setup(){return{}}}),c={class:"content-header-container"};function _(e,d,p,i,u,l){return o(),s("div",c,[r(e.$slots,"more",{},void 0,!0)])}const m=n(a,[["render",_],["__scopeId","data-v-601c22d7"]]);export{m as C};
