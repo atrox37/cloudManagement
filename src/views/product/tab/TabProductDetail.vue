@@ -5,8 +5,10 @@
         <span>{{ copyData.productPo.name }}</span>
       </template>
       <template #extra>
-        <el-button type="primary" size="small" class="form-title" @click="editClick">保存
-        </el-button>
+        <el-space wrap>
+          <el-button type="warning" plain @click="edgeProductAsyn" :loading="btnload.load_asyn">边端产品同步</el-button>
+          <el-button type="info" plain @click="editClick" :loading="btnload.load_edit">保存</el-button>
+        </el-space>
       </template>
       <el-descriptions-item label="名称">
         <el-input v-model="copyData.productPo.name"></el-input>
@@ -84,11 +86,17 @@ export default defineComponent({
     productData: {
       type: Object,
       required: false
+    },
+    btnload:{
+      type: Object,
+      required: true,
+      default: () => ({load_edit:false,load_asyn:false})
     }
   },
-  emits: ["dialogClick","submit"],
+  emits: ["dialogClick","submit","edgeAsyn"],
   setup(props, context) {
     const {proxy} = getCurrentInstance()
+    const btnloadData=toRef(props,'btnload')
     const tagDialog = reactive({ status: false, index: -1, tag: { tagKey: "", tagName: "", tagValue: "", optional: false } });
     const dimensionTree = ref([]);
     const dimensionAllTree = computed(() => {
@@ -150,6 +158,9 @@ export default defineComponent({
     const editClick = () => {
       context.emit("submit",copyData.value.productPo);
     };
+    const edgeProductAsyn=()=>{
+      context.emit("edgeAsyn")
+    }
     const addTag = () => {
       console.log("addTag");
       tagDialog.index = -1;
@@ -186,7 +197,7 @@ export default defineComponent({
       initData();
       requestDimensionApi()
     });
-    return { dimensionAllTree, tagForm, rules, tagDialog, copyData, editClick, tagSave, tagClick, addTag, tagClose };
+    return { btnloadData,dimensionAllTree, tagForm, rules, tagDialog, copyData, editClick, tagSave, tagClick, addTag, tagClose,edgeProductAsyn };
   }
 });
 </script>

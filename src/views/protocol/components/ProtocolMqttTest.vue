@@ -14,7 +14,7 @@
                 <el-form-item label="发送报文">
                     <el-input v-model="protocolData.mqtt.data" type="textarea"/>
                 </el-form-item>
-                <el-form-item label="结果" v-if="protocolData.result.name != undefined">
+                <el-form-item label="结果" v-if="protocolData.result.type != undefined">
                     <div>
                         <el-form-item label="消息类型">
                             <el-tag>{{protocolData.result.name}}</el-tag>
@@ -74,6 +74,14 @@
                                 </template>
                             </el-form-item>
                         </div>
+                        <div v-if="protocolData.result.type == 'board-reply'">
+                          <el-form-item label="消息ID">
+                            <el-input v-model="protocolData.result.messageId" disabled/>
+                          </el-form-item>
+                          <el-form-item label="消息结果">
+                            <el-input v-model="protocolData.result.replyType" disabled/>
+                          </el-form-item>
+                        </div>
                     </div>
 
 
@@ -119,6 +127,7 @@
                     }
                 }
                 console.log('handlerResult')
+              debugger;
             }
             watch(protocolData,value => {
                 console.log("watch protocolData")

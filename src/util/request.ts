@@ -231,3 +231,6 @@ export const boardData=function (p: any) {
 export const getNotifyTemplateUserList=function (p: any) {
     return post('/api/sys-app/sys_user/_page',p)
 }
+export const edgeProductSync=function(p: any){
+    return get('/api/user-app/product/_synchronous',p);
+}

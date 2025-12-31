@@ -57,8 +57,10 @@
                 </el-button>
                 <template #dropdown>
                   <el-dropdown-menu>
-                    <el-dropdown-item command="MQTT_SERVER">MQTT服务组件</el-dropdown-item>
-                    <el-dropdown-item command="KAFKA">Kafka客户端</el-dropdown-item>
+<!--                    <el-dropdown-item command="MQTT_SERVER">MQTT服务组件</el-dropdown-item>
+                    <el-dropdown-item command="KAFKA">Kafka客户端</el-dropdown-item>-->
+                    <el-dropdown-item command="MQTT_CLIENT">MQTT客户端</el-dropdown-item>
+
                   </el-dropdown-menu>
                 </template>
               </el-dropdown>
@@ -188,7 +190,7 @@ export default defineComponent({
         tableData.length = 0;
         tableData.push(...value.data.records);
         for (let index in tableData) {
-          tableData[index].networkConfigPo.formatState = (tableData[index].networkConfigPo.state == 1);
+          tableData[index].t1.networkConfigPo.formatState = (tableData[index].t1.networkConfigPo.state == 1);
         }
         console.log("networkPage");
       });

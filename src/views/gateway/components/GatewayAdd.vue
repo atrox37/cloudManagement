@@ -81,10 +81,10 @@
                     if (selectData.value.data.networkConfigPo != undefined) {
                         allNetwork.push(selectData.value.data.networkConfigPo)
                     } else if (selectData.value.data.networkConfigPo == undefined && v.data.records.length > 0) {
-                        selectData.value.data.networkConfigPo = v.data.records[0]
+                        selectData.value.data.networkConfigPo = v.data.records[0].t1
                     }
                     for (var item of v.data.records) {
-                        allNetwork.push(item.networkConfigPo)
+                        allNetwork.push(item.t1.networkConfigPo)
                     }
                     protocolApi()
                 }, e => {

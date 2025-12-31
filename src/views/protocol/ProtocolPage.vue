@@ -267,7 +267,7 @@
                     kafkaTest.value.drawable=true
                     kafkaTest.value.kafka={id:row.id,type:'kafka'}
                     kafkaTest.value.result={}
-                }else if(s.length==1&&s[0]=='MQTT_SERVER'){
+                }else if(s.length==1&&s[0]=='MQTT_SERVER'||s.length==1&&s[0]=='MQTT_CLIENT'){
                     mqttTest.value.drawable=true
                     mqttTest.value.mqtt={id:row.id,type:'mqtt'}
                     mqttTest.value.result={}

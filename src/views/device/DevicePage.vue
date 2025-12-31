@@ -30,9 +30,8 @@
 
     </el-header>
     <el-main>
-      <el-table height="100%" :data="tableData" v-loading="loading" stripe @row-click="rowClick" @sort-change="sortChange" :default-sort="tableSort"
+      <el-table height="100%" border :data="tableData" v-loading="loading" stripe @row-click="rowClick" @sort-change="sortChange" :default-sort="tableSort"
                 style="width: 100%">
-        <el-table-column prop="deviceInstancePo.id" label="ID" width="40" header-align="center" align="center" />
         <el-table-column prop="deviceInstancePo.name" label="设备名称" min-width="150" header-align="center"
                          align="center" />
         <el-table-column prop="deviceInstancePo.name" label="产品名称" min-width="150" header-align="center"

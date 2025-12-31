@@ -9,7 +9,7 @@
       @tab-click="handleClick"
     >
       <el-tab-pane label="信息" name="first">
-        <TabProductDetail :productData="productData" @submit="updateCopyApi"></TabProductDetail>
+        <TabProductDetail :productData="productData" :btnload="detailData" @submit="updateCopyApi" @edgeAsyn="edgeAsynApi"></TabProductDetail>
       </el-tab-pane>
       <!--<el-tab-pane label="属性" name="second">
           <TabProductMeta :productData="productData"></TabProductMeta>
@@ -75,7 +75,7 @@ import {
   reactive,
 } from "vue";
 import { ElMessage } from "element-plus";
-import { productSerialize } from "@/util/request";
+import { edgeProductSync, productSerialize } from "@/util/request";
 
 export default defineComponent({
   name: "ProductInstance",
@@ -108,6 +108,9 @@ export default defineComponent({
     const dialogProductRuleState = ref(false);
     const productRuleData = ref(null);
     const productRuleIndex = ref(-1)
+
+    const detailData=reactive({load_edit:false,load_asyn:false})
+
     const unitApi = () => {
       proxy.$http.unitApi().then((value) => {
         deviceUnit.length = 0;
@@ -141,6 +144,7 @@ export default defineComponent({
       router.go(-1);
     };
     const requestApi = function () {
+      detailData.load_edit=false
       loading.value = true;
       treeLoad.value = false;
       productId = route.query.productId;
@@ -155,6 +159,7 @@ export default defineComponent({
       });
     };
     const updateApi = (param) => {
+      detailData.load_edit=true
       proxy.$http.productUpdate(param).then(
         () => {
           console.log("updateMetaApi");
@@ -182,6 +187,19 @@ export default defineComponent({
       const param={id: copyData.id, metadata: copyData.metadata, name: copyData.name,orgId:copyData.orgId,sn:copyData.sn}
       console.log('update product meta')
       updateApi(param)
+    }
+    const edgeAsynApi = ()=>{
+      console.log('edgeAsynApi')
+      detailData.load_asyn=true
+      proxy.$http.edgeProductSync({id:productData.value.productPo.id}).then(v=>{
+        detailData.load_asyn=false
+        ElMessage({
+          message: v.data.change==0?"操作成功,暂无更新内容":"操作成功，模型已更新",
+          type: "success",
+        });
+      },e=>{
+        detailData.load_asyn=false
+      })
     }
     const handleClick = (tab, event) => {
       console.log(tab.paneName)
@@ -218,10 +236,12 @@ export default defineComponent({
       activeName,
       productData,
       treeLoad,
+      detailData,
       updateCopyApi,
       backClick,
       handleClick,
       updateMetaApi,
+      edgeAsynApi,
       submitTree,
       productRuleOpen,
       productRuleClose,
