@@ -115,7 +115,7 @@
           </el-col>
         </el-row>
       </el-form-item>
-      <el-form-item label="处理方式11">
+      <el-form-item label="处理方式">
         <!-- <el-select
           v-model="notifyTemplateUserPo"
           placeholder="请选择下发用户（通知）"
@@ -398,8 +398,8 @@ export default defineComponent({
       const notifyD = toRaw(alarmNotifys.value.notifyD);
       const delMap = toRaw(alarmNotifys.value.delMap);
       for (var item of notifyD) {
-        // 排除不需要的字段（configId是UI用的，_templateId是内部用的）
-        const { configId, _templateId, ...rest } = item;
+        // 排除不需要的字段（configId是UI用的）
+        const { configId, ...rest } = item;
         
         // 处理handlerType，确保是字符串
         if (rest.handlerType && typeof rest.handlerType !== 'string') {

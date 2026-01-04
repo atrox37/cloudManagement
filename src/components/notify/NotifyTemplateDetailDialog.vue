@@ -216,7 +216,7 @@ export default defineComponent({
     // 模板数据
     const templateData = reactive({
       configPo: { code: "", codeName: "" },
-      templatePo: { name: "", msgContent: "" },
+      templatePo: { name: "", msgContent: { title: "", content: "", type: "" } },
       msgContent: { title: "", content: "" },
       loading: false,
     });
@@ -450,8 +450,13 @@ export default defineComponent({
       templateData.templatePo.notifyId = "";
       templateData.configPo.code = "";
       templateData.configPo.codeName = "";
-      templateData.templatePo.msgContent.title = "";
-      templateData.templatePo.msgContent.content = "";
+      // 确保 msgContent 是对象
+      if (!templateData.templatePo.msgContent || typeof templateData.templatePo.msgContent === 'string') {
+        templateData.templatePo.msgContent = { title: "", content: "", type: "" };
+      } else {
+        templateData.templatePo.msgContent.title = "";
+        templateData.templatePo.msgContent.content = "";
+      }
     };
     // 处理保存
     const handleSave = () => {
@@ -464,6 +469,32 @@ export default defineComponent({
         templateForm.value.validate((valid) => {
           templateData.loading = true;
           if (valid) {
+            // 在保存前，将模板变量默认值赋值给 templatePo.variables
+            // 确保 variables 对象存在
+            if (!templateData.templatePo.variables) {
+              templateData.templatePo.variables = {};
+            }
+            
+            // 获取当前的变量列表（从标题和内容解析的变量）
+            const currentVariables = templateVariables.value;
+            // 更新 variables：新增的添加，删除的移除，保留已有的值
+            const newVariables = {};
+            currentVariables.forEach((variable) => {
+              // 如果 templateVariablesData 中有值，使用该值；否则使用原有的值或空字符串
+              if (templateVariablesData.hasOwnProperty(variable)) {
+                newVariables[variable] = templateVariablesData[variable];
+              } else if (templateData.templatePo.variables.hasOwnProperty(variable)) {
+                // 保留原有的值
+                newVariables[variable] = templateData.templatePo.variables[variable];
+              } else {
+                // 新增的变量，使用空字符串
+                newVariables[variable] = '';
+              }
+            });
+            
+            // 赋值给 templatePo.variables
+            templateData.templatePo.variables = newVariables;
+            
             proxy.$http.notifyTemplateUpdate(templateData.templatePo).then(
               (value) => {
                 console.log("saveTemplateApi success", value);
@@ -500,6 +531,7 @@ export default defineComponent({
               }
             );
           } else {
+            templateData.loading = false;
             reject("表单验证失败");
           }
         });

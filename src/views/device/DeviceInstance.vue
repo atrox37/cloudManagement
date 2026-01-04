@@ -259,7 +259,10 @@ export default defineComponent({
     watch(deviceData, (value) => {
       dialogChildrenData.deviceData = deviceData.value;
     });
-
+    watch(()=>route.query.deviceId, (value) => {
+      console.log("route.query.deviceId-->" + value);
+      reload();
+    });
     const dialogAlarmState = ref(false);
     const dialogAlarmData = ref(null);
 
@@ -532,16 +535,20 @@ export default defineComponent({
     };
 
     const requestApi = function() {
-      let params = { terms: [{ column: "t.id", value: deviceId }] }; //id:deviceId
-      proxy.$http.deviceSearch(params).then((value) => {
-        console.log("requestApi");
-        deviceData.value = value.data;
-        deviceMeta.value = value.data.deviceInstancePo;
-        lazyLoad.value = true;
-        tagApi(value.data.deviceInstancePo.metadata.tags);
-        if (value.data.deviceInstancePo.parentId != null) {
-          parentApi(value.data.deviceInstancePo.parentId);
-        }
+      return new Promise((resolve) => {
+        let params = { terms: [{ column: "t.id", value: deviceId }] }; //id:deviceId
+        proxy.$http.deviceSearch(params).then((value) => {
+          console.log("requestApi");
+          deviceData.value = value.data;
+          deviceMeta.value = value.data.deviceInstancePo;
+          tagApi(value.data.deviceInstancePo.metadata.tags);
+          if (value.data.deviceInstancePo.parentId != null) {
+            parentApi(value.data.deviceInstancePo.parentId);
+          }
+          resolve();
+        }).catch(() => {
+          resolve(); // 即使失败也 resolve，避免阻塞
+        });
       });
     };
     const parentApi = (parentId) => {
@@ -551,10 +558,15 @@ export default defineComponent({
       });
     };
     const requestGatewayApi = () => {
-      let params = { size: -1 };
-      proxy.$http.gatewayPage(params).then((value) => {
-        gatewayData.value = value.data.records;
-        console.log("requestGatewayApi");
+      return new Promise((resolve) => {
+        let params = { size: -1 };
+        proxy.$http.gatewayPage(params).then((value) => {
+          gatewayData.value = value.data.records;
+          console.log("requestGatewayApi");
+          resolve();
+        }).catch(() => {
+          resolve(); // 即使失败也 resolve，避免阻塞
+        });
       });
     };
     const deviceLogApi = (page, terms) => {
@@ -569,10 +581,15 @@ export default defineComponent({
       });
     };
     const unitApi = () => {
-      proxy.$http.unitApi().then((value) => {
-        deviceUnit.length = 0;
-        deviceUnit.push(...value.data);
-        console.log("unitApi");
+      return new Promise((resolve) => {
+        proxy.$http.unitApi().then((value) => {
+          deviceUnit.length = 0;
+          deviceUnit.push(...value.data);
+          console.log("unitApi");
+          resolve();
+        }).catch(() => {
+          resolve(); // 即使失败也 resolve，避免阻塞
+        });
       });
     };
 
@@ -692,10 +709,25 @@ export default defineComponent({
       console.log("reload");
       deviceId = route.query.deviceId;
       console.log("request device instance deviceId" + deviceId);
-      requestGatewayApi();
-      requestApi();
-      connectFunc();
-      unitApi();
+      
+      // 设置加载状态
+      lazyLoad.value = false;
+      
+      // 等待所有请求完成
+      Promise.all([
+        requestGatewayApi(),
+        requestApi(),
+        unitApi()
+      ]).then(() => {
+        // 所有请求完成后，设置加载完成状态
+        lazyLoad.value = true;
+        // WebSocket 连接可以在后台进行
+        connectFunc();
+      }).catch(() => {
+        // 即使有错误，也显示页面
+        lazyLoad.value = true;
+        connectFunc();
+      });
     };
 
     const alarmClose = () => {

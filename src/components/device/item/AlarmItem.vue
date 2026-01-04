@@ -3,7 +3,7 @@
     <el-table :data="dataCondition" class="border-dash-table" border>
         <el-table-column label="属性" >
             <template #default="scope">
-                <el-select v-model="scope.row.column" placeholder="Select" style="margin: 0;width: calc(80% - 5px)" @change="(value)=>{handlerOperation(value,scope.$index);handlerConditionChange(scope.$index);}">
+                <el-select v-model="scope.row.column" placeholder="Select" style="margin: 0;width: calc(80% - 5px)" @change="(value)=>{handlerOperation(value,scope.$index);}">
                     <el-option
                             v-for="(propertyitem,propertyindex) in property"
                             :key="propertyindex"
@@ -74,9 +74,20 @@
             const compare = ref([{value: '>',label: '大于',},{value: '<',label: '小于',},{value: '=',label: '等于',}])
 
             const addFunc=()=>{
-                dataCondition.push({dataCondition:property.value[0].id,operation:'=',value:''})
-                initPropertyCondition()
-
+                if(property.value.length === 0) return;
+                
+                // 添加新行，使用正确的字段名
+                const newIndex = dataCondition.length;
+                dataCondition.push({
+                    column: property.value[0].id,
+                    operation: '=',
+                    value: '',
+                    condition: [],
+                    valueType: ''
+                });
+                
+                // 初始化新添加的行
+                handlerOperation(property.value[0].id, newIndex);
             }
             const delFunc=(index)=>{
                 console.log('delFunc:',index)
@@ -91,55 +102,63 @@
             }
 
             const handlerOperation=(value,index)=>{
-                for(var index in property.value){
-                    if(property.value[index].id == value){
-                        if(property.value[index].valueType.type=='number'){
-                            property.value[index].condition=compare.value
-                        }else{
-                            property.value[index].condition=[{value: '=',label: '等于'}]
-                        }
+                // 找到对应的属性
+                const selectedProperty = property.value.find(p => p.id === value);
+                if (!selectedProperty) return;
+                
+                // 确保当前行存在
+                if (!dataCondition[index]) return;
+                
+                // 根据属性类型设置条件选项
+                if(selectedProperty.valueType.type=='number'){
+                    selectedProperty.condition = compare.value;
+                }else{
+                    selectedProperty.condition = [{value: '=',label: '等于'}];
+                }
 
-                        for(var i in dataCondition){
-                            if(dataCondition[i].column==value){
-                                dataCondition[i].condition=property.value[index].condition
-                                dataCondition[i].valueType=property.value[index].valueType.type
-                                if(dataCondition[i].valueType=='enum'){
-                                    dataCondition[i].enumData=property.value[index].valueType.extra.enumData
-                                }
-                                break
-                            }
-                        }
-                        break
+                // 直接更新当前行的数据
+                dataCondition[index].condition = selectedProperty.condition;
+                dataCondition[index].valueType = selectedProperty.valueType.type;
+                
+                // 如果是枚举类型，设置枚举数据
+                if(dataCondition[index].valueType=='enum'){
+                    dataCondition[index].enumData = selectedProperty.valueType.extra?.enumData || [];
+                } else {
+                    // 非枚举类型，清除 enumData
+                    delete dataCondition[index].enumData;
+                }
+                
+                // 设置默认操作符
+                if(dataCondition[index].condition && dataCondition[index].condition.length > 0){
+                    dataCondition[index].operation = dataCondition[index].condition[0].value;
+                }
+                
+                // 根据类型设置默认值
+                if(selectedProperty.valueType.type=='number'){
+                    dataCondition[index].value = 0;
+                }else if(selectedProperty.valueType.type=='enum'){
+                    if(selectedProperty.valueType.extra?.enumData && selectedProperty.valueType.extra.enumData.length>0){
+                        dataCondition[index].value = selectedProperty.valueType.extra.enumData[0].key;
+                    }else{
+                        dataCondition[index].value = '';
                     }
+                }else{
+                    dataCondition[index].value = '';
                 }
             }
 
             const handlerConditionChange=(index)=>{
-                for(var i in property.value){
-                    for(var j in dataCondition){
-                        if(property.value[i].id==dataCondition[j].column){
-                            dataCondition[j].operation = property.value[i].condition[0].value
-                            if(property.value[i].valueType.type=='number'){
-                                dataCondition[j].value=0
-                            }else if(property.value[i].valueType.type=='enum'){
-                                if(property.value[i].valueType.extra.enumData.length>0){
-                                    dataCondition[j].value=property.value[i].valueType.extra.enumData[0].key
-                                }else{
-                                    dataCondition[j].value=''
-                                }
-                            }else{
-                                dataCondition[j].value=''
-                            }
-                            break
-                        }
-                    }
-                }
+                // 这个方法现在主要用于重置值，但主要逻辑已经在 handlerOperation 中处理
+                // 保留这个方法以防其他地方调用
                 console.log('handlerConditionChange:'+JSON.stringify(dataCondition[index]))
             }
 
             const initPropertyCondition=()=>{
-                for(var index in property.value){
-                    handlerOperation(property.value[index].id,index)
+                // 遍历所有 dataCondition 行，初始化每一行的属性条件
+                for(var i in dataCondition){
+                    if(dataCondition[i].column){
+                        handlerOperation(dataCondition[i].column, i);
+                    }
                 }
             }
 

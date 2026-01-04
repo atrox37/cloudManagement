@@ -154,8 +154,6 @@ export default {
                 ...item.ruleMetaPo,
                 configId: item.notifyConfigPo.id,
                 handlerType: item.ruleMetaPo.handlerType?.value || item.ruleMetaPo.handlerType || "notify",
-                // 保存模板ID，用于获取默认变量
-                _templateId: item.notifyTemplatePo?.id,
               };
             })
           )
@@ -174,7 +172,6 @@ export default {
           type: "notify",
           variables: {}
         },
-        _templateId: null,
       });
     }
     function clearNotifyD() {
@@ -238,10 +235,10 @@ export default {
       );
       notifyD.value[index].templateId = value;
       notifyD.value[index].configId = templateAndConfig.configPo.id;
-      notifyD.value[index]._templateId = value;
       
       // 当选择模板时，如果是新增记录（没有handlerData或variables为空），初始化变量为模板的默认值
       const template = templateAndConfig.templatePo;
+      
       if (template && template.variables) {
         // 初始化handlerData
         if (!notifyD.value[index].handlerData) {
@@ -273,29 +270,31 @@ export default {
         return;
       }
       
-      // 解析模板变量列表
+      // 解析模板变量列表（key）
       const variablesList = parseTemplateVariables(template);
       templateVariablesMap.value[index] = variablesList;
       
-      // 初始化当前变量值
-      // 优先使用handlerData.variables，如果为空则使用模板的默认值
-      const defaultVariables = template.variables || {};
-      // 确保 handlerData 存在
+      // 确保 handlerData 存在（notifyTemplateChange 应该已经初始化了，但为了安全还是检查一下）
       if (!row.handlerData) {
         row.handlerData = {
           type: "notify",
           variables: {}
         };
       }
-      const customVariables = row.handlerData.variables || {};
       
-      // 初始化变量数据
+      // 直接使用 handlerData.variables 中的值（notifyTemplateChange 已经处理好了优先级）
+      const handlerVariables = row.handlerData.variables || {};
+      
+      // 初始化变量数据，直接使用 handlerData.variables 中的值
       currentVariablesMap.value[index] = {};
       variablesList.forEach((variable) => {
-        // 如果自定义变量中有值，使用自定义值；否则使用模板默认值
-        currentVariablesMap.value[index][variable] = customVariables[variable] !== undefined && customVariables[variable] !== null && customVariables[variable] !== ''
-          ? customVariables[variable]
-          : (defaultVariables[variable] || '');
+        // 只要 key 存在于 handlerVariables 中，不管 value 是什么都直接使用
+        if (handlerVariables.hasOwnProperty(variable)) {
+          currentVariablesMap.value[index][variable] = handlerVariables[variable];
+        } else {
+          // 如果 key 不存在，使用空字符串
+          currentVariablesMap.value[index][variable] = '';
+        }
       });
     }
     

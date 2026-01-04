@@ -127,7 +127,6 @@
                     }
                 }
                 console.log('handlerResult')
-              debugger;
             }
             watch(protocolData,value => {
                 console.log("watch protocolData")
