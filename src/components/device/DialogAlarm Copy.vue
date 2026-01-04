@@ -398,9 +398,13 @@ export default defineComponent({
       const notifyD = toRaw(alarmNotifys.value.notifyD);
       const delMap = toRaw(alarmNotifys.value.delMap);
       for (var item of notifyD) {
-        /**var handlerType=JSON.stringify(item.ruleMetaPo.handlerType)
-                        item.ruleMetaPo.handlerType=handlerType**/
-        const { configId, ...rest } = item;
+        // 排除不需要的字段（configId是UI用的，_templateId是内部用的）
+        const { configId, _templateId, ...rest } = item;
+        
+        // 处理handlerType，确保是字符串
+        if (rest.handlerType && typeof rest.handlerType !== 'string') {
+          rest.handlerType = rest.handlerType.value || rest.handlerType || 'notify';
+        }
 
         const str = item.userId + "," + item.templateId;
         if (delMap.has(str)) {

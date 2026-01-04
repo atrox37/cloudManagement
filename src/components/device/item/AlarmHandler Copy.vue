@@ -37,16 +37,45 @@
         </el-select>
       </template>
     </el-table-column>
-    <el-table-column label="通知配置">
+    <el-table-column label="通知配置" width="100">
       <template #default="scope">
-        <el-select v-model="scope.row.configId" disabled>
-          <el-option
-            v-for="item in notifyTemplateAndConfig"
-            :key="item.configPo.id"
-            :label="item.configPo.name"
-            :value="item.configPo.id"
-          ></el-option>
-        </el-select>
+        <el-popover
+          v-model:visible="popoverVisibleMap[scope.$index]"
+          placement="right"
+          :width="500"
+          trigger="click"
+          @show="() => openVariablesPopover(scope.$index)"
+        >
+          <template #reference>
+            <el-button
+              type="primary"
+              size="small"
+              :disabled="!scope.row.templateId"
+            >
+              修改
+            </el-button>
+          </template>
+          <div class="variables-popover-content">
+            <div class="popover-title">编辑模板变量</div>
+            <el-form label-width="120px" size="small">
+              <el-form-item
+                v-for="variable in getTemplateVariablesList(scope.$index)"
+                :key="variable"
+                :label="variable"
+              >
+                <el-input
+                  v-model="getCurrentVariables(scope.$index)[variable]"
+                  :placeholder="`请输入${variable}`"
+                  size="small"
+                />
+              </el-form-item>
+            </el-form>
+            <div class="popover-footer">
+              <el-button size="small" @click="closeVariablesPopover(scope.$index)">取消</el-button>
+              <el-button type="primary" size="small" @click="saveVariables(scope.$index)">确定</el-button>
+            </div>
+          </div>
+        </el-popover>
       </template>
     </el-table-column>
     <el-table-column width="80" align="center">
@@ -102,6 +131,12 @@ export default {
     // const notifyTemplate = ref([]);
     const notifyTemplateAndConfig = ref([]);
     const delMap = ref(new Map());
+    
+    // 变量编辑 Popover 相关
+    const popoverVisibleMap = ref({}); // 存储每个索引的 Popover 显示状态
+    const currentVariablesMap = ref({}); // 存储每个索引的变量数据
+    const templateVariablesMap = ref({}); // 存储每个索引的变量列表
+    const templateDataMap = ref(new Map()); // 存储模板数据，key为templateId
 
     // 监听notifyData变化，深拷贝赋值
     watch(
@@ -109,11 +144,20 @@ export default {
       (val) => {
         notifyD.value = JSON.parse(
           JSON.stringify(
-            val.map((item) => ({
-              ...item.ruleMetaPo,
-              configId: item.notifyConfigPo.id,
-              handlerType: item.ruleMetaPo.handlerType.value,
-            }))
+            val.map((item) => {
+              // 保存模板数据到map中
+              if (item.notifyTemplatePo) {
+                templateDataMap.value.set(item.notifyTemplatePo.id, item.notifyTemplatePo);
+              }
+              
+              return {
+                ...item.ruleMetaPo,
+                configId: item.notifyConfigPo.id,
+                handlerType: item.ruleMetaPo.handlerType?.value || item.ruleMetaPo.handlerType || "notify",
+                // 保存模板ID，用于获取默认变量
+                _templateId: item.notifyTemplatePo?.id,
+              };
+            })
           )
         );
       },
@@ -126,6 +170,11 @@ export default {
         templateId: "",
         configId: "",
         handlerType: "notify",
+        handlerData: {
+          type: "notify",
+          variables: {}
+        },
+        _templateId: null,
       });
     }
     function clearNotifyD() {
@@ -151,12 +200,139 @@ export default {
       return item ? item.msgContent[propsName] : "";
     }
 
+    // 解析模板变量（从msgContent的title和content中提取）
+    function parseTemplateVariables(template) {
+      const variables = [];
+      const regex = /\{\$([^}]+)\}/g;
+      
+      if (template?.msgContent) {
+        // 解析标题中的变量
+        if (template.msgContent.title) {
+          let match;
+          while ((match = regex.exec(template.msgContent.title)) !== null) {
+            const variableName = match[1].trim();
+            if (variableName && !variables.includes(variableName)) {
+              variables.push(variableName);
+            }
+          }
+        }
+        
+        // 解析内容中的变量
+        if (template.msgContent.content) {
+          let match;
+          while ((match = regex.exec(template.msgContent.content)) !== null) {
+            const variableName = match[1].trim();
+            if (variableName && !variables.includes(variableName)) {
+              variables.push(variableName);
+            }
+          }
+        }
+      }
+      
+      return variables;
+    }
+
     function notifyTemplateChange(index, value) {
       const templateAndConfig = notifyTemplateAndConfig.value.find(
         (item) => item.templatePo.id == value
       );
       notifyD.value[index].templateId = value;
       notifyD.value[index].configId = templateAndConfig.configPo.id;
+      notifyD.value[index]._templateId = value;
+      
+      // 当选择模板时，如果是新增记录（没有handlerData或variables为空），初始化变量为模板的默认值
+      const template = templateAndConfig.templatePo;
+      if (template && template.variables) {
+        // 初始化handlerData
+        if (!notifyD.value[index].handlerData) {
+          notifyD.value[index].handlerData = {
+            type: "notify",
+            variables: JSON.parse(JSON.stringify(template.variables))
+          };
+        } else if (!notifyD.value[index].handlerData.variables || Object.keys(notifyD.value[index].handlerData.variables).length === 0) {
+          // 如果handlerData存在但variables为空，使用模板的默认值
+          notifyD.value[index].handlerData.variables = JSON.parse(JSON.stringify(template.variables));
+        }
+        // 如果已经有variables值，保留用户编辑的值
+      }
+    }
+    
+    // 打开变量编辑 Popover
+    function openVariablesPopover(index) {
+      const row = notifyD.value[index];
+      if (!row.templateId) {
+        return;
+      }
+      
+      // 获取模板数据
+      const template = notifyTemplateAndConfig.value.find(
+        (item) => item.templatePo.id === row.templateId
+      )?.templatePo;
+      
+      if (!template) {
+        return;
+      }
+      
+      // 解析模板变量列表
+      const variablesList = parseTemplateVariables(template);
+      templateVariablesMap.value[index] = variablesList;
+      
+      // 初始化当前变量值
+      // 优先使用handlerData.variables，如果为空则使用模板的默认值
+      const defaultVariables = template.variables || {};
+      // 确保 handlerData 存在
+      if (!row.handlerData) {
+        row.handlerData = {
+          type: "notify",
+          variables: {}
+        };
+      }
+      const customVariables = row.handlerData.variables || {};
+      
+      // 初始化变量数据
+      currentVariablesMap.value[index] = {};
+      variablesList.forEach((variable) => {
+        // 如果自定义变量中有值，使用自定义值；否则使用模板默认值
+        currentVariablesMap.value[index][variable] = customVariables[variable] !== undefined && customVariables[variable] !== null && customVariables[variable] !== ''
+          ? customVariables[variable]
+          : (defaultVariables[variable] || '');
+      });
+    }
+    
+    // 关闭变量编辑 Popover
+    function closeVariablesPopover(index) {
+      popoverVisibleMap.value[index] = false;
+    }
+    
+    // 保存变量
+    function saveVariables(index) {
+      const row = notifyD.value[index];
+      
+      // 确保handlerData存在
+      if (!row.handlerData) {
+        row.handlerData = {
+          type: "notify",
+          variables: {}
+        };
+      }
+      
+      // 保存变量值
+      row.handlerData.variables = JSON.parse(JSON.stringify(currentVariablesMap.value[index] || {}));
+      
+      popoverVisibleMap.value[index] = false;
+    }
+    
+    // 获取模板变量列表（用于模板中）
+    function getTemplateVariablesList(index) {
+      return templateVariablesMap.value[index] || [];
+    }
+    
+    // 获取当前变量数据（用于模板中）
+    function getCurrentVariables(index) {
+      if (!currentVariablesMap.value[index]) {
+        currentVariablesMap.value[index] = {};
+      }
+      return currentVariablesMap.value[index];
     }
 
     function getConfigAndTemplate() {
@@ -208,7 +384,43 @@ export default {
       clearNotifyD,
       getConfigAndTemplate,
       getnotifyTemplateUser,
+      popoverVisibleMap,
+      currentVariablesMap,
+      templateVariablesMap,
+      openVariablesPopover,
+      closeVariablesPopover,
+      saveVariables,
+      getTemplateVariablesList,
+      getCurrentVariables,
     };
   },
 };
 </script>
+
+<style scoped lang="scss">
+.variables-popover-content {
+  padding: 10px;
+  
+  .popover-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #303133;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e4e7ed;
+  }
+  
+  .popover-footer {
+    margin-top: 16px;
+    text-align: right;
+    
+    .el-button {
+      margin-left: 8px;
+    }
+  }
+  
+  :deep(.el-form-item) {
+    margin-bottom: 12px;
+  }
+}
+</style>

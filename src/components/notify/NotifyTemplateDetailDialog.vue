@@ -6,133 +6,99 @@
     :close-on-click-modal="false"
   >
     <!-- 主表单 -->
-    <el-form :model="templateData" ref="templateForm" label-width="140px">
-      <el-form-item label="模板名称" prop="templatePo.name" required>
-        <el-input
-          v-model="templateData.templatePo.name"
-          placeholder="请输入模板名称"
-          clearable
-        />
-      </el-form-item>
-      <el-form-item label="通知配置" prop="configPo.code" required>
-        <template #label>
-          <el-space wrap>
-            <el-text>通知配置</el-text>
-            <el-tag>{{ templateData.configPo.codeName }}</el-tag>
-          </el-space>
-        </template>
-        <template #default>
-          <el-select
-            v-model="templateData.templatePo.notifyId"
-            class="tiny-template-input"
-          >
-            <el-option
-              v-for="(item, index) in configs"
-              :key="index"
-              :label="item.name"
-              :value="item.id"
-            >
-            </el-option>
-          </el-select>
-        </template>
-      </el-form-item>
-
-      <el-form-item
-        v-if="templateData.configPo?.code == 'email'"
-        label="内容标题"
-        prop="templatePo.msgContent.title"
-        required
-      >
-        <el-input
-          v-model="templateData.templatePo.msgContent.title"
-          placeholder="请输入标题，支持使用 {$变量名} 格式定义变量"
-          @blur="handleContentBlur"
-        />
-      </el-form-item>
-      <el-form-item
-        v-if="templateData.configPo?.code == 'email'"
-        label="内容正文"
-        prop="templatePo.msgContent.content"
-        required
-      >
-        <el-input
-          v-model="templateData.templatePo.msgContent.content"
-          type="textarea"
-          :rows="4"
-          placeholder="请输入内容正文，使用 {$变量名} 格式定义变量"
-          @blur="handleContentBlur"
-        />
-      </el-form-item>
-    </el-form>
-    <!-- 测试表单 -->
-    <div
-      v-if="showTestForm && templateData.configPo?.code == 'email'"
-      class="test-form-container"
-    >
-      <div class="form-section-title">测试表单</div>
-      <!-- <el-divider content-position="left">测试表单</el-divider> -->
-      <el-form :model="testForm" ref="testFormRef" label-width="100px">
-        <!-- 基本信息 -->
-        <div class="form-section">
-          <h4>基本信息</h4>
-          <el-form-item label="收件人" required>
+    <el-form :model="templateData" ref="templateForm" label-width="160px">
+      <!-- 基本信息模块 -->
+      <div class="form-section-module">
+        <div class="module-title">基本信息</div>
+        <el-form-item label="模板名称" prop="templatePo.name" required>
+          <el-input
+            v-model="templateData.templatePo.name"
+            placeholder="请输入模板名称"
+            clearable
+            class="form-input"
+          />
+        </el-form-item>
+        <el-form-item label="通知配置" prop="configPo.code" required>
+          <template #label>
+            <el-space wrap>
+              <el-text>通知配置</el-text>
+              <el-tag>{{ templateData.configPo.codeName }}</el-tag>
+            </el-space>
+          </template>
+          <template #default>
             <el-select
-              v-model="testForm.recipient"
-              placeholder="请选择收件人"
-              style="width: 100%"
+              v-model="templateData.templatePo.notifyId"
+              class="form-input"
             >
               <el-option
-                v-for="user in accountUser"
-                :key="user.id"
-                :label="user.sysUserPo.username"
-                :value="user.sysUserPo.id"
-              />
+                v-for="(item, index) in configs"
+                :key="index"
+                :label="item.name"
+                :value="item.id"
+              >
+              </el-option>
             </el-select>
+          </template>
+        </el-form-item>
+
+        <el-form-item
+          label="内容标题"
+          prop="templatePo.msgContent.title"
+          required
+        >
+          <el-input
+            v-model="templateData.templatePo.msgContent.title"
+            placeholder="请输入标题，支持使用 {$变量名} 格式定义变量"
+            @blur="handleContentBlur"
+            class="form-input"
+          />
+        </el-form-item>
+        <el-form-item
+          label="内容正文"
+          prop="templatePo.msgContent.content"
+          required
+        >
+          <el-input
+            v-model="templateData.templatePo.msgContent.content"
+            type="textarea"
+            :rows="4"
+            placeholder="请输入内容正文，使用 {$变量名} 格式定义变量"
+            @blur="handleContentBlur"
+            class="form-input"
+          />
+        </el-form-item>
+      </div>
+      
+      <!-- 模板变量默认数据模块 -->
+      <div
+        v-if="templateVariablesList.length > 0"
+        class="form-section-module"
+      >
+        <div class="module-title">模板变量默认值</div>
+        <div class="template-variables-container" :key="templateVariablesKey">
+          <el-form-item
+            v-for="variable in templateVariablesList"
+            :key="variable"
+            :label="variable"
+          >
+            <el-input
+              v-model="templateVariablesData[variable]"
+              :placeholder="`请输入${variable}`"
+              class="form-input"
+            />
           </el-form-item>
         </div>
-
-        <!-- 模板信息 -->
-        <div
-          class="form-section template-variables-section"
-          v-if="templateVariablesList.length > 0"
-        >
-          <h4>模板变量 (来自标题和内容)</h4>
-          <div class="template-variables-container" :key="templateVariablesKey">
-            <el-form-item
-              v-for="variable in templateVariablesList"
-              :key="variable"
-              :label="variable"
-            >
-              <el-input
-                v-model="testForm.variables[variable]"
-                :placeholder="`请输入${variable}`"
-              />
-            </el-form-item>
-          </div>
-        </div>
-      </el-form>
-
-      <!-- 测试表单操作按钮 -->
-      <div class="test-form-actions">
-        <el-button
-          @click="handleTestSubmit"
-          type="primary"
-          :disabled="templateData.loading"
-          :loading="testForm.loading"
-          >提交测试</el-button
-        >
-        <el-button
-          @click="initTestForm"
-          :disabled="testForm.loading || templateData.loading"
-          >重置</el-button
-        >
       </div>
-    </div>
+    </el-form>
 
     <template #footer>
       <div class="dialog-footer">
         <div class="footer-right">
           <el-button @click="handleCancel">取消</el-button>
+          <el-button
+            @click="handleTest"
+            >测试</el-button
+          >
           <el-button
             type="primary"
             @click="handleSave"
@@ -141,11 +107,6 @@
             >保存模板</el-button
           >
         </div>
-        <el-button
-          v-if="templateData.configPo?.code == 'email'"
-          @click="handleTest"
-          >{{ showTestForm ? "取消测试" : "测试" }}</el-button
-        >
       </div>
     </template>
   </el-dialog>
@@ -168,6 +129,41 @@
       </div>
     </template>
   </el-drawer>
+
+  <!-- 选择收件人弹框 -->
+  <el-dialog
+    v-model="showRecipientDialog"
+    title="选择收件人"
+    width="500px"
+    :close-on-click-modal="false"
+  >
+    <el-form label-width="100px">
+      <el-form-item label="收件人" required>
+        <el-select
+          v-model="testForm.recipient"
+          placeholder="请选择收件人"
+          style="width: 100%"
+        >
+          <el-option
+            v-for="user in accountUser"
+            :key="user.id"
+            :label="user.sysUserPo.username"
+            :value="user.sysUserPo.id"
+          />
+        </el-select>
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="showRecipientDialog = false">取消</el-button>
+      <el-button
+        type="primary"
+        @click="handleTestSubmit"
+        :loading="testForm.loading"
+        :disabled="!testForm.recipient"
+        >发送测试</el-button
+      >
+    </template>
+  </el-dialog>
 </template>
 
 <script>
@@ -192,11 +188,12 @@ export default defineComponent({
     const { proxy } = getCurrentInstance();
     const dialogVisible = ref(false);
     const templateForm = ref();
-    const testFormRef = ref();
-    const showTestForm = ref(false);
+    const showRecipientDialog = ref(false);
     const templateVariablesKey = ref(0);
     const templateVariablesList = ref([]);
     const templateId = ref(null);
+    // 模板变量数据
+    const templateVariablesData = reactive({});
     const nType = notifyType;
     const getTempleteLoading = ref(false);
     // 添加原始数据用于比较是否有修改
@@ -312,7 +309,10 @@ export default defineComponent({
 
     // 处理测试按钮点击
     const handleTest = () => {
-      showTestForm.value = !showTestForm.value;
+      // 重置收件人
+      testForm.recipient = "";
+      // 打开选择收件人弹框
+      showRecipientDialog.value = true;
     };
 
     // 获取用户列表API
@@ -331,34 +331,15 @@ export default defineComponent({
 
     // 处理测试提交
     const handleTestSubmit = () => {
-      if (!testFormRef.value) return;
-
-      testFormRef.value.validate((valid) => {
-        if (valid) {
-          // console.log("测试表单数据:", testForm);
-          // sendTemplateApi();
-          if (hasUnsavedChanges()) {
-            ElMessageBox.confirm(
-              "检测到模板信息已修改，是否先保存模板再进行测试？",
-              "提示",
-              {
-                confirmButtonText: "保存",
-                cancelButtonText: "取消",
-                type: "warning",
-              }
-            )
-              .then(() => {
-                // 用户选择先保存
-                handleSave().then(() => {
-                  sendTemplateApi();
-                });
-              })
-              .catch(() => {});
-          } else {
-            sendTemplateApi();
-          }
-        }
-      });
+      if (!testForm.recipient) {
+        ElMessage({
+          message: "请选择收件人",
+          type: "warning",
+        });
+        return;
+      }
+      // 直接发送测试，不需要判断数据是否修改
+      sendTemplateApi();
     };
     const supportConfigApi = () => {
       proxy.$http.notifyPage({ size: -1 }).then((value) => {
@@ -373,26 +354,30 @@ export default defineComponent({
       testForm.loading = true;
       const params = {
         userId: testForm.recipient,
-        notifyPo: { id: templateData.templatePo.notifyId },
         templatePo: {
-          variables: testForm.variables,
+          id: templateData.templatePo.id,
+          type: templateData.configPo.code, // 使用 configPo.code 作为 type
           msgContent: templateData.templatePo.msgContent,
-          msgType: 0,
+          variables: { ...templateVariablesData },
+          msgType: templateData.templatePo.msgType || 1, // 使用模板的 msgType，默认为 1
         },
       };
-      testForm.loading = true;
       proxy.$http
         .notifyTemplateTest(params)
         .then((value) => {
           testForm.loading = false;
-          console.log("sendTemplateApi");
+          showRecipientDialog.value = false;
+          console.log("sendTemplateApi", value);
           var s = 0,
             f = 0;
-          for (var item of value.data.data) {
-            if (item.result) {
-              s++;
-            } else {
-              f++;
+          // 根据新的响应结构处理数据：value.data.data 是数组
+          if (value.data && value.data.data && Array.isArray(value.data.data)) {
+            for (var item of value.data.data) {
+              if (item.result) {
+                s++;
+              } else {
+                f++;
+              }
             }
           }
           var str = "操作成功,成功:" + s + ",失败:" + f;
@@ -403,14 +388,11 @@ export default defineComponent({
         })
         .catch((error) => {
           testForm.loading = false;
+          ElMessage({
+            message: "测试发送失败",
+            type: "error",
+          });
         });
-    };
-    const initTestForm = () => {
-      testForm.recipient = "";
-      for (let key in testForm.variables) {
-        testForm.variables[key] = "";
-      }
-      testForm.loading = false;
     };
 
     // 处理标题或内容失去焦点事件
@@ -421,22 +403,22 @@ export default defineComponent({
       templateVariablesList.value = [...newVars];
 
       // 保存当前已填写的变量值
-      const currentValues = { ...testForm.variables };
+      const currentValues = { ...templateVariablesData };
 
       // 清空现有变量
-      Object.keys(testForm.variables).forEach((key) => {
-        delete testForm.variables[key];
+      Object.keys(templateVariablesData).forEach((key) => {
+        delete templateVariablesData[key];
       });
 
-      // 添加新变量
+      // 添加新变量，保留已有值或设为空字符串
       newVars.forEach((variable) => {
-        testForm.variables[variable] = currentValues[variable] || "";
+        templateVariablesData[variable] = currentValues[variable] || "";
       });
 
       // 强制更新模板信息区域
       templateVariablesKey.value++;
 
-      console.log("手动更新后的测试表单变量:", testForm.variables);
+      console.log("手动更新后的模板变量数据:", templateVariablesData);
     };
 
     // 打开内容编辑器
@@ -451,13 +433,8 @@ export default defineComponent({
 
     // 处理取消
     const handleCancel = () => {
-      showTestForm.value = false;
+      showRecipientDialog.value = false;
       dialogVisible.value = false;
-
-      //   showTestForm.value = false;
-      //   showContentEditor.value = false;
-      //   props.state = false;
-      //   emit("cancel");
     };
     const handleOpen = (id) => {
       templateId.value = id;
@@ -489,20 +466,36 @@ export default defineComponent({
           if (valid) {
             proxy.$http.notifyTemplateUpdate(templateData.templatePo).then(
               (value) => {
-                console.log("saveTemplateApi success");
-
-                // 更新原始数据
-                originalData.templateName = templateData.templateName;
-                originalData.configPo = templateData.configPo;
-                originalData.title = templateData.templatePo.msgContent.title;
-                originalData.content =
-                  templateData.templatePo.msgContent.content;
+                console.log("saveTemplateApi success", value);
+                
+                // 检查响应状态码（兼容不同的响应结构）
+                const responseCode = value?.code || value?.data?.code;
+                if (responseCode === 200) {
+                  // 显示成功提示
+                  ElMessage({
+                    message: "保存成功",
+                    type: "success",
+                  });
+                  // 关闭弹框
+                  dialogVisible.value = false;
+                } else {
+                  // 如果状态码不是200，也显示提示
+                  ElMessage({
+                    message: value?.msg || value?.data?.msg || "保存失败",
+                    type: "warning",
+                  });
+                }
+                
                 templateData.loading = false;
                 resolve();
               },
               (error) => {
-                console.log("saveTemplateApi error");
+                console.log("saveTemplateApi error", error);
                 templateData.loading = false;
+                ElMessage({
+                  message: "保存失败",
+                  type: "error",
+                });
                 reject();
               }
             );
@@ -535,7 +528,20 @@ export default defineComponent({
                 break;
               }
             }
-            initTestForm();
+            
+            // 先更新变量列表（从标题和内容解析）
+            handleContentBlur();
+            
+            // 然后初始化模板变量数据，从响应数据中的variables获取初始值
+            if (value.data.templatePo.variables) {
+              // 设置初始值（保留handleContentBlur中已设置的变量）
+              Object.keys(value.data.templatePo.variables).forEach((key) => {
+                if (templateVariablesData.hasOwnProperty(key)) {
+                  templateVariablesData[key] = value.data.templatePo.variables[key];
+                }
+              });
+            }
+            
             getTempleteLoading.value = false;
             console.log("requestInfoApi");
           })
@@ -567,12 +573,12 @@ export default defineComponent({
       templateData,
       testForm,
       templateForm,
-      testFormRef,
-      showTestForm,
+      showRecipientDialog,
       showContentEditor,
       templateId,
       templateVariablesKey,
       templateVariablesList,
+      templateVariablesData,
       accountUser,
       configs,
       templateVariables,
@@ -589,73 +595,57 @@ export default defineComponent({
       handleCancel,
       handleSave,
       handleOpen,
-      initTestForm,
     };
   },
 });
 </script>
 
 <style scoped lang="scss">
-.test-form-container {
-  //margin-top: 20px;
-  //padding: 20px;
-  background-color: #f5f7fa;
-  //border-radius: 4px;
-  padding: 0 10px;
-}
-.form-section-title {
-  padding: 10px 0;
-  border-bottom: 1px solid #e5e5e5;
-  color: #606266;
-  font-size: 16px;
-  font-weight: 700;
-  margin-bottom: 10px;
-}
-
-.form-section {
-  // margin-bottom: 20px;
-
-  h4 {
-    margin: 0 0 15px 0;
-    color: #606266;
-    font-size: 14px;
-    font-weight: 500;
+// 模块样式
+.form-section-module {
+  margin-bottom: 24px;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+  
+  .module-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #303133;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e4e7ed;
   }
 }
 
-.template-variables-section {
-  .template-variables-container {
-    max-height: 200px;
-    overflow-y: auto;
-    // padding-right: 10px;
-
-    // 自定义滚动条样式
-    &::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    &::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 3px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background: #c1c1c1;
-      border-radius: 3px;
-
-      &:hover {
-        background: #a8a8a8;
-      }
-    }
-  }
+// 统一输入框宽度
+.form-input {
+  width: 100%;
 }
 
-.test-form-actions {
-  padding-bottom: 10px;
-  text-align: center;
+// 模板变量容器样式
+.template-variables-container {
+  max-height: 200px;
+  overflow-y: auto;
 
-  .el-button {
-    margin: 0 10px;
+  // 自定义滚动条样式
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+
+    &:hover {
+      background: #a8a8a8;
+    }
   }
 }
 
@@ -674,6 +664,7 @@ export default defineComponent({
 .content-editor {
   padding: 20px;
 }
+
 :deep(.el-dialog__body) {
   overflow-y: hidden;
 }
