@@ -354,8 +354,10 @@ export default defineComponent({
       testForm.loading = true;
       const params = {
         userId: testForm.recipient,
+        notifyPo: {
+          id: templateData.templatePo.notifyId,
+        },
         templatePo: {
-          id: templateData.templatePo.id,
           type: templateData.configPo.code, // 使用 configPo.code 作为 type
           msgContent: templateData.templatePo.msgContent,
           variables: { ...templateVariablesData },
