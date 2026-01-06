@@ -329,6 +329,7 @@ export default defineComponent({
     const connectToStomp = function() {
       let reportTopic = "/topic/report_property_" + deviceId;
       let lineTopic = "/topic/line_" + deviceId;
+      let deniedTopic="/queue/denied"
       console.log("reportTopic->" + reportTopic);
       stomp.connect(
         { Authorization: window.sessionStorage.getItem("token") },
@@ -345,11 +346,33 @@ export default defineComponent({
             var lineData = JSON.parse(greeting.body);
             deviceData.value.deviceInstancePo.status = lineData.type;
           });
+          stomp.subscribe(deniedTopic,function(error) {
+            var denied=""
+            if(JSON.parse(error.body).type=='read-property'){
+              for (var p of JSON.parse(error.body).targetMsg.property) {
+                propertyLoading(p, "read", false);
+              }
+              denied='当前用户缺少"设备读取点位"权限';
+            }else if(JSON.parse(error.body).type=='write-property'){
+              for (var p of JSON.parse(error.body).targetMsg.property) {
+                propertyLoading(p, "write", false);
+              }
+              denied='当前用户缺少"设备写入点位"权限';
+            }else if(JSON.parse(error.body).type=='function'){
+              tabFunctionData.loading = false;
+              tabFunctionData.result = {};
+              denied='当前用户缺少"设备功能控制"权限';
+            }
+            ElMessage({
+              message: denied,
+              type: "error",
+              plain: true
+            });
+          })
           receive();
         },
         function(frame) {
-          console.log("connect fail");
-          setTimeout(connectToStomp, 3000);
+          console.info("connect fail");
         }
       );
     };
@@ -448,11 +471,11 @@ export default defineComponent({
           });
         }
 
-        if (JSON.parse(m.body).replyType == "LOADING" && JSON.parse(m.body).targetMsg.type == "request") {
+        if (JSON.parse(m.body).replyType == "LOADING" && JSON.parse(m.body).targetMsg.type == "function") {
           tabFunctionData.loading = true;
           tabFunctionData.result = {};
         }
-        if (JSON.parse(m.body).replyType == "SUCCESS" && JSON.parse(m.body).type == "request-reply") {
+        if (JSON.parse(m.body).replyType == "SUCCESS" && JSON.parse(m.body).type == "function-reply") {
           tabFunctionData.loading = false;
           tabFunctionData.result = JSON.parse(m.body).resultMapData;
           tabFunctionData.resultStr = JSON.parse(m.body).resultStrData;
@@ -463,7 +486,7 @@ export default defineComponent({
             plain: true
           });
         }
-        if (JSON.parse(m.body).replyType == "FAIL" && JSON.parse(m.body).type == "request-reply") {
+        if (JSON.parse(m.body).replyType == "FAIL" && JSON.parse(m.body).type == "function-reply") {
           tabFunctionData.loading = false;
           tabFunctionData.result =
             JSON.parse(m.body).resultMapData == undefined
@@ -476,7 +499,7 @@ export default defineComponent({
             plain: true
           });
         }
-        if (JSON.parse(m.body).replyType == "TIMEOUT" &&JSON.parse(m.body).type == "request-reply") {
+        if (JSON.parse(m.body).replyType == "TIMEOUT" &&JSON.parse(m.body).type == "function-reply") {
           tabFunctionData.loading = false;
           ElMessage({
             message: "请求超时",
@@ -596,14 +619,14 @@ export default defineComponent({
     const funcExecution = function(funId, data) {
       console.log("funcExecution-->" + funId + "   ->" + data);
       const functionData = {
-        type: "request",
+        type: "function",
         deviceId: deviceId,
         function: funId,
         args: data
       };
       let functionDataStr = JSON.stringify(functionData);
       stomp.send(
-        "/queue/queue_stomp_request",
+        "/queue/queue_stomp_function",
         { "reply-to": "/temp-queue/foo" },
         functionDataStr
       );
