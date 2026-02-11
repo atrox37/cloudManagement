@@ -1,0 +1,10 @@
+@import url('~/element-plus/dist/index.css');
+@import "tab-content.css";
+
+::v-deep .el-container{
+  height: 100%;
+}
+::v-deep .el-main{
+  height: calc(100% - var(--el-footer-height));
+  padding: 0px;
+}

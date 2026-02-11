@@ -7,7 +7,19 @@
                                      label="时间"
                                      header-align="center"
                                      align="center"
-                                     width="300"/>
+                                     width="320">
+                      <template #header>
+                        <div class="center-flex-contain">
+                          <el-date-picker
+                            v-model="pickTime"
+                            type="daterange"
+                            range-separator="至"
+                            start-placeholder="开始"
+                            end-placeholder="结束"
+                            size="small" />
+                        </div>
+                      </template>
+                    </el-table-column>
                     <el-table-column prop="messageType"
                                      label="类型"
                                      width="100"
@@ -51,6 +63,8 @@
 <script>
     import {defineComponent, toRef, ref, watch, onMounted, reactive} from "vue"
     import {messageTypes} from '@/model/device/DeviceMessage';
+    import {initPickTime,formatTs} from "@/util/common/pickTime";
+
     export default defineComponent({
         name: "DeviceLog",
         props:{
@@ -65,11 +79,28 @@
             const msgType=ref(messageTypes)
             const tableData=toRef(props,'data')
             const terms=reactive([])
-            const page=reactive({current: 1,size:10,sorts: [{column: "ts",order: "desc"}]})
+            const pickTime=ref([])
+            const page=reactive({current: 1,size:10,terms:[],sorts: [{column: "ts",order: "desc"}]})
+            const resetPick=()=>{
+              var dates = initPickTime();
+              pickTime.value[0]=dates[0]
+              pickTime.value[1]=dates[1]
+            }
+            watch(pickTime,v=>{
+              const filteredTerms = terms.filter(item => item.column !== 'ts')
+              terms.length=0
+              terms.push({column:'ts',termType:'gt',value:formatTs(v[0])})
+              terms.push({column:'ts',termType:'lte',value:formatTs(v[1])})
+              terms.push(...filteredTerms)
+              context.emit('pageRequest',page,terms)
+            })
             const initData=()=>{
+                resetPick()
                 terms.length=0
                 page.current=1
                 page.size=10
+                terms.push({column:'ts',termType:'gt',value:formatTs(pickTime.value[0])})
+                terms.push({column:'ts',termType:'lte',value:formatTs(pickTime.value[1])})
                 context.emit('pageRequest',page,terms)
             }
             const getMessageType=(value)=>{
@@ -86,6 +117,7 @@
             }
             const pageChange = (current) => {
                 page.current = current
+
                 context.emit('pageRequest',page,terms)
             }
             const sizeChange = (size)=>{
@@ -93,11 +125,18 @@
                 page.current=1
                 context.emit('pageRequest',page,terms)
             }
-            return {msgType,page,tableData,getMessageType,initData,pageChange,sizeChange}
+            return {msgType,pickTime,page,tableData,getMessageType,initData,pageChange,sizeChange}
         }
     })
 </script>
 <style scoped lang="scss">
     @import "@/views/device/style/DeviceLog.scss";
+    :deep(.el-header){
+      padding: 10px 0 0 0;
+    }
+    :deep(.el-date-editor.el-input__wrapper){
+      width:220px
+    }
+
 </style>
 

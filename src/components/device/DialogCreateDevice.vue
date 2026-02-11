@@ -8,7 +8,7 @@
         <el-input v-model="deviceDialog.device.sn"></el-input>
       </el-form-item>
       <el-form-item label="产品" prop="productId" label-width="100">
-        <el-select v-model="deviceDialog.device.productId" @change="productChange">
+        <el-select v-model="deviceDialog.device.productId">
           <el-option v-for="(item,index) in products" :key="index" :label="item.productPo.name"
                      :value="item.productPo.id"></el-option>
         </el-select>
@@ -87,18 +87,13 @@ export default defineComponent({
       gatewayId: [{ validator: validateSelect, trigger: "blur" }]
     });
 
-    const productChange = (row) => {
-      tags.length=0
-      tags.push(...products[row-1].productPo.metadata.tags)
-      console.log("productChange");
-    };
 
 
     const submitClick = () => {
       createForm.value.validate((valid, fields) => {
         if (valid) {
           console.log("submitClick");
-          context.emit("createClick",tags);
+          context.emit("createClick");
         } else {
           console.log("error submit!", fields);
         }
@@ -127,8 +122,7 @@ export default defineComponent({
       gateways,
       products,
       deviceDialog,
-      submitClick,
-      productChange
+      submitClick
     };
   }
 });

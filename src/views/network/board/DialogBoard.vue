@@ -10,6 +10,15 @@
       <el-form-item label="报文" prop="data">
         <el-input v-model="data.data.data" placeholder="Please input" />
       </el-form-item>
+      <el-form-item label="目标">
+        <template #default="scope">
+          <el-checkbox-group v-model="data.data.cluster">
+            <el-checkbox label="网关" value="gateway" />
+            <el-checkbox label="直连设备" value="device" />
+          </el-checkbox-group>
+
+        </template>
+      </el-form-item>
     </el-form>
 
     <template #footer>

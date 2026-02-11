@@ -76,7 +76,7 @@
 
 <script>
     import {ref, reactive, defineComponent, getCurrentInstance, onMounted, toRef, watch} from "vue";
-
+    import {initPickTime,formatTs} from '@/util/common/pickTime'
     export default defineComponent({
         name: "DeviceProperty",
         props: {
@@ -127,6 +127,11 @@
                 }
                 return r
             }
+            const resetPickTime=()=>{
+              pickTime.value=initPickTime()
+              pickTime.value[0]=new Date(new Date().getTime() - 7 * 24 * 60 * 60 * 1000);
+              pickTime.value[1]=new Date()
+            }
             const closeHandler = () => {
                 context.emit("close")
             }
@@ -134,7 +139,7 @@
                 const year = v.getFullYear();
                 const month = (v.getMonth() + 1).toString().padStart(2, '0'); // 月份是从0开始的
                 const day = v.getDate().toString().padStart(2, '0');
-                return `${year}-${month}-${day}T00:00:00+08:00`;
+                return `${year}-${month}-${day}T00:00:00+${Intl.DateTimeFormat().resolvedOptions().timeZone}`;
             }
             const formatDateClear=()=>{
                 console.log('formatDateClear')
@@ -158,7 +163,7 @@
             watch(dialogStatus, value => {
                 console.log('watch' + value)
                 if (value) {
-                    pickTime.value=[]
+                    resetPickTime()
                     terms.length=0
                     page.current = 1
                     page.size = 10
@@ -173,7 +178,7 @@
                 terms.length=0
                 if(value!=null){
                     for(var i in value){
-                        terms.push({column: "ts", value: formatDate(value[i]),termType: i==0?"gt":"lt"})
+                        terms.push({column: "ts", value: formatTs(value[i]),termType: i==0?"gt":"lt"})
                     }
                 }
                 console.log('pickTime')
@@ -262,6 +267,7 @@
             }
             onMounted(() => {
                 console.log('DeviceProperty')
+                //resetPickTime()
                 window.addEventListener('resize', function() {
                     if(myChart!=undefined)myChart.resize();
                 });

@@ -30,7 +30,7 @@
         <el-tag>{{ type }}</el-tag>
       </el-descriptions-item>
       <el-descriptions-item label="所属人">{{ data.sysUserPo.username }}</el-descriptions-item>
-      <el-descriptions-item label="所属网关" v-if="data.productPo.type=='children'">{{ parentName }}</el-descriptions-item>
+      <el-descriptions-item label="网关设备" v-if="data.productPo.type=='children'">{{ parentName }}</el-descriptions-item>
       <el-descriptions-item label="采集网关">{{ data.gatewayPo.name }}</el-descriptions-item>
       <el-descriptions-item label="采集方式">
         <el-tag size="small">{{ data.networkConfigPo.type }}</el-tag>
@@ -38,11 +38,8 @@
       <el-descriptions-item label="创建时间">{{ data.deviceInstancePo.createTime }}</el-descriptions-item>
       <el-descriptions-item label="更新时间">{{ data.deviceInstancePo.updateTime }}</el-descriptions-item>
     </el-descriptions>
-    <el-descriptions v-if="copyTags.length>0" border title="设备标签" style="margin-top: 30px">
-      <template #extra>
-        <el-button style="margin-top: 5px" @click="saveClick">保存</el-button>
-      </template>
-      <el-descriptions-item v-for="(item,index) in copyTags" :label="item.tagName">
+    <el-descriptions v-if="data.deviceInstancePo.metadata.tags.length>0" border title="设备标签" style="margin-top: 30px">
+      <el-descriptions-item v-for="(item,index) in data.deviceInstancePo.metadata.tags" :key="index" :label="item.tagName">
         <el-input v-model="item.tagValue"></el-input>
       </el-descriptions-item>
     </el-descriptions>
@@ -65,13 +62,6 @@ export default defineComponent({
     parentData:{
       type: Object,
       required: false
-    },
-    deviceTags: {
-      type: Array,
-      requestd: false,
-      default: () => {
-        [];
-      }
     }
   },
   emits: ["tagSave","detailSave"],
@@ -80,8 +70,6 @@ export default defineComponent({
     const pt = toRef(productType);
     const data = toRef(props, "deviceData");
     const parent=toRef(props,'parentData');
-    const tags = props.deviceTags;
-    const copyTags=reactive([])
     const networkConfiguration = ref(data.value.networkConfigPo);
     const dimensionTree = ref([]);
     const dimensionAllTree = computed(() => {
@@ -93,15 +81,11 @@ export default defineComponent({
       if(parent.value == null){
         return "无"
       }else {
-        return parent.deviceInstancePo.name
+        return parent.value.deviceInstancePo.name
       }
     })
     watch(data, (o, n) => {
       console.info("detail");
-    });
-    watch(tags, value => {
-      copyTags.length=0
-      copyTags.push(...JSON.parse(JSON.stringify(value)))
     });
     const type = computed(() => {
       var v = "";
@@ -122,26 +106,20 @@ export default defineComponent({
         console.log("requestDimensionApi");
       });
     };
-    const saveClick=()=>{
-      context.emit("tagSave",copyTags);
-    }
     onMounted(() => {
-      copyTags.length=0
-      copyTags.push(...JSON.parse(JSON.stringify(tags)))
       requestDimensionApi()
       console.info("deviceDetail");
     });
     const editClick = () => {
+      console.log('editClick:'+JSON.stringify(data.value.deviceInstancePo.metadata.tags))
       context.emit("detailSave",data.value.deviceInstancePo);
     };
     return {
       dimensionAllTree,
-      copyTags,
       type,
       data,
       networkConfiguration,
       editClick,
-      saveClick,
       parent,
       parentName
     };

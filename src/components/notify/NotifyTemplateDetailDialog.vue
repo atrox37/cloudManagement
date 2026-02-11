@@ -89,6 +89,26 @@
           </el-form-item>
         </div>
       </div>
+      <!-- 模板点位默认数据模块 -->
+      <div
+        v-if="templateDeviceList.length > 0"
+        class="form-section-module"
+      >
+        <div class="module-title">模板点位默认值</div>
+        <div class="template-variables-container">
+          <el-form-item
+            v-for="variable in templateDeviceList"
+            :key="variable"
+            :label="variable"
+          >
+            <el-input
+              v-model="templateVariablesData[variable]"
+              :placeholder="`请输入${variable}`"
+              class="form-input"
+            />
+          </el-form-item>
+        </div>
+      </div>
     </el-form>
 
     <template #footer>
@@ -191,6 +211,7 @@ export default defineComponent({
     const showRecipientDialog = ref(false);
     const templateVariablesKey = ref(0);
     const templateVariablesList = ref([]);
+    const templateDeviceList = ref([]);
     const templateId = ref(null);
     // 模板变量数据
     const templateVariablesData = reactive({});
@@ -269,6 +290,41 @@ export default defineComponent({
           (match = regex.exec(templateData.templatePo.msgContent.content)) !==
           null
         ) {
+          const variableName = match[1].trim();
+          if (variableName && !variables.includes(variableName)) {
+            variables.push(variableName);
+          }
+        }
+      }
+
+      return variables;
+    });
+    // 解析标题和内容中的变量
+    const templateDevice = computed(() => {
+      const variables = [];
+      const regex = /\{\#([^}]+)\}/g;
+
+      // 解析标题中的变量
+      if (templateData.templatePo.msgContent.title) {
+        let match;
+        while (
+          (match = regex.exec(templateData.templatePo.msgContent.title)) !==
+          null
+          ) {
+          const variableName = match[1].trim();
+          if (variableName && !variables.includes(variableName)) {
+            variables.push(variableName);
+          }
+        }
+      }
+
+      // 解析内容中的变量
+      if (templateData.templatePo.msgContent.content) {
+        let match;
+        while (
+          (match = regex.exec(templateData.templatePo.msgContent.content)) !==
+          null
+          ) {
           const variableName = match[1].trim();
           if (variableName && !variables.includes(variableName)) {
             variables.push(variableName);
@@ -399,8 +455,10 @@ export default defineComponent({
 
     // 处理标题或内容失去焦点事件
     const handleContentBlur = () => {
-      const newVars = templateVariables.value;
-
+      const newVars = []
+      newVars.push(...templateVariables.value);
+      newVars.push(...templateDevice.value);
+      templateDeviceList.value = [...templateDevice.value]
       // 更新变量列表
       templateVariablesList.value = [...newVars];
 
@@ -421,6 +479,7 @@ export default defineComponent({
       templateVariablesKey.value++;
 
       console.log("手动更新后的模板变量数据:", templateVariablesData);
+      console.log("手动更新后的设备变量数据:", JSON.stringify(templateDeviceList.value));
     };
 
     // 打开内容编辑器
@@ -478,7 +537,9 @@ export default defineComponent({
             }
             
             // 获取当前的变量列表（从标题和内容解析的变量）
-            const currentVariables = templateVariables.value;
+            const currentVariables = [];
+            currentVariables.push(...templateVariables.value)
+            currentVariables.push(...templateDevice.value)
             // 更新 variables：新增的添加，删除的移除，保留已有的值
             const newVariables = {};
             currentVariables.forEach((variable) => {
@@ -613,6 +674,7 @@ export default defineComponent({
       templateVariablesKey,
       templateVariablesList,
       templateVariablesData,
+      templateDeviceList,
       accountUser,
       configs,
       templateVariables,

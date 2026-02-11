@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="data.status" title="总招" width="30%">
+  <el-dialog v-model="data.status" title="总招" width="40%">
     <div>
       <el-checkbox-group v-model="checkList">
         <el-checkbox v-for="(item,index) in boardList" :key="index" :value="item.id" border>
@@ -34,9 +34,32 @@
     <el-text size="large">记录</el-text>
     <div>
       <el-table :data="record.records" border v-loading="record.loading">
-        <el-table-column prop="ts" label="时间" width="180" />
+        <el-table-column prop="ts" width="250" >
+          <template #header>
+            <div class="center-flex-contain">
+              <el-date-picker
+                v-model="pickTime"
+                type="daterange"
+                range-separator="至"
+                start-placeholder="开始"
+                end-placeholder="结束"
+                size="small" />
+            </div>
+          </template>
+          <template #default="scope">
+            {{scope.row.ts}}
+          </template>
+        </el-table-column>
         <el-table-column prop="boardName" label="总招名称" />
-        <el-table-column prop="state" label="状态" width="100" />
+        <el-table-column prop="deviceName" label="设备名称" />
+        <el-table-column prop="deviceSn" label="设备Sn" />
+        <el-table-column label="状态" width="100" >
+          <template #default="scope">
+            <el-tag v-if="scope.row.state=='success'" type="success">成功</el-tag>
+            <el-tag v-else-if="scope.row.state=='timeout'" type="info">超时</el-tag>
+            <el-tag type="warning" v-else>失败</el-tag>
+          </template>
+        </el-table-column>
         <template slot="empty">
           <div class="no-data">
             <span>暂无数据</span>
@@ -61,6 +84,7 @@ import SockJS from "sockjs-client/dist/sockjs.min.js";
 import Stomp from "stompjs";
 import { onMounted, defineComponent, getCurrentInstance, reactive, ref, watch, toRef, computed } from "vue";
 import { ElMessage } from "element-plus";
+import {initPickTime,formatTs} from "@/util/common/pickTime";
 import { boardData } from "@/util/request";
 
 export default defineComponent({
@@ -77,6 +101,7 @@ export default defineComponent({
     const boardList = reactive([]);
     const checkList = ref([]);
     const { proxy } = getCurrentInstance();
+    const pickTime=ref([])
     const page = reactive({ current: 1, size: 10, terms: [], sorts: [{ column: "ts", order: "desc" }] });
     const record = reactive({
       loading: false,
@@ -86,6 +111,15 @@ export default defineComponent({
       current: 1
     });
     let dataStr = [];
+    watch(pickTime,v => {
+      page.terms.length=0
+      if(data.value.data.networkConfigPo!=undefined){
+        page.terms.push({column: "net_id", value: data.value.data.networkConfigPo.id})
+        page.terms.push({column:'ts',termType:'gt',value:formatTs(pickTime.value[0])})
+        page.terms.push({column:'ts',termType:'lte',value:formatTs(pickTime.value[1])})
+        pageApi()
+      }
+    })
 
     let stompState = ref(false);
     let stomp = null;
@@ -223,6 +257,8 @@ export default defineComponent({
         connectFunc();
         page.terms.length=0
         page.terms.push({column: "net_id", value: newValue.data.networkConfigPo.id})
+        page.terms.push({column:'ts',termType:'gt',value:formatTs(pickTime.value[0])})
+        page.terms.push({column:'ts',termType:'lte',value:formatTs(pickTime.value[1])})
         pageApi()
       } else {
         disConnectFunc();
@@ -241,7 +277,11 @@ export default defineComponent({
         JSON.stringify(dataStr)
       );
     };
+    onMounted(()=>{
+      pickTime.value = initPickTime()
+    })
     return {
+      pickTime,
       record,
       stompState,
       checkList,

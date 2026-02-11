@@ -125,7 +125,7 @@ export default defineComponent({
     const dataInfo=toRef(props,'data')
     const fileInput=ref(null)
 
-    const boardItem=reactive({status:false,index:-1,data:{name:'',topic:'',data:''}})
+    const boardItem=reactive({status:false,index:-1,data:{name:'',topic:'',data:'',cluster:[]}})
 
     var tag=''
     watch(fileInput,(value => {
@@ -166,7 +166,7 @@ export default defineComponent({
     const boardAddClick=()=>{
       boardItem.status=true
       boardItem.index=-1
-      boardItem.data= { id:createTagId(),name:'',topic:'',data:'' }
+      boardItem.data= { id:createTagId(),name:'',topic:'',data:'',cluster:[] }
       console.log('addClick')
     }
     const boardRowClick=(row)=>{

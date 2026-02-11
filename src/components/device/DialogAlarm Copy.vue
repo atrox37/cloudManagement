@@ -15,35 +15,12 @@
       <el-form-item label="名称">
         <el-input v-model="sourceAlarm.rulePo.name"></el-input>
       </el-form-item>
-      <!-- <el-form-item label="工作状态">
-        
-        <el-radio-group size="small" v-model="sourceAlarm.rulePo.state">
-          <el-radio-button label="启动" :value="1" />
-          <el-radio-button label="关闭" :value="0" />
+      <el-form-item label="状态">
+        <el-radio-group v-model="sourceAlarm.rulePo.state">
+          <el-radio :value="0">关闭</el-radio>
+          <el-radio :value="1">打开</el-radio>
         </el-radio-group>
       </el-form-item>
-      <el-form-item label="触发方式">
-        <el-radio-group size="small" v-model="sourceAlarm.rulePo.ruleData.type">
-          <el-radio-button label="time" value="time" />
-          <el-radio-button label="cron" value="cron" />
-        </el-radio-group>
-      </el-form-item>
-      <el-form-item label="触发时间">
-        <div v-if="sourceAlarm.rulePo.ruleData.type == 'time'">
-          <el-input-number
-            v-model="sourceAlarm.rulePo.ruleData.time"
-            size="small"
-          ></el-input-number>
-          -
-          <el-input-number
-            v-model="sourceAlarm.rulePo.ruleData.count"
-            size="small"
-          ></el-input-number>
-        </div>
-        <div v-if="sourceAlarm.rulePo.ruleData.type == 'cron'">
-          <el-input v-model="sourceAlarm.rulePo.ruleData.cron"></el-input>
-        </div>
-      </el-form-item> -->
       <el-form-item label="触发方式">
         <el-radio-group size="small" v-model="sourceAlarm.rulePo.ruleData.type">
           <el-radio-button label="time" value="time" />
@@ -171,7 +148,7 @@ import AlarmHandlerItem from "@/components/device/item/AlarmHandlerItem.vue";
 import AlarmNotify from "@/components/device/item/AlarmNotify.vue";
 import AlarmHandler from "@/components/device/item/AlarmHandler Copy.vue";
 import { ElMessage } from "element-plus";
-import { quickConvert, cronToDescription } from "@/utils/cronConverter";
+import { quickConvert, cronToDescription } from "@/util/cron/cronConverter";
 
 // 单位换算表
 const intervalToSeconds = (val, unit) => {
@@ -212,7 +189,7 @@ export default defineComponent({
     alarmData: {
       type: Object,
       required: false,
-      default: () => ({ columns: [], rulePo: { ruleData: {} } }),
+      default: () => ({ columns: [],notifyDtos:[], rulePo: { ruleData: {},ruleMeta:{sql:"",param:{}} } }),
     },
   },
   emits: ["close", "reload"],
@@ -228,17 +205,16 @@ export default defineComponent({
     // const notifyTemplateUserPo = reactive([]);
     const alarmColumn = ref([]);
 
-    // 创建一个响应式的本地数据副本，而不是直接使用props的引用
+    // 创建一个响应式的本地数据副本，而不是直接使用props的引用 cronNum cronJg
     const sourceAlarm = ref({
       columns: [],
+      notifyDtos:[],
       rulePo: {
         ruleData: {
           type: "",
           cron: "",
           collTime: 0,
-          count: 0,
-          cronNum: 0,
-          cronJg: "",
+          count: 0
         },
       },
     });
@@ -250,33 +226,6 @@ export default defineComponent({
       return isNaN(Number(cronNum)) ? 0 : intervalToSeconds(cronNum, cronJg);
     });
 
-    // 自动纠正 collTime 不大于轮询周期（采集时间单位为秒，所以直接与轮询周期的秒数比）
-    watch(
-      () => [
-        sourceAlarm.value.rulePo?.ruleData?.collTime,
-        sourceAlarm.value.rulePo?.ruleData?.cronNum,
-        sourceAlarm.value.rulePo?.ruleData?.cronJg,
-      ],
-      ([collTime, cronNum, cronJg]) => {
-        if (
-          typeof collTime === "undefined" || collTime === null ||
-          typeof cronNum === "undefined" || cronNum === null
-        ) {
-          return;
-        }
-        const cNum = parseFloat(cronNum);
-        const cTime = parseFloat(collTime);
-        if (isNaN(cNum) || isNaN(cTime)) return;
-        // 采集时间单位为秒，轮询周期要转换为秒
-        const cycleSec = intervalToSeconds(cNum, cronJg || "秒");
-        // collTime就是秒
-        if (cTime > cycleSec) {
-          // 如果采集时间大于轮询周期则自动重置采集时间
-          sourceAlarm.value.rulePo.ruleData.collTime = cycleSec;
-        }
-      },
-      { immediate: false }
-    );
 
     watch(
       () => props.alarmData,
@@ -301,6 +250,12 @@ export default defineComponent({
           }
 
           sourceAlarm.value = processedData;
+
+
+          alarmColumn.value.length = 0;
+          alarmColumn.value.push(...processedData.columns);
+          ruleNotifyData.length = 0;
+          ruleNotifyData.push(...processedData.notifyDtos);
         } else {
           sourceAlarm.value = {
             columns: [],
@@ -319,20 +274,6 @@ export default defineComponent({
       },
       { deep: true, immediate: true }
     );
-    watch(sourceAlarm, (value) => {
-      alarmColumn.value.length = 0;
-      alarmColumn.value.push(...value.columns);
-      ruleNotifyData.length = 0;
-      ruleNotifyData.push(...value.ruleDtos);
-      //   notifyTemplateUserPo.value = value.ruleDtos
-      //     .filter((item) => item.ruleMetaPo.handlerType.value == "notify")
-      //     .map((item) => item.ruleMetaPo.notifyTemplateUser);
-      // console.log("change alarmColumn");
-      // if (alarmNotifys.value != null) {
-      //   console.log("sourcestatus change:");
-      //   alarmNotifys.value.initFun();
-      // }
-    });
 
     watch(sourcestatus,value=>{
       if(!value){
@@ -385,9 +326,10 @@ export default defineComponent({
       }
 
       var data = {
-        rulePo: sourceAlarm.value.rulePo,
+        deviceId: sourceDevice.value.deviceInstancePo.id,
+        ruleModel: sourceAlarm.value.rulePo,
         columns: [],
-        ruleDtos: [],
+        ruleMeta: [],
         delMeta: [],
       };
       for (var item of alarmItems.value) {
@@ -405,22 +347,24 @@ export default defineComponent({
         if (rest.handlerType && typeof rest.handlerType !== 'string') {
           rest.handlerType = rest.handlerType.value || rest.handlerType || 'notify';
         }
+        rest.deviceId=sourceDevice.value.deviceInstancePo.id
+        rest.ruleId=sourceAlarm.value.rulePo.id
 
         const str = item.userId + "," + item.templateId;
         if (delMap.has(str)) {
           rest.id = delMap.get(str);
           delMap.delete(str);
         }
-        data.ruleDtos.push({ ruleMetaPo: { ...rest } });
+        data.ruleMeta.push(rest);
       }
       data.delMeta.push(...delMap.values());
       console.log("saveAlarm");
 
-      proxy.$http.deviceRuleSave(data).then((value) => {
+      proxy.$http.deviceAlarmUpdate(data).then((value) => {
         console.log("保存成功");
         ElMessage({
           showClose: true,
-          message: "保存成功",
+          message: "修改成功",
           type: "success",
         });
         context.emit("reload");
@@ -434,9 +378,6 @@ export default defineComponent({
       }
       apiNotifyConfig();
     });
-    // onUpdated(() => {
-    //   if (alarmNotifys.value != null) alarmNotifys.value.cleanCache();
-    // });
 
     return {
       notifyConfig,

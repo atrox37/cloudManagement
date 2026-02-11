@@ -7,6 +7,9 @@
           :column="6"
           style="background-color: transparent"
         >
+          <template #extra>
+            <el-button @click="syncApi" type="info" plain :loading="deviceSync.loading">模型同步</el-button>
+          </template>
           <el-descriptions-item span="2">
             <template #label>
               <el-text tag="b">ID</el-text>
@@ -39,8 +42,8 @@
       @tab-click="handleClick"
     >
       <el-tab-pane label="基本信息" name="first">
-        <DeviceDetail :deviceData="deviceData" :parentData="parentData" :deviceTags="deviceTags"
-                      @detailSave="detailSaveClick" @tagSave="updateTagApi"></DeviceDetail>
+        <DeviceDetail :deviceData="deviceData" :parentData="parentData"
+                      @detailSave="detailSaveClick"></DeviceDetail>
       </el-tab-pane>
       <el-tab-pane label="模型属性" name="five">
         <DeviceMeta
@@ -81,6 +84,12 @@
           :deviceData="deviceData"
           @open="alarmOpen"
         ></DeviceAlarm>
+      </el-tab-pane>
+      <el-tab-pane label="告警记录" name="eight">
+        <DeviceAlarmLog
+          ref="deviceAlarmLogRef"
+          :deviceMeta="deviceData.deviceInstancePo">
+        </DeviceAlarmLog>
       </el-tab-pane>
       <el-tab-pane
         v-if="deviceData.productPo.type == 'gateway'"
@@ -165,6 +174,7 @@ import DeviceDetail from "@/views/device/info/DeviceDetail.vue";
 import DeviceRun from "@/views/device/info/DeviceRun.vue";
 import DeviceFunction from "@/views/device/info/DeviceFunction.vue";
 import DeviceLog from "@/views/device/info/DeviceLog.vue";
+import DeviceAlarmLog from "@/views/device/info/DeviceAlarmLog.vue";
 import DeviceChildren from "@/views/device/info/DeviceChildren.vue";
 import ContentHeader from "@/components/menuContain/ContentHeader.vue";
 import MenuContainerHeader from "@/components/menuContain/MenuContainerHeader.vue";
@@ -178,7 +188,7 @@ import DialogChildrenAdd from "@/components/device/DialogChildrenAdd.vue";
 import DialogPropertyControl from "@/components/device/DialogPropertyControl.vue";
 import { column } from "element-plus/es/components/table-v2/src/common";
 import { ElMessage } from "element-plus";
-import { deviceTag, deviceUpdate } from "@/util/request";
+import { deviceSync } from "@/util/request";
 
 export default defineComponent({
   name: "DeviceInstance",
@@ -189,6 +199,7 @@ export default defineComponent({
     DeviceRun,
     DeviceFunction,
     DeviceLog,
+    DeviceAlarmLog,
     DeviceChildren,
     DeviceMeta,
     DialogDeviceEdit,
@@ -211,6 +222,7 @@ export default defineComponent({
     const deviceMetaRef = ref(null);
     const deviceAlarmRef = ref(null);
     const deviceLogRef = ref(null);
+    const deviceAlarmLogRef = ref(null);
     const deviceChildrenRef = ref(null);
     const dialogChildrenRef = ref(null);
     const router = useRouter();
@@ -221,7 +233,6 @@ export default defineComponent({
       { name: "产品", value: "测试产品" }
     ]);
     const deviceRunView = ref();
-    const deviceTags = reactive([]);
     const deviceUnit = reactive([]);
     const activeName = ref("first");
 
@@ -244,6 +255,7 @@ export default defineComponent({
       result: {},
       resultStr: ""
     });
+    const deviceSync=reactive({loading:false})
 
     const loading = computed(() => {
       return !lazyLoad.value;
@@ -275,7 +287,6 @@ export default defineComponent({
           break;
         case "six":
           console.log("five");
-          deviceAlarmRef.value.loadApi("222");
           break;
         case "fourth":
           deviceLogRef.value.initData();
@@ -283,6 +294,10 @@ export default defineComponent({
         case "seven":
           console.log("seven");
           deviceChildrenRef.value.initPage();
+          break;
+        case "eight":
+          console.log("eight");
+          deviceAlarmLogRef.value.initData();
           break;
       }
     };
@@ -297,11 +312,9 @@ export default defineComponent({
       var devicePo = JSON.parse(JSON.stringify(po));
       delete devicePo.createTime;
       delete devicePo.updateTime;
-      delete devicePo.metadata;
       delete devicePo.status;
       delete devicePo.statusTime;
       delete devicePo.treeNode;
-      delete devicePo.parentId;
       delete devicePo.productId;
       console.log("detailSaveClick");
       updateDeviceInstance(devicePo);
@@ -510,53 +523,6 @@ export default defineComponent({
       };
     };
 
-    const updateTagApi = (tags) => {
-      console.log("updateTagApi");
-      let params = [];
-      for (let item of tags) {
-        if (!(item.id == undefined && (item.tagValue == undefined || item.tagValue == ""))) {
-          item.deviceId = deviceId;
-          params.push(item);
-        }
-      }
-      if (params.length > 0) {
-        console.log("updateTagApi");
-        proxy.$http.deviceUpdate(params).then(v => {
-          console.log("updateTagApi success");
-          ElMessage({
-            message: "操作成功",
-            type: "success",
-            plain: true
-          });
-        }, e => {
-          ElMessage({
-            message: "操作失败",
-            type: "error",
-            plain: true
-          });
-        });
-      }
-    };
-
-    const tagApi = (tags) => {
-      proxy.$http.deviceTag({ terms: [{ column: "t.device_id", value: deviceId }] }).then(value => {
-        for (let item of value.data) {
-          for (let i in tags) {
-            if (item.tagKey == tags[i].tagKey) {
-              tags[i].tagValue = item.tagValue;
-              tags[i].id = item.id;
-              break;
-            }
-          }
-        }
-        deviceTags.length = 0;
-        deviceTags.push(...tags);
-        console.log("tagAPi success");
-      }, error => {
-        console.log("tagAPi success");
-      });
-    };
-
     const requestApi = function() {
       return new Promise((resolve) => {
         let params = { terms: [{ column: "t.id", value: deviceId }] }; //id:deviceId
@@ -564,7 +530,6 @@ export default defineComponent({
           console.log("requestApi");
           deviceData.value = value.data;
           deviceMeta.value = value.data.deviceInstancePo;
-          tagApi(value.data.deviceInstancePo.metadata.tags);
           if (value.data.deviceInstancePo.parentId != null) {
             parentApi(value.data.deviceInstancePo.parentId);
           }
@@ -578,6 +543,7 @@ export default defineComponent({
       let params = { terms: [{ column: "t.id", value: parentId }] }; //id:deviceId
       proxy.$http.deviceSearch(params).then((value) => {
         console.log("parentApi");
+        parentData.value=value.data
       });
     };
     const requestGatewayApi = () => {
@@ -615,7 +581,20 @@ export default defineComponent({
         });
       });
     };
-
+    const syncApi=()=>{
+      deviceSync.loading=true
+      proxy.$http.deviceSync({id:deviceData.value.deviceInstancePo.id}).then((value) => {
+        console.log("deviceSync");
+        deviceSync.loading=false
+        if(value.data.change==0){
+          ElMessage.info("暂无更新内容")
+        }else{
+          ElMessage.success("已完成更新")
+        }
+      },error => {
+        deviceSync.loading=false
+      });
+    }
     const funcExecution = function(funId, data) {
       console.log("funcExecution-->" + funId + "   ->" + data);
       const functionData = {
@@ -760,7 +739,7 @@ export default defineComponent({
     const alarmReload = () => {
       console.log("alarmReload");
       dialogAlarmState.value = false;
-      deviceAlarmRef.value.reloadApi();
+      reload()
     };
     const alarmOpen = (data) => {
       console.log("alarmOpen");
@@ -842,7 +821,6 @@ export default defineComponent({
       disConnectFunc();
     });
     return {
-      deviceTags,
       dialogPropertyControl,
       deviceStatusTag,
       gatewayData,
@@ -861,6 +839,8 @@ export default defineComponent({
       deviceFuncRef,
       deviceAlarmRef,
       deviceLogRef,
+      deviceAlarmLogRef,
+      deviceSync,
       deviceChildrenRef,
       dialogChildrenRef,
       dialogAlarmState,
@@ -895,7 +875,7 @@ export default defineComponent({
       writeProperty,
       propertyControlCancel,
       propertyControlSubmit,
-      updateTagApi
+      syncApi
     };
   }
 });

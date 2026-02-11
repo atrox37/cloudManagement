@@ -164,24 +164,6 @@ export default defineComponent({
       });
       console.log("resetParam");
     };
-    const updateTagApi=(tags)=>{
-      console.log('updateTagApi')
-      proxy.$http.deviceUpdate(tags).then(v=>{
-        console.log('updateTagApi success')
-        ElMessage({
-          message: '操作成功',
-          type: 'success',
-          plain: true,
-        })
-        resetClick()
-      },e=>{
-        ElMessage({
-          message: '操作失败',
-          type: 'error',
-          plain: true,
-        })
-      })
-    }
 
 
     const createDeviceClick = (tags) => {
@@ -189,10 +171,6 @@ export default defineComponent({
       console.log("createDeviceClick");
       proxy.$http.updateDeviceInstanceApi(deviceCreateData.device).then(value => {
         console.log('updateDeviceInstanceApi:'+JSON.stringify(value))
-        for(let index in tags){
-          tags[index].deviceId=value.data.data.id
-        }
-        updateTagApi(tags)
       }, error => {
         deviceCreateData.loading = false;
         deviceCreateData.status = false;

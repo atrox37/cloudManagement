@@ -113,7 +113,7 @@ import {
 } from "vue";
 import { Plus, Delete } from "@element-plus/icons-vue";
 import ProductAlarmItem from "@/components/product/item/ProductAlarmItem.vue";
-import { quickConvert, cronToDescription } from "@/utils/cronConverter";
+import { quickConvert, cronToDescription } from "@/util/cron/cronConverter";
 export default defineComponent({
   name: "DialogAlarmRule",
   components: { ProductAlarmItem },

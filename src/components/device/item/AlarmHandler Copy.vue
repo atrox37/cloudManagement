@@ -70,6 +70,28 @@
                 />
               </el-form-item>
             </el-form>
+            <div class="popover-title">涉及点位</div>
+            <el-space wrap>
+              <el-tag
+                v-for="propertyId in getMatchedPropertyIds(scope.$index)"
+                :key="propertyId"
+                size="small"
+                type="info"
+              >
+                {{ getPropertyName(propertyId) }}
+              </el-tag>
+            </el-space>
+            <div class="popover-title">未涉及点位</div>
+            <el-space wrap>
+              <el-tag
+                v-for="propertyId in getUnmatchedPropertyIds(scope.$index)"
+                :key="`unmatched-${propertyId}`"
+                size="small"
+                type="warning"
+              >
+                {{ propertyId }}
+              </el-tag>
+            </el-space>
             <div class="popover-footer">
               <el-button size="small" @click="closeVariablesPopover(scope.$index)">取消</el-button>
               <el-button type="primary" size="small" @click="saveVariables(scope.$index)">确定</el-button>
@@ -101,7 +123,7 @@
 </template>
 
 <script>
-import { ref, watch, onMounted, getCurrentInstance } from 'vue';
+import { ref, watch, onMounted, getCurrentInstance, toRef } from "vue";
 
 export default {
   name: "AlarmHandler",
@@ -123,6 +145,7 @@ export default {
     },
   },
   setup(props) {
+    const device = toRef(props,'deviceData')
     const notifyD = ref([]);
     const userList = ref([]);
     const notifyTemplateUserList = ref([]);
@@ -136,6 +159,9 @@ export default {
     const popoverVisibleMap = ref({}); // 存储每个索引的 Popover 显示状态
     const currentVariablesMap = ref({}); // 存储每个索引的变量数据
     const templateVariablesMap = ref({}); // 存储每个索引的变量列表
+
+    const currentPropertiesMap = ref({}); // 存储每个索引的变量数据
+    const propertiesVariablesMap= ref({});//存储每个点位的变量列表
     const templateDataMap = ref(new Map()); // 存储模板数据，key为templateId
 
     // 监听notifyData变化，深拷贝赋值
@@ -197,16 +223,32 @@ export default {
       return item ? item.msgContent[propsName] : "";
     }
 
+    function getMsgContent(template) {
+      const raw = template?.msgContent;
+      if (!raw) {
+        return {};
+      }
+      if (typeof raw === "string") {
+        try {
+          return JSON.parse(raw);
+        } catch (e) {
+          return {};
+        }
+      }
+      return raw;
+    }
+
     // 解析模板变量（从msgContent的title和content中提取）
     function parseTemplateVariables(template) {
       const variables = [];
       const regex = /\{\$([^}]+)\}/g;
-      
-      if (template?.msgContent) {
+      const msgContent = getMsgContent(template);
+
+      if (msgContent) {
         // 解析标题中的变量
-        if (template.msgContent.title) {
+        if (msgContent.title) {
           let match;
-          while ((match = regex.exec(template.msgContent.title)) !== null) {
+          while ((match = regex.exec(msgContent.title)) !== null) {
             const variableName = match[1].trim();
             if (variableName && !variables.includes(variableName)) {
               variables.push(variableName);
@@ -215,9 +257,9 @@ export default {
         }
         
         // 解析内容中的变量
-        if (template.msgContent.content) {
+        if (msgContent.content) {
           let match;
-          while ((match = regex.exec(template.msgContent.content)) !== null) {
+          while ((match = regex.exec(msgContent.content)) !== null) {
             const variableName = match[1].trim();
             if (variableName && !variables.includes(variableName)) {
               variables.push(variableName);
@@ -228,6 +270,38 @@ export default {
       
       return variables;
     }
+    function parsePropertyVariables(template) {
+      const variables = [];
+      const regex = /\{\#([^}]+)\}/g;
+      const msgContent = getMsgContent(template);
+
+      if (msgContent) {
+        // 解析标题中的变量
+        if (msgContent.title) {
+          let match;
+          while ((match = regex.exec(msgContent.title)) !== null) {
+            const variableName = match[1].trim();
+            if (variableName && !variables.includes(variableName)) {
+              variables.push(variableName);
+            }
+          }
+        }
+
+        // 解析内容中的变量
+        if (msgContent.content) {
+          let match;
+          while ((match = regex.exec(msgContent.content)) !== null) {
+            const variableName = match[1].trim();
+            if (variableName && !variables.includes(variableName)) {
+              variables.push(variableName);
+            }
+          }
+        }
+      }
+
+      return variables;
+    }
+
 
     function notifyTemplateChange(index, value) {
       const templateAndConfig = notifyTemplateAndConfig.value.find(
@@ -263,7 +337,7 @@ export default {
       
       // 获取模板数据
       const template = notifyTemplateAndConfig.value.find(
-        (item) => item.templatePo.id === row.templateId
+        (item) => String(item.templatePo.id) === String(row.templateId)
       )?.templatePo;
       
       if (!template) {
@@ -273,6 +347,8 @@ export default {
       // 解析模板变量列表（key）
       const variablesList = parseTemplateVariables(template);
       templateVariablesMap.value[index] = variablesList;
+      const propertiesList = parsePropertyVariables(template)
+      propertiesVariablesMap.value[index]=propertiesList
       
       // 确保 handlerData 存在（notifyTemplateChange 应该已经初始化了，但为了安全还是检查一下）
       if (!row.handlerData) {
@@ -294,6 +370,17 @@ export default {
         } else {
           // 如果 key 不存在，使用空字符串
           currentVariablesMap.value[index][variable] = '';
+        }
+      });
+
+      currentPropertiesMap.value[index] = {};
+      propertiesList.forEach((variable) => {
+        // 只要 key 存在于 handlerVariables 中，不管 value 是什么都直接使用
+        if (handlerVariables.hasOwnProperty(variable)) {
+          currentPropertiesMap.value[index][variable] = handlerVariables[variable];
+        } else {
+          // 如果 key 不存在，使用空字符串
+          currentPropertiesMap.value[index][variable] = '';
         }
       });
     }
@@ -332,6 +419,23 @@ export default {
         currentVariablesMap.value[index] = {};
       }
       return currentVariablesMap.value[index];
+    }
+    function getPropertyName(propertyId) {
+      const properties = device.value?.deviceInstancePo?.metadata?.properties || [];
+      const target = properties.find((item) => String(item?.id) === String(propertyId));
+      return target?.name || propertyId;
+    }
+    function getUnmatchedPropertyIds(index) {
+      const propertiesList = propertiesVariablesMap.value[index] || [];
+      const properties = device.value?.deviceInstancePo?.metadata?.properties || [];
+      const propertyIdSet = new Set(properties.map((item) => String(item?.id)));
+      return propertiesList.filter((id) => !propertyIdSet.has(String(id)));
+    }
+    function getMatchedPropertyIds(index) {
+      const propertiesList = propertiesVariablesMap.value[index] || [];
+      const properties = device.value?.deviceInstancePo?.metadata?.properties || [];
+      const propertyIdSet = new Set(properties.map((item) => String(item?.id)));
+      return propertiesList.filter((id) => propertyIdSet.has(String(id)));
     }
 
     function getConfigAndTemplate() {
@@ -391,6 +495,10 @@ export default {
       saveVariables,
       getTemplateVariablesList,
       getCurrentVariables,
+      propertiesVariablesMap,
+      getPropertyName,
+      getUnmatchedPropertyIds,
+      getMatchedPropertyIds,
     };
   },
 };

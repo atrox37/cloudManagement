@@ -33,12 +33,6 @@ export const userPermissionApi = function(p: any){
 export const unitApi=()=>{
     return get('/api/iot-app/configuration/unit',{})
 }
-export const deviceTag=(p)=>{
-    return post('/api/iot-app/device_tag/_search_all',p)
-}
-export const deviceUpdate=(p)=>{
-    return post('/api/iot-app/device_tag/_save_or_update_batch',p)
-}
 export const deviceSearch = function (p: any) {
     return post('/api/iot-app/device/_search_one',p)
 }
@@ -53,6 +47,9 @@ export const updateBatchDeviceInstanceApi = function(p:any){
 }
 export const deleteDeviceInstanceApi = function (p:any){
     return get('/api/iot-app/device/_delete',p)
+}
+export const deviceSync = function (p:any){
+    return get('/api/iot-app/device/_sync',p)
 }
 export const productParse = function (p: any) {
     return post('/api/iot-app/product/_parse',p)
@@ -201,14 +198,14 @@ export const notifyTemplateUserDelete=function (p: any) {
 export const notifyTemplateTest=function (p: any) {
     return post('/api/notify-app/notify-template/send_test',p)
 }
-export const deviceAlarmList=function (p: any) {
-    return post('/api/iot-app/rule/_search_all',p)
-}
 export const deviceAlarmPage=function (p: any) {
     return post('/api/iot-app/rule/_page',p)
 }
 export const deviceAlarmParse=function (p: any) {
-    return get('/api/iot-app/rule/_parse',p)
+    return post('/api/iot-app/device/_rule_parse',p)
+}
+export const deviceAlarmUpdate=function(p:any){
+    return post('/api/iot-app/device/_rule_update',p)
 }
 export const deviceRuleSave=function (p: any) {
     return post('/api/iot-app/rule/save',p)
@@ -224,6 +221,12 @@ export const devicePropertyHistory=function (p:any) {
 }
 export const deviceLogData=function (p: any) {
     return post('/api/register-app/timeseries/log/_page',p)
+}
+export const deviceFuntionLog=function(p: any){
+    return post('/api/register-app/timeseries/function/_page',p)
+}
+export const deviceAlarmLog=function(p: any){
+    return post('/api/register-app/timeseries/alarm/_page',p)
 }
 export const boardData=function (p: any) {
     return post('/api/register-app/timeseries/board/_page',p)

@@ -3,8 +3,7 @@
     <el-main>
       <el-table
         height="100%"
-        :data="pageData"
-        v-loading="loading"
+        :data="data.deviceInstancePo.metadata.rules"
         stripe
         style="width: 100%"
       >
@@ -74,22 +73,9 @@
             </el-button-group>
           </template>
         </el-table-column>
-        <template #empty>
-          <el-empty :image-size="60"></el-empty>
-        </template>
+
       </el-table>
     </el-main>
-    <el-footer>
-      <div class="center-flex-contain">
-        <el-pagination
-          background
-          layout="prev, pager, next"
-          @current-change="pageChange"
-          :total="pageTotal"
-        >
-        </el-pagination>
-      </div>
-    </el-footer>
   </div>
 </template>
 <script>
@@ -116,9 +102,6 @@ export default defineComponent({
   setup(props, context) {
     const { proxy } = getCurrentInstance();
     const pageData = reactive([]);
-    const pageSize = ref(10);
-    const pageIndex = ref(1);
-    const pageTotal = ref(0);
     const loading = ref(true);
     const data = toRef(props, "deviceData");
     const deviceInfo = ref(data.value.deviceInstancePo);
@@ -134,30 +117,9 @@ export default defineComponent({
         loadApi();
       });
     };
-    const reloadApi = () => {
-      pageSize.value = 10;
-      pageIndex.value = 1;
-      pageTotal.value = 0;
-      loadApi();
-    };
 
-    const loadApi = () => {
-      loading.value = true;
-      proxy.$http
-        .deviceAlarmPage({
-          current: pageIndex.value,
-          size: pageSize.value,
-          terms: [{ column: "t.device_id", value: deviceInfo.value.id }],
-        })
-        .then((response) => {
-          console.log(JSON.stringify(response.data.records));
-          pageData.length = 0;
-          pageData.push(...response.data.records);
-          loading.value = false;
-        });
-    };
     const apiInfo = (id) => {
-      proxy.$http.deviceAlarmParse({ id: id }).then((response) => {
+      proxy.$http.deviceAlarmParse({ ruleId: id,deviceId:deviceInfo.value.id }).then((response) => {
         console.log(JSON.stringify(response.data));
         context.emit("open", response.data);
       });
@@ -172,34 +134,30 @@ export default defineComponent({
         columns: [],
         ruleDtos: [],
         rulePo: {
+          id:"",
+          state:0,
           name: "",
           deviceId: data.value.deviceInstancePo.id,
-          state: 1,
           ruleData: { type: "time", count: 0, collTime: 0, cron: "" },
+          ruleMeta: {
+            sql: "select *",
+            param:{}
+          }
         },
       });
     };
-    const pageChange = (current) => {
-      console.log("pageChange" + current);
-      pageIndex.value = current;
-      loadApi();
-    };
     onMounted(() => {
       console.log("device alarm");
-      loadApi();
     });
     return {
-      reloadApi,
       loading,
+      data,
       deviceInfo,
-      pageTotal,
       pageData,
-      pageChange,
       rowClick,
       handlerCroe,
       handlerColTime,
       handerCount,
-      loadApi,
       deleteClick,
       add,
     };
