@@ -1,0 +1,6 @@
+###新增通知模板
+POST http://localhost:9100/notify-app/notify-template/_save_or_update
+Content-Type: application/json
+Authorization: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6ImFkbWluIn0.ppqZg8ieBBtrA5DJipCMPE8tZIHh3lEZACGsXh60thk
+
+{"name": "test","msgType": 1}

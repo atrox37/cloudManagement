@@ -425,12 +425,13 @@ export default defineComponent({
     };
     // 发送测试API
     const sendTemplateApi = () => {
+      console.info('send test')
       testForm.loading = true;
       const params = {
         userId: testForm.recipient,
-        // notifyPo: {
-        //   id: templateData.templatePo.notifyId,
-        // },
+        configPo: {
+           id: templateData.templatePo.configId,
+        },
         templatePo: {
           type: templateData.configPo.code, // 使用 configPo.code 作为 type
           msgContent: templateData.templatePo.msgContent,
@@ -438,9 +439,6 @@ export default defineComponent({
           msgType: templateData.templatePo.msgType || 1, // 使用模板的 msgType，默认为 1
         },
       };
-      if(templateData.templatePo.notifyId){
-        params.notifyPo.id = templateData.templatePo.notifyId;
-      }
       proxy.$http
         .notifyTemplateTest(params)
         .then((value) => {
@@ -529,7 +527,7 @@ export default defineComponent({
     };
     const initTemplateData = () => {
       templateData.templatePo.name = "";
-      templateData.templatePo.notifyId = "";
+      templateData.templatePo.configId = "";
       templateData.configPo.code = "";
       templateData.configPo.codeName = "";
       // 确保 msgContent 是对象
