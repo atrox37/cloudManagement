@@ -148,7 +148,7 @@ export default defineComponent({
     const newNotifyTempate = reactive({
       state: false,
       loading: false,
-      data: { name: "", notifyId: undefined, msgType: 1 },
+      data: { name: "", configId: undefined, msgType: 1,variables:{} },
     });
     const notifyConfigAll = reactive([]);
     const templateDetailDialogRef = ref(null);

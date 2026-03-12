@@ -4,9 +4,9 @@
       <el-form-item label="通知名称" prop="name">
         <el-input v-model="templateData.data.name" />
       </el-form-item>
-      <el-form-item label="通知配置" prop="notifyId">
+      <el-form-item label="通知配置" prop="configId">
         <el-select
-            v-model="templateData.data.notifyId"
+            v-model="templateData.data.configId"
             placeholder="Select"
             size="large"
         >
@@ -36,7 +36,7 @@
       data:{
         type: Object,
         required: false,
-        default: () => ({state:false,loading:false,data:{name:'',notifyId:undefined,msgType:1}})
+        default: () => ({state:false,loading:false,data:{name:'',configId:undefined,msgType:1,variables:{}}})
       },
       config:{
         type: Array,
@@ -56,8 +56,8 @@
           }else{
             callback()
           }
-        }else if(rule.field == 'notifyId'){
-          if(templateData.value.data.notifyId == undefined){
+        }else if(rule.field == 'configId'){
+          if(templateData.value.data.configId == undefined){
             callback(('通知配置不能为空'))
           }else{
             callback()
