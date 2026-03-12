@@ -59,7 +59,7 @@ export default defineComponent({
     let drawer = ref(false);
     let elTable = ref(null);
     let records = reactive([])
-    let pageInfo = reactive({size: 10, current: 1, total: 0})
+    let pageInfo = reactive({size: 10, current: 1, total: 0, sorts: [{ column: "t.update_time", order: "desc" }]})
 
     const pageApi = () => {
       proxy.$http.roleApi(pageInfo).then(value => {

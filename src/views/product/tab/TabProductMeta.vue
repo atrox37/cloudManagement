@@ -3,7 +3,7 @@
         <el-tab-pane label="属性">
             <el-table :data="metadata.properties" stripe @selection-change="deletePropertyListener">
                 <el-table-column type="selection" width="55" />
-                <el-table-column prop="id" label="Id" width="180" />
+                <!-- <el-table-column prop="id" label="Id" width="180" /> -->
                 <el-table-column prop="name" label="名称" width="180" />
                 <el-table-column prop="valueType.type" label="类型" width="180" />
                 <el-table-column prop="valueType.unit" label="单位" width="180" />
@@ -30,7 +30,7 @@
         <el-tab-pane label="功能">
             <el-table :data="metadata.functions">
                 <el-table-column type="selection" width="55" />
-                <el-table-column prop="id" label="id" width="180" />
+                <!-- <el-table-column prop="id" label="id" width="180" /> -->
                 <el-table-column prop="name" label="名称" width="180" />
                 <el-table-column prop="async" label="是否异步" width="180" />
                 <el-table-column>

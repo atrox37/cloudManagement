@@ -15,7 +15,7 @@
         </el-header>
         <el-main>
             <el-table height="100%" :data="tableData" v-loading="loading" stripe @cell-click="itemClick">
-                <el-table-column prop="templateUserPo.id" label="ID" width="60" header-align="center" align="center"/>
+                <!-- <el-table-column prop="templateUserPo.id" label="ID" width="60" header-align="center" align="center"/> -->
                 <el-table-column prop="templateUserPo.name" label="名称" width="100" header-align="center" align="center"/>
                 <el-table-column prop="templateUserPo.receiver" label="接收账号" width="200"  header-align="center" align="center"/>
                 <el-table-column prop="configPo.code.msgName" label="接收类型" width="100"  header-align="center" align="center"/>
@@ -74,7 +74,7 @@
             const tableData = reactive([])
             const loading = ref(true)
             const pageTotal = ref(0)
-            const page=ref({size:10,current:1})
+            const page=ref({size:10,current:1, sorts: [{ column: "t.update_time", order: "desc" }]})
             const pageApi=()=>{
                 loading.value=true
                 proxy.$http.notifyTemplateUserPage(page.value).then(value => {

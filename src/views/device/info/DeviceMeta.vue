@@ -4,7 +4,7 @@
             <el-tab-pane label="属性">
 
                 <el-table :data="filterProperty" stripe >
-                    <el-table-column prop="id" label="Id" width="180" />
+                    <!-- <el-table-column prop="id" label="Id" width="180" /> -->
                     <el-table-column prop="name" label="名称" width="180" />
                     <el-table-column prop="valueType.type" label="类型" width="180" />
                     <el-table-column prop="valueType.unit" label="单位" width="180" />
@@ -43,7 +43,7 @@
         </el-tab-pane>
         <el-tab-pane label="功能">
             <el-table :data="deviceMeta.metadata.functions" stripe>
-                <el-table-column prop="id" label="Id" width="180" />
+                <!-- <el-table-column prop="id" label="Id" width="180" /> -->
                 <el-table-column prop="name" label="名称" width="180" />
                 <el-table-column prop="async" label="是否异步" width="180" />
                 <el-table-column>

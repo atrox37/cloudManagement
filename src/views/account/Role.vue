@@ -3,7 +3,7 @@
         <el-main>
 
             <el-table ref="elTable" :data="records" border highlight-current-row @current-change="handleCurrentChange" style="width: auto;">
-                <el-table-column prop="id" label="Id" align="center" width="100"/>
+                <!-- <el-table-column prop="id" label="Id" align="center" width="100"/> -->
                 <el-table-column prop="roleName" label="角色名称" align="center" width="400"/>
                 <el-table-column prop="orgName" label="组织机构" align="center" width="400"/>
                 <el-table-column prop="updateTime" label="更新时间" align="center" width="300"/>
@@ -111,7 +111,7 @@ export default defineComponent({
 
         let records = reactive([])
         let checkboxGroup = ref([1])
-        let pageInfo = reactive({size:10,current:0,total:0})
+        let pageInfo = reactive({size:10,current:0,total:0, sorts: [{ column: "t.update_time", order: "desc" }]})
         let treeData=reactive([])
         let permissions = reactive([])
 

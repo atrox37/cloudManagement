@@ -118,7 +118,7 @@
             const type = ref(protocolType)
             const loading = ref(true)
             const searchParams = reactive([])
-            const page = reactive({current: 0, size: 10,terms:[]})
+            const page = reactive({current: 0, size: 10,terms:[], sorts: [{ column: "t.update_time", order: "desc" }]})
             const tableData = reactive([])
 
             const selectData = ref({support: [], configuration: {}})

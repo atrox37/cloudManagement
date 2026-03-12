@@ -147,7 +147,7 @@ export default defineComponent({
   name: "UserPage",
   setup(props,context){
     const {proxy} = getCurrentInstance()
-    let pageInfo = reactive({size:10,current:1,total:0,terms:[]})
+    let pageInfo = reactive({size:10,current:1,total:0,terms:[], sorts: [{ column: "t.update_time", order: "desc" }]})
     const loading=ref(false)
     const uploading=ref(false)
     const passDialog=ref(false)

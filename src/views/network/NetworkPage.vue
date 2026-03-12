@@ -116,7 +116,7 @@ export default defineComponent({
     const { proxy } = getCurrentInstance();
     const tableData = reactive([]);
     const searchParams = reactive([]);
-    const page = reactive({ current: 1, size: 10, total: 0, loading: false, terms: [] });
+    const page = reactive({ current: 1, size: 10, total: 0, loading: false, terms: [], sorts: [{ column: "t.update_time", order: "desc" }] });
     const drawMqttServerInfo = reactive({ saveloading: false, add: false, status: false, data: {} });
     const drawKafkaServerInfo = reactive({ saveloading: false, add: false, status: false, data: {} });
     const drawClientServerInfo = reactive({

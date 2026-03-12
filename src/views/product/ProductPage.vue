@@ -30,7 +30,7 @@
         </el-header>
         <el-main>
             <el-table :data="tableData" v-loading="loading" stripe @row-click="editClick" border highlight-current-row>
-                <el-table-column prop="productPo.id" label="ID" width="60" header-align="center" align="center" />
+                <!-- <el-table-column prop="productPo.id" label="ID" width="60" header-align="center" align="center" /> -->
                 <el-table-column prop="productPo.name" label="名称"  header-align="center" align="center" width="200"/>
                 <el-table-column label="产品类型"  header-align="center" align="center" width="180">
                     <template #default="scope">
@@ -98,7 +98,7 @@
             const tableData = reactive([])
             const loading = ref(true)
             const pageTotal = ref(0)
-            const page=ref({size:10,current:1,terms:[]})
+            const page=ref({size:10,current:1,terms:[], sorts: [{ column: "t.update_time", order: "desc" }]})
           let selectProductId=undefined
             const dialogCreateProduct=ref({})
           const dialogProductOrgRef=ref(null)

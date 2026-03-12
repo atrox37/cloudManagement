@@ -103,7 +103,7 @@
             const data = toRef(props, 'propertyData')
             const meas=toRef(props,'property')
             const chartRef = ref(null)
-            const page = reactive({current: 1, size: 10})
+            const page = reactive({current: 1, size: 10, sorts: [{ column: "ts", order: "desc" }]})
             const activeName = ref('dataPane')
             const loading = ref(false)
             const pickTime=ref([])

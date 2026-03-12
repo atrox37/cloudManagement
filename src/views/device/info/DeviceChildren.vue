@@ -145,6 +145,7 @@ export default defineComponent({
       size: 10,
       current: 1,
       total: 0,
+      sorts: [{ column: "t.create_time", order: "desc" }],
       terms: [{column: "t.parent_id", value: data.value.deviceInstancePo.id}]
     })
     const renameDialog=reactive({status:false,node:{id:'',name:''}})

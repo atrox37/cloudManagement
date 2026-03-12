@@ -118,7 +118,7 @@ export default defineComponent({
     const { proxy } = getCurrentInstance();
     const loading = ref(true);
     const searchParams = reactive([]);
-    const page = reactive({ current: 0, size: 10, terms: [] });
+    const page = reactive({ current: 0, size: 10, terms: [], sorts: [{ column: "t.update_time", order: "desc" }] });
     const tableData = reactive([]);
 
     const boardParam=reactive({current:1,size:10,terms:[],sorts:[{column: "ts",order: "desc"}]})

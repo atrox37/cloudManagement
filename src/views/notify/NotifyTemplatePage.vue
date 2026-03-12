@@ -144,7 +144,7 @@ export default defineComponent({
     const tableData = reactive([]);
     const loading = ref(true);
     const pageTotal = ref(0);
-    const page = ref({ size: 10, current: 1 });
+    const page = ref({ size: 10, current: 1, sorts: [{ column: "t.create_time", order: "desc" }] });
     const nType = toRef(notifyType);
     const newNotifyTempate = reactive({
       state: false,

@@ -86,7 +86,7 @@
             const loading = ref(true)
             const nType=toRef(notifyType)
             const pageTotal = ref(0)
-            const page=ref({size:10,current:1})
+            const page=ref({size:10,current:1, sorts: [{ column: "t.create_time", order: "desc" }]})
 
             const configData=reactive({state:false,loading:false,data:{}});
 

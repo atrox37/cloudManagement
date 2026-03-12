@@ -48,7 +48,7 @@
             const childrenData=toRef(props,'data')
             const {proxy} = getCurrentInstance()
             const tableData=reactive([])
-            const page=reactive({current:1,size:10,total:0,loading:false,submitloading:false,terms:[]})
+            const page=reactive({current:1,size:10,total:0,loading:false,submitloading:false,terms:[], sorts: [{ column: "t.update_time", order: "desc" }]})
             const addSelect=reactive([])
             const pageApi=()=>{
                 page.submitloading=false

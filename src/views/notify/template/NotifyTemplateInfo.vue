@@ -39,7 +39,7 @@
     <el-container class="tiny-container">
       <el-main class="tiny-main">
         <el-table :data="page.record" border stripe >
-          <el-table-column prop="templateUserPo.id" label="Id" width="50"/>
+          <!-- <el-table-column prop="templateUserPo.id" label="Id" width="50"/> -->
           <el-table-column prop="templateUserPo.name" label="名称" width="180"/>
           <el-table-column prop="templateUserPo.receiver" label="接受对象"/>
           <el-table-column prop="templateUserPo.variables" label="模板内容"/>
@@ -118,7 +118,7 @@ export default defineComponent({
     const nType = toRef(notifyType)
     const drawableEmailRef = ref()
     const drawableContent = ref(false)
-    const page = reactive({total: 0, current: 0, size: 10, terms: [], record: []})
+    const page = reactive({total: 0, current: 0, size: 10, terms: [], record: [], sorts: [{ column: "t.update_time", order: "desc" }]})
 
     const testEmail = reactive({name:'',state: false, sendData: [], receiver: "", loading: false})
     const selectEmail = reactive({
