@@ -2,7 +2,7 @@
   <div class="tab-pan-content">
     <el-container>
       <el-main>
-        <el-table :data="query.records" stripe border>
+        <el-table :data="query.records" :loading="query.loading" stripe border>
           <el-table-column prop="ts"
                            label="时间"
                            header-align="center"

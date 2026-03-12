@@ -34,7 +34,7 @@
                             :label="itemChild.value"
                             :value="itemChild.key"/>
                 </el-select>
-                <el-input v-if="scope.row.valueType=='string'" style="margin: 0;width: calc(80% - 5px)" v-model="scope.row.value" ></el-input>
+                <el-input v-if="scope.row.valueType=='string' && scope.row.operation!='IS NOT NULL'" style="margin: 0;width: calc(80% - 5px)" v-model="scope.row.value" ></el-input>
             </template>
         </el-table-column>
         <el-table-column label="操作">
@@ -71,7 +71,8 @@
             const sourceAlarmData=toRef(props,'alarmData')
             const property=ref([])
             const dataCondition=reactive([])
-            const compare = ref([{value: '>',label: '大于',},{value: '<',label: '小于',},{value: '=',label: '等于',}])
+            const compareNum = [{value: '>',label: '大于'},{value: '<',label: '小于'},{value: '=',label: '等于'}]
+            const compareStr = [{value: '=',label: '等于'},{value: 'IS NOT NULL',label: '非空'}]
 
             const addFunc=()=>{
                 if(property.value.length === 0) return;
@@ -98,6 +99,7 @@
                 context.emit('delGroup')
             }
             const getProperty=()=>{
+                console.log('alarmItem getProperty')
                 return dataCondition;
             }
 
@@ -111,9 +113,9 @@
                 
                 // 根据属性类型设置条件选项
                 if(selectedProperty.valueType.type=='number'){
-                    selectedProperty.condition = compare.value;
+                    selectedProperty.condition = compareNum;
                 }else{
-                    selectedProperty.condition = [{value: '=',label: '等于'}];
+                    selectedProperty.condition = compareStr;
                 }
 
                 // 直接更新当前行的数据
@@ -129,20 +131,20 @@
                 }
                 
                 // 设置默认操作符
-                if(dataCondition[index].condition && dataCondition[index].condition.length > 0){
+                if(dataCondition[index].condition && dataCondition[index].condition.length > 0 && dataCondition[index].operation == undefined){
                     dataCondition[index].operation = dataCondition[index].condition[0].value;
                 }
                 
                 // 根据类型设置默认值
-                if(selectedProperty.valueType.type=='number'){
+                if(selectedProperty.valueType.type=='number' && dataCondition[index].value == undefined){
                     dataCondition[index].value = 0;
-                }else if(selectedProperty.valueType.type=='enum'){
+                }else if(selectedProperty.valueType.type=='enum' && dataCondition[index].value == undefined){
                     if(selectedProperty.valueType.extra?.enumData && selectedProperty.valueType.extra.enumData.length>0){
                         dataCondition[index].value = selectedProperty.valueType.extra.enumData[0].key;
                     }else{
                         dataCondition[index].value = '';
                     }
-                }else{
+                }else if(selectedProperty.valueType.type=='string' && dataCondition[index].value == undefined){
                     dataCondition[index].value = '';
                 }
             }
@@ -187,7 +189,7 @@
                 }
             })
           console.log('alarmItem')
-            return {sourceAlarmData,property,dataCondition,compare,addFunc,delFunc,getProperty,delGroup,handlerOperation,handlerConditionChange}
+            return {sourceAlarmData,property,dataCondition,addFunc,delFunc,getProperty,delGroup,handlerOperation,handlerConditionChange}
         }
     })
 </script>

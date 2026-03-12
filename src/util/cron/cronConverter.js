@@ -19,7 +19,14 @@ export function descriptionToCron(description) {
   const secondMatch = desc.match(/^(\d+)\s*秒$/);
   if (secondMatch) {
     const seconds = parseInt(secondMatch[1]);
-    if (seconds > 0 && seconds <= 59) {
+    if (seconds > 0) {
+      // 60 秒及以上转换为分钟
+      if (seconds >= 60) {
+        const minutes = seconds / 60;
+        if (Number.isInteger(minutes)) {
+          return `0 */${minutes} * * * ?`;
+        }
+      }
       return `0/${seconds} * * * * ?`;
     }
   }

@@ -28,35 +28,19 @@
         </el-radio-group>
       </el-form-item>
       <el-form-item label="轮询周期">
-        <el-input-number
+        <el-select
           v-model="sourceAlarm.rulePo.ruleData.cronNum"
           size="small"
-          :min="1"
-        ></el-input-number>
-        <el-select
-          size="small"
-          v-model="sourceAlarm.rulePo.ruleData.cronJg"
-          style="margin-left: 10px; width: 100px"
+          style="width: 120px"
         >
-          <el-option label="秒" value="秒"></el-option>
-          <el-option label="分" value="分"></el-option>
-          <el-option label="时" value="时"></el-option>
-          <el-option label="天" value="天"></el-option>
+          <el-option
+            v-for="item in pollIntervalOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
         </el-select>
-      </el-form-item>
-      <el-form-item label="采集时间(秒)">
-        <div v-if="sourceAlarm.rulePo.ruleData.type == 'time'">
-          <el-input-number
-            v-model="sourceAlarm.rulePo.ruleData.collTime"
-            size="small"
-            :min="0"
-            :max="collectTimeMax"
-          ></el-input-number>
-        </div>
-
-        <!-- <div v-if="sourceAlarm.rulePo.ruleData.type == 'cron'">
-          <el-input v-model="sourceAlarm.rulePo.ruleData.cron"></el-input>
-        </div> -->
+        <span style="margin-left: 10px">秒</span>
       </el-form-item>
       <el-form-item label="阈值次数">
         <el-input-number
@@ -205,6 +189,18 @@ export default defineComponent({
     // const notifyTemplateUserPo = reactive([]);
     const alarmColumn = ref([]);
 
+    // 轮询周期选项（秒）
+    const pollIntervalOptions = [
+      { value: 5, label: '5 秒' },
+      { value: 10, label: '10 秒' },
+      { value: 15, label: '15 秒' },
+      { value: 20, label: '20 秒' },
+      { value: 30, label: '30 秒' },
+      { value: 60, label: '60 秒' },
+      { value: 120, label: '120 秒' },
+    ];
+
+
     // 创建一个响应式的本地数据副本，而不是直接使用props的引用 cronNum cronJg
     const sourceAlarm = ref({
       columns: [],
@@ -221,9 +217,9 @@ export default defineComponent({
 
     // 采集时间不能大于轮询周期（采集时间单位为秒）
     const collectTimeMax = computed(() => {
-      const { cronNum = 0, cronJg = "秒" } = sourceAlarm.value.rulePo?.ruleData || {};
-      // 转为秒
-      return isNaN(Number(cronNum)) ? 0 : intervalToSeconds(cronNum, cronJg);
+      const { cronNum = 0 } = sourceAlarm.value.rulePo?.ruleData || {};
+      // 轮询周期固定为秒，直接返回
+      return isNaN(Number(cronNum)) ? 0 : Number(cronNum);
     });
 
 
@@ -243,10 +239,10 @@ export default defineComponent({
             // 将处理后的描述保存到新的字段中，保留原始cron值
             const arr = cronDescription.split(" ");
             processedData.rulePo.ruleData.cronNum = parseFloat(arr[0]);
-            processedData.rulePo.ruleData.cronJg = arr[1];
+            
           }else{
-            processedData.rulePo.ruleData.cronNum = 1;
-            processedData.rulePo.ruleData.cronJg = "秒";
+            processedData.rulePo.ruleData.cronNum = 5;
+            
           }
 
           sourceAlarm.value = processedData;
@@ -265,8 +261,7 @@ export default defineComponent({
                 cron: "",
                 collTime: 0,
                 count: 0,
-                cronNum: 1,
-                cronJg: "秒",
+                cronNum: 5,
               },
             },
           };
@@ -280,18 +275,18 @@ export default defineComponent({
         alarmNotifys.value.clearNotifyD();
       }
     })
-    watchEffect(() => {
-      if (
-        sourceAlarm.value.rulePo?.ruleData?.cronNum &&
-        sourceAlarm.value.rulePo?.ruleData?.cronJg
-      ) {
-        sourceAlarm.value.rulePo.ruleData.cron = quickConvert(
-          sourceAlarm.value.rulePo.ruleData.cronNum +
-            " " +
-            sourceAlarm.value.rulePo.ruleData.cronJg
-        );
-      }
-    });
+
+    // 监听轮询周期变化，自动转换为 cron 表达式
+    watch(
+      () => sourceAlarm.value.rulePo?.ruleData?.cronNum,
+      (newVal) => {
+        if (newVal != null && newVal !== '') {
+          sourceAlarm.value.rulePo.ruleData.cron = quickConvert(newVal + " 秒");
+          console.log("cronNum 变化，生成 cron:", sourceAlarm.value.rulePo.ruleData.cron);
+        }
+      },
+      { immediate: true }
+    );
     const apiNotifyConfig = () => {
       proxy.$http.notifyPage({ size: -1 }).then((value) => {
         notifyConfig.length = 0;
@@ -317,8 +312,8 @@ export default defineComponent({
       const ruleData = sourceAlarm.value.rulePo?.ruleData || {};
       const cronNum = parseFloat(ruleData.cronNum);
       const collTime = parseFloat(ruleData.collTime);
-      const cronJg = ruleData.cronJg || "秒";
-      const cycleSec = intervalToSeconds(cronNum, cronJg);
+      // 轮询周期固定为秒，直接使用 cronNum
+      const cycleSec = cronNum;
       // collTime 是秒，不需要转换
       if (collTime > cycleSec) {
         ElMessage.error("采集时间不能大于轮询周期！");
@@ -394,6 +389,7 @@ export default defineComponent({
       closeHandler,
       notifyTemplateUser,
       collectTimeMax,
+      pollIntervalOptions,
     };
   },
 });

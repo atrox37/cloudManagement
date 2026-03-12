@@ -171,9 +171,13 @@ export default defineComponent({
       console.log("createDeviceClick");
       proxy.$http.updateDeviceInstanceApi(deviceCreateData.device).then(value => {
         console.log('updateDeviceInstanceApi:'+JSON.stringify(value))
+        deviceCreateData.loading = false
+        deviceCreateData.status = false
+        ElMessage.success("创建成功")
       }, error => {
         deviceCreateData.loading = false;
         deviceCreateData.status = false;
+        ElMessage.error("创建失败")
       });
     };
 

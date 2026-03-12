@@ -82,6 +82,7 @@
         <DeviceAlarm
           ref="deviceAlarmRef"
           :deviceData="deviceData"
+          @updateMeta="updateDeviceInstanceApi"
           @open="alarmOpen"
         ></DeviceAlarm>
       </el-tab-pane>
