@@ -591,6 +591,8 @@ export default defineComponent({
           ElMessage.info("暂无更新内容")
         }else{
           ElMessage.success("已完成更新")
+          // 模型同步成功并且确实发生了变化，重新进行初始化操作
+          reload();
         }
       },error => {
         deviceSync.loading=false

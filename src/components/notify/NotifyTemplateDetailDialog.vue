@@ -6,7 +6,7 @@
     :close-on-click-modal="false"
   >
     <!-- 主表单 -->
-    <el-form :model="templateData" ref="templateForm" label-width="160px">
+    <el-form :model="templateData" ref="templateForm" label-width="160px" :rules="rules">
       <!-- 基本信息模块 -->
       <div class="form-section-module">
         <div class="module-title">基本信息</div>
@@ -18,7 +18,7 @@
             class="form-input"
           />
         </el-form-item>
-        <el-form-item label="通知配置" prop="configPo.code" required>
+        <el-form-item label="通知配置" prop="configPo.id" required>
           <template #label>
             <el-space wrap>
               <el-text>通知配置</el-text>
@@ -27,7 +27,8 @@
           </template>
           <template #default>
             <el-select
-              v-model="templateData.templatePo.notifyId"
+              @change="handleConfigChange"
+              v-model="templateData.configPo.id"
               class="form-input"
             >
               <el-option
@@ -236,7 +237,7 @@ export default defineComponent({
 
     // 模板数据
     const templateData = reactive({
-      configPo: { code: "", codeName: "" },
+      configPo: { id: "", code: "", codeName: "" },
       templatePo: { name: "", msgContent: { title: "", content: "", type: "" } },
       msgContent: { title: "", content: "" },
       loading: false,
@@ -250,20 +251,20 @@ export default defineComponent({
     });
 
     // // 表单验证规则
-    // const rules = {
-    //   "templatePo.name": [
-    //     { required: true, message: "请输入模板名称", trigger: "blur" },
-    //   ],
-    //   "configPo.code": [
-    //     { required: true, message: "请选择通知配置", trigger: "change" },
-    //   ],
-    //   "templatePo.msgContent.title": [
-    //     { required: true, message: "请输入标题", trigger: "blur" },
-    //   ],
-    //   "templatePo.msgContent.content": [
-    //     { required: true, message: "请输入内容", trigger: "blur" },
-    //   ],
-    // };
+    const rules = {
+      "templatePo.name": [
+        { required: true, message: "请输入模板名称", trigger: "blur" }
+      ],
+      "configPo.id": [
+        { required: true, message: "请选择通知配置", trigger: "change" },
+      ],
+      "templatePo.msgContent.title": [
+        { required: true, message: "请输入标题", trigger: "blur" },
+      ],
+      "templatePo.msgContent.content": [
+        { required: true, message: "请输入内容", trigger: "blur" },
+      ],
+    };
     // 解析标题和内容中的变量
     const templateVariables = computed(() => {
       const variables = [];
@@ -299,6 +300,9 @@ export default defineComponent({
 
       return variables;
     });
+    const handleConfigChange = () => {
+      templateData.configPo.codeName = configs.find(item => item.id == templateData.configPo.id).code;
+    }
     // 解析标题和内容中的变量
     const templateDevice = computed(() => {
       const variables = [];
@@ -365,10 +369,24 @@ export default defineComponent({
 
     // 处理测试按钮点击
     const handleTest = () => {
-      // 重置收件人
-      testForm.recipient = "";
-      // 打开选择收件人弹框
-      showRecipientDialog.value = true;
+      // 先进行表单验证
+      if (!templateForm.value) {
+        return;
+      }
+      
+      templateForm.value.validate((valid) => {
+        if (valid) {
+          // 表单验证通过，重置收件人并打开选择收件人弹框
+          testForm.recipient = "";
+          showRecipientDialog.value = true;
+        } else {
+          // 表单验证失败，显示提示
+          ElMessage({
+            message: "请先完善表单信息",
+            type: "warning",
+          });
+        }
+      });
     };
 
     // 获取用户列表API
@@ -410,9 +428,9 @@ export default defineComponent({
       testForm.loading = true;
       const params = {
         userId: testForm.recipient,
-        notifyPo: {
-          id: templateData.templatePo.notifyId,
-        },
+        // notifyPo: {
+        //   id: templateData.templatePo.notifyId,
+        // },
         templatePo: {
           type: templateData.configPo.code, // 使用 configPo.code 作为 type
           msgContent: templateData.templatePo.msgContent,
@@ -420,6 +438,9 @@ export default defineComponent({
           msgType: templateData.templatePo.msgType || 1, // 使用模板的 msgType，默认为 1
         },
       };
+      if(templateData.templatePo.notifyId){
+        params.notifyPo.id = templateData.templatePo.notifyId;
+      }
       proxy.$http
         .notifyTemplateTest(params)
         .then((value) => {
@@ -557,7 +578,7 @@ export default defineComponent({
             
             // 赋值给 templatePo.variables
             templateData.templatePo.variables = newVariables;
-            
+            templateData.templatePo.configId = templateData.configPo.id;
             proxy.$http.notifyTemplateUpdate(templateData.templatePo).then(
               (value) => {
                 console.log("saveTemplateApi success", value);
@@ -572,6 +593,8 @@ export default defineComponent({
                   });
                   // 关闭弹框
                   dialogVisible.value = false;
+                  // 触发 save 事件，通知父组件刷新表格
+                  emit("save");
                 } else {
                   // 如果状态码不是200，也显示提示
                   ElMessage({
@@ -691,6 +714,7 @@ export default defineComponent({
       handleCancel,
       handleSave,
       handleOpen,
+      handleConfigChange,
     };
   },
 });

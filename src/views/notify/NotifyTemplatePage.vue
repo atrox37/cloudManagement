@@ -116,6 +116,7 @@
   ></NotifyTemplateDialog>
   <NotifyTemplateDetailDialog
     ref="templateDetailDialogRef"
+    @save="handleTemplateSave"
   ></NotifyTemplateDetailDialog>
 </template>
 
@@ -240,6 +241,12 @@ export default defineComponent({
       pageApi();
     };
 
+    const handleTemplateSave = () => {
+      // 保存模板成功后，重新获取表格数据
+      console.log("handleTemplateSave");
+      pageApi();
+    };
+
     onMounted(() => {
       pageApi();
       notifyAllApi();
@@ -263,6 +270,7 @@ export default defineComponent({
       // cancelTemplateDetail,
       pageChange,
       handleSelectionChange,
+      handleTemplateSave,
       // selectTemplateId,
     };
   },
