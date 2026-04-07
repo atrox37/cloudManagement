@@ -76,25 +76,21 @@
                 router.go(-1)
             }
             const saveOrUpdateApi=()=>{
-                if(saveData.id==null){
-                    proxy.$http.notifyConfigSave(saveData).then(value => {
-                        console.log('saveApi')
+                proxy.$http.notifyConfigSaveUpdate(saveData).then(value =>{
+                    console.log('saveApi')
                         ElMessage({
                             message: '操作成功',
                             type: 'success',
                         })
                         backClick()
-                    })
-                }else{
-                    proxy.$http.notifyConfigUpdate(saveData).then(value => {
-                        console.log('updateApi')
+                },error=>{
+                    console.log('saveApi error')
                         ElMessage({
-                            message: '操作成功',
-                            type: 'success',
+                            message: '操作失败',
+                            type: 'error',
                         })
                         backClick()
-                    })
-                }
+                })
 
             }
 

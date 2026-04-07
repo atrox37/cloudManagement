@@ -24,11 +24,6 @@ const deviceRouter ={
             path: "/productInstance",
             name: "产品详情",
             component: () => import("@/views/product/ProductInstance.vue")
-        },
-        {
-            path: "/productOrgPage",
-            name: "分配产品",
-            component: () => import("@/views/product/ProductOrgPage.vue")
         }
     ]
 };

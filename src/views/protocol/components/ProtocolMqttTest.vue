@@ -65,7 +65,7 @@
                             </el-form-item>
                             <el-form-item label="回复属性">
                                 <template #default>
-                                    <div v-for="(item,index) in protocolData.result.resultMapData" :key="index">
+                                    <div v-for="(item,index) in protocolData.result.resultData" :key="index">
                                         <el-space wrap>
                                             <el-text>属性ID:{{index}}</el-text>
                                             <el-text>值:{{item}}</el-text>

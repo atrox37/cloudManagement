@@ -87,7 +87,6 @@
     import DialogProductOrg from '@/components/product/DialogProductOrg.vue'
     import DialogCreateProduct from '@/components/product/DialogCreateProduct.vue'
     import {useRouter} from "vue-router";
-    import {deleteProductOrgIds, productOrgPage, saveBatchProductOrg} from "@/util/request";
     export default defineComponent({
         name: "ProductPage",
         components: {DialogProductOrg,DialogCreateProduct},
@@ -171,22 +170,9 @@
                 })
             }
 
-            const productShareOrg=(id)=>{
-              shareDialog.loading=true
-              shareDialog.status=true
-              const param={current:0,size:-1,terms:[{column:'t.product_id',value:id}]}
-                proxy.$http.productOrgPage(param).then(value=>{
-                  shareDialog.data.length=0
-                  shareDialog.loading=false
-                  shareDialog.data.push(...value.data.records)
-                  console.log('productShareOrg')
-                  dialogProductOrgRef.value.initChecked()
-                })
-            }
             const shareClick=(row,index)=>{
                 console.log("shareclick:"+row.productPo.id)
               selectProductId=row.productPo.id
-                productShareOrg(row.productPo.id)
             }
             const editClick=(row)=>{
                 console.log('rowclick-->'+JSON.stringify(row))
@@ -228,33 +214,6 @@
                     reloadApi()
                 })
             }
-            const deleteProductOrgIds=(delIds,addIds,successFunc,failFunc)=>{
-              if(delIds.length>0){
-                proxy.$http.deleteProductOrgIds(delIds).then(v=>{
-                  console.log('deleteProductOrg success')
-                  saveProductOrgIds(addIds,successFunc,failFunc)
-                },e=>{
-                  console.log('deleteProductOrg fail')
-                  failFunc()
-                })
-              }else{
-                saveProductOrgIds(addIds,successFunc,failFunc)
-              }
-
-            }
-
-            const saveProductOrgIds=(datas,successFunc,failFunc)=>{
-              if(datas.length>0){
-                proxy.$http.saveBatchProductOrg(datas).then(v=>{
-                  successFunc()
-                },e=>{
-                  failFunc()
-                })
-              }else{
-                successFunc()
-              }
-
-            }
 
             const reloadApi=()=>{
                 dialogCreateProduct.value.loading=false
@@ -278,13 +237,6 @@
               }
               console.log('shareSave:'+JSON.stringify(addData)+JSON.stringify(delData))
               shareDialog.loading=true
-              deleteProductOrgIds(delData,batchInsert,()=>{
-                shareDialog.loading=false
-                shareDialog.status=false
-              },()=>{
-                ElMessage.info('未更新')
-                shareDialog.loading=false
-              })
 
             }
             onMounted(()=>{

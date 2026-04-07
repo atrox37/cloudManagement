@@ -4,3 +4,115 @@ Content-Type: application/json
 Authorization: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6ImFkbWluIn0.ppqZg8ieBBtrA5DJipCMPE8tZIHh3lEZACGsXh60thk
 
 {"name": "test","msgType": 1}
+###时许查询
+POST http://localhost:9100/register-app/timeseries/board/_page
+Content-Type: application/json
+Authorization: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6ImFkbWluIn0.ppqZg8ieBBtrA5DJipCMPE8tZIHh3lEZACGsXh60thk
+
+{
+    "current": 1,
+    "size": 10,
+    "terms": [
+        {
+            "column": "net_id",
+            "value": 4
+        },
+        {
+            "column": "ts",
+            "termType": "gt",
+            "value": "2026-03-07T00:00:00+Asia/Shanghai"
+        },
+        {
+            "column": "ts",
+            "termType": "lte",
+            "value": "2026-03-14T00:00:00+Asia/Shanghai"
+        }
+    ],
+    "sorts": [
+        {
+            "column": "ts",
+            "order": "desc"
+        }
+    ]
+}
+
+####
+POST http://localhost:9100/register-app/timeseries/property/_page
+Content-Type: application/json
+Authorization: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6ImFkbWluIn0.ppqZg8ieBBtrA5DJipCMPE8tZIHh3lEZACGsXh60thk
+
+{
+    "current": 2,
+    "size": 10,
+    "terms": [
+        {
+            "column": "device_id",
+            "value": 3
+        },
+        {
+            "column": "property",
+            "value": "num"
+        },
+        {
+            "column": "ts",
+            "value": "2026-03-06T00:00:00+Asia/Shanghai",
+            "termType": "gt"
+        },
+        {
+            "column": "ts",
+            "value": "2026-04-13T00:00:00+Asia/Shanghai",
+            "termType": "lt"
+        }
+    ],
+    "sorts": [
+        {
+            "column": "ts",
+            "order": "desc"
+        }
+    ]
+}
+
+###
+POST http://localhost:9500/timeseries/function/_page
+Content-Type: application/json
+Authorization: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6ImFkbWluIn0.ppqZg8ieBBtrA5DJipCMPE8tZIHh3lEZACGsXh60thk
+
+{
+    "current": 1,
+    "size": 10,
+    "terms": [
+        {
+            "column": "ts",
+            "termType": "gt",
+            "value": "2026-03-25T00:00:00+Asia/Shanghai"
+        },
+        {
+            "column": "ts",
+            "termType": "lte",
+            "value": "2026-04-01T00:00:00+Asia/Shanghai"
+        }
+    ],
+    "loading": true,
+    "total": 0,
+    "records": [],
+    "sorts": [
+        {
+            "column": "ts",
+            "order": "desc"
+        }
+    ]
+}
+###
+POST http://localhost:9300/gateway/_save_or_update
+Content-Type: application/json
+Authorization: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6ImFkbWluIn0.ppqZg8ieBBtrA5DJipCMPE8tZIHh3lEZACGsXh60thk
+
+{
+    "id": 5,
+    "name": "mqtt-client-aws网关",
+    "state": 0,
+    "networkId": 5,
+    "protocolId": 3,
+    "orgId": 1,
+    "creatorId": 1
+}

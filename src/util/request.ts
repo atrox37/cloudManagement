@@ -69,15 +69,6 @@ export const productUpdate = function(p:any){
 export const productDelete = function(p:any){
     return get('/api/iot-app/product/_delete',p)
 }
-export const productOrgPage = function(p:any){
-    return post('/api/iot-app/product_org/_page',p)
-}
-export const deleteProductOrgIds = function (p: any){
-    return post('/api/iot-app/product_org/_deleteBatchIds',p)
-}
-export const saveBatchProductOrg = function (p: any){
-    return post('/api/iot-app/product_org/_save_or_update_batch',p)
-}
 export const dimensionTree = function(){
     return post('/api/sys-app/sys-dimension/tree',{})
 }
@@ -162,17 +153,14 @@ export const notifySupport=function () {
 export const notifyConfigDetail=function (p: any) {
     return post('/api/notify-app/notify-config/_search_one',p)
 }
-export const notifyConfigSave=function (p: any) {
-    return post('/api/notify-app/notify-config/_save_vo',p)
-}
 export const notifyConfigSaveUpdate=function(p:any){
     return post('/api/notify-app/notify-config/_save_or_update',p)
 }
+export const notifyConfigDelete=function(p:any){
+    return get('/api/notify-app/notify-config/_delete',p)
+}
 export const notifyContentModel=function (p: any){
     return get('/api/notify-app/notify-config/contentModel',p)
-}
-export const notifyConfigUpdate=function (p: any) {
-    return post('/api/notify-app/notify-config/_update',p)
 }
 export const notifyTemplatePage=function (p: any) {
     return post('/api/notify-app/notify-template/_page',p)
@@ -185,6 +173,9 @@ export const notifyTemplateContent=function(p: any){
 }
 export const notifyTemplateUpdate=function(p: any){
     return post('/api/notify-app/notify-template/_save_or_update',p)
+}
+export const notifyTemplateDelete=function(p: any){
+    return get('/api/notify-app/notify-template/_delete',p)
 }
 export const notifyTemplateUserPage=function (p: any) {
     return post('/api/notify-app/notify-template-user/_page',p)

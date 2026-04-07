@@ -491,8 +491,8 @@ export default defineComponent({
         }
         if (JSON.parse(m.body).replyType == "SUCCESS" && JSON.parse(m.body).type == "function-reply") {
           tabFunctionData.loading = false;
-          tabFunctionData.result = JSON.parse(m.body).resultMapData;
-          tabFunctionData.resultStr = JSON.parse(m.body).resultStrData;
+          tabFunctionData.result = JSON.parse(m.body).resultData;
+          tabFunctionData.resultStr = JSON.stringify(JSON.parse(m.body).resultData);//JSON.parse(m.body).resultStrData;
           console.log("function success");
           ElMessage({
             message: "操作成功",
@@ -503,10 +503,10 @@ export default defineComponent({
         if (JSON.parse(m.body).replyType == "FAIL" && JSON.parse(m.body).type == "function-reply") {
           tabFunctionData.loading = false;
           tabFunctionData.result =
-            JSON.parse(m.body).resultMapData == undefined
+            JSON.parse(m.body).resultData == undefined
               ? {}
-              : JSON.parse(m.body).resultMapData;
-          tabFunctionData.resultStr = JSON.parse(m.body).resultStrData;
+              : JSON.parse(m.body).resultData;
+          tabFunctionData.resultStr = JSON.stringify(JSON.parse(m.body).resultData);//JSON.parse(m.body).resultStrData;
           ElMessage({
             message: "返回结果失败",
             type: "error",
@@ -712,7 +712,7 @@ export default defineComponent({
 
     const reload = () => {
       console.log("reload");
-      deviceId = route.query.deviceId;
+      deviceId = parseInt(route.query.deviceId);
       console.log("request device instance deviceId" + deviceId);
       
       // 设置加载状态

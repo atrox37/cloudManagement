@@ -163,11 +163,10 @@
             watch(dialogStatus, value => {
                 console.log('watch' + value)
                 if (value) {
-                    resetPickTime()
                     terms.length=0
                     page.current = 1
                     page.size = 10
-                    context.emit('propertyApi', page)
+                    resetPickTime()
                 }
             })
             watch(data, value => {
@@ -187,8 +186,15 @@
             })
             const tabChange = (tab, event) => {
                 console.log('tabChange:' + tab.index);
-                tabIndex=tab.index
-                initChart()
+                if(tab.paneName == 'dataPane'){
+                  tabIndex=tab.index
+                  page.current = 1
+                  page.size = 10
+                }else if(tab.paneName == 'dataChart'){
+                  page.size = -1
+                  initChart()
+                }
+                pageApi()
             }
             const pageChange = (current) => {
                 page.current = current
@@ -204,7 +210,7 @@
                 context.emit('propertyApi', page,terms)
             }
             const initChart = () => {
-                if (tabIndex == 1&&meas.value.valueType.type == 'number') {
+                if (meas.value.valueType.type == 'number') {
                     setTimeout(()=>{
                         myChart = proxy.$echarts.init(chartRef.value)
                         var xData=xDataFunc()

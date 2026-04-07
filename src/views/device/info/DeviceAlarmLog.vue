@@ -171,19 +171,25 @@ export default defineComponent({
       pickTime.value = [date[0], date[1]];
     };
     const queryApi = () => {
-      query.loading = true;
-      query.terms.length = 0;
-      query.terms.push({ column: "ts", termType: "gt", value: formatTs(pickTime.value[0]) });
-      query.terms.push({ column: "ts", termType: "lte", value: formatTs(pickTime.value[1]) });
-      proxy.$http.deviceAlarmLog(query).then(value => {
-        query.loading = false;
-        console.log("deviceAlarmLog");
-        query.total = value.data.total;
-        query.records.length = 0;
-        query.records.push(...value.data.records);
-      }, error => {
-        query.loading = false;
-      });
+      if(props.deviceMeta.metadata.rules.length>0){
+        const ruleIds = props.deviceMeta.metadata.rules.map(item => item.id);
+        query.loading = true;
+        query.terms.length = 0;
+        query.terms.push({ column: "device_id",value: props.deviceMeta.id})
+        query.terms.push({ column: "rule_id",termType:"in",value:ruleIds})
+        query.terms.push({ column: "ts", termType: "gt", value: formatTs(pickTime.value[0]) });
+        query.terms.push({ column: "ts", termType: "lte", value: formatTs(pickTime.value[1]) });
+        proxy.$http.deviceAlarmLog(query).then(value => {
+            query.loading = false;
+            console.log("deviceAlarmLog");
+            query.total = value.data.total;
+            query.records.length = 0;
+            query.records.push(...value.data.records);
+          }, error => {
+            query.loading = false;
+        });
+      }
+      
     };
     const ruleName=(row)=>{
       var name=''

@@ -118,6 +118,17 @@
     ref="templateDetailDialogRef"
     @save="handleTemplateSave"
   ></NotifyTemplateDetailDialog>
+
+  <el-dialog v-model="deleteDialg.state" title="删除">
+    <span>是否删除 '{{ deleteDialg.template?.name }}' 模板</span>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="deleteDialg.state = false">取消</el-button>
+        <el-button type="primary" @click="deleteApi">确定</el-button>
+      </div>
+    </template>
+  </el-dialog>
+
 </template>
 
 <script>
@@ -129,6 +140,7 @@ import {
   onMounted,
   toRef,
 } from "vue";
+import { ElMessage } from "element-plus";
 import { notifyType } from "@/model/notify/NotifyType";
 import NotifyTemplateDialog from "@/components/notify/NotifyTemplateDialog.vue";
 import NotifyTemplateDetailDialog from "@/components/notify/NotifyTemplateDetailDialog.vue";
@@ -153,6 +165,7 @@ export default defineComponent({
     });
     const notifyConfigAll = reactive([]);
     const templateDetailDialogRef = ref(null);
+    const deleteDialg=reactive({state:false,template:{}})
     // const templateDetailData=reactive({state:false,loading:false,name:'',content:'',id:null})
     // const selectTemplateId = ref(null);
     const pageApi = () => {
@@ -194,6 +207,14 @@ export default defineComponent({
         }
       );
     };
+    const deleteApi=()=>{
+      proxy.$http.notifyTemplateDelete({id:deleteDialg.template.id}).then(value=>{
+        ElMessage.success('操作成功');
+        reload()
+      },error=>{
+        reload()
+      })
+    }
     const notifyEnum = (row) => {
       var label = "";
       for (let item of nType.value) {
@@ -220,7 +241,9 @@ export default defineComponent({
       // selectTemplateId.value = row.templatePo.id;
     };
     const deleteClick = (row, index) => {
-      console.log("deleteClick");
+      console.log("deleteClick1111");
+      deleteDialg.template=row.templatePo
+      deleteDialg.state=true
     };
     const queryClick = () => {
       console.log("queryClick");
@@ -235,6 +258,8 @@ export default defineComponent({
     };
 
     const reload = () => {
+      deleteDialg.state=false
+      deleteDialg.template={}
       page.value.current = 1;
       newNotifyTempate.loading = false;
       newNotifyTempate.state = false;
@@ -260,6 +285,7 @@ export default defineComponent({
       tableData,
       pageTotal,
       searchParams,
+      deleteDialg,
       notifyEnum,
       queryClick,
       addClick,
@@ -271,6 +297,7 @@ export default defineComponent({
       pageChange,
       handleSelectionChange,
       handleTemplateSave,
+      deleteApi
       // selectTemplateId,
     };
   },

@@ -74,7 +74,7 @@
     import NotifyAwsEmailConfig from '@/views/notify/components/NotifyAwsEmailConfig.vue'
     import {notifyType} from '@/model/notify/NotifyType'
     import {useRouter} from "vue-router";
-    import { ElMessage } from "element-plus";
+    import { ElMessage, ElMessageBox } from "element-plus";
     export default defineComponent({
         name: "NotifyPage",
         components:{NotifyEmailConfig,NotifyAwsEmailConfig},
@@ -153,7 +153,20 @@
                 })*/
             }
             const deleteClick=(row,index)=>{
-                console.log('deleteClick')
+                ElMessageBox.confirm(
+                    `确认删除通知配置「${row.configPo.name}」吗？`,
+                    '删除确认',
+                    {
+                        confirmButtonText: '确认',
+                        cancelButtonText: '取消',
+                        type: 'warning',
+                    }
+                ).then(() => {
+                    proxy.$http.notifyConfigDelete({ id: row.configPo.id }).then(() => {
+                        ElMessage({ showClose: true, message: '删除成功', type: 'success' })
+                        reload()
+                    })
+                }).catch(() => {})
             }
             const queryClick=()=>{
                 console.log('queryClick')

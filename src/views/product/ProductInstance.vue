@@ -147,7 +147,7 @@ export default defineComponent({
       detailData.load_edit=false
       loading.value = true;
       treeLoad.value = false;
-      productId = route.query.productId;
+      productId = parseInt(route.query.productId);
       console.log("productId--->" + productId);
       let params = { terms: [{ column: "t.id", value: productId }] };
       proxy.$http.productDetail(params).then((value) => {
