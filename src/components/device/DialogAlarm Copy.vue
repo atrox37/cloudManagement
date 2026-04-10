@@ -209,7 +209,6 @@ export default defineComponent({
         ruleData: {
           type: "",
           cron: "",
-          collTime: 0,
           count: 0
         },
       },
@@ -259,7 +258,6 @@ export default defineComponent({
               ruleData: {
                 type: "",
                 cron: "",
-                collTime: 0,
                 count: 0,
                 cronNum: 5,
               },
@@ -311,14 +309,8 @@ export default defineComponent({
       // 在保存之前再次校验采集时间
       const ruleData = sourceAlarm.value.rulePo?.ruleData || {};
       const cronNum = parseFloat(ruleData.cronNum);
-      const collTime = parseFloat(ruleData.collTime);
       // 轮询周期固定为秒，直接使用 cronNum
       const cycleSec = cronNum;
-      // collTime 是秒，不需要转换
-      if (collTime > cycleSec) {
-        ElMessage.error("采集时间不能大于轮询周期！");
-        return;
-      }
 
       var data = {
         deviceId: sourceDevice.value.deviceInstancePo.id,

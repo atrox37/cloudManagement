@@ -29,11 +29,6 @@
             {{ handlerCroe(scope.row) }}
           </template>
         </el-table-column>
-        <el-table-column label="采集时长" header-align="center" align="center">
-          <template #default="scope">
-            {{ handlerColTime(scope.row) }}
-          </template>
-        </el-table-column>
         <el-table-column label="阈值次数" header-align="center" align="center">
           <template #default="scope">
             {{ handerCount(scope.row) }}
@@ -140,7 +135,6 @@ export default defineComponent({
     };
     const handlerCroe = (row) =>
       cronstrue.toString(row.ruleData.cron, { locale: "zh_CN" });
-    const handlerColTime = (row) => `采集${row.ruleData.collTime}秒`;
     const handerCount = (row) => "阈值" + row.ruleData.count + "次";
     const add = () => {
       console.log("add");
@@ -155,7 +149,7 @@ export default defineComponent({
           state: 0,
           name: "",
           deviceId: data.value.deviceInstancePo.id,
-          ruleData: { type: "time", count: 0, collTime: 0, cron: "" },
+          ruleData: { type: "time", count: 0, cron: "" },
           ruleMeta: {
             sql: "select *",
             param: {},
@@ -173,7 +167,6 @@ export default defineComponent({
       pageData,
       rowClick,
       handlerCroe,
-      handlerColTime,
       handerCount,
       deleteClick,
       add,

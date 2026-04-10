@@ -10,12 +10,12 @@
       <el-form-item label="名称">
         <el-input v-model="sourceAlarm.rulePo.name"></el-input>
       </el-form-item>
-      <!-- <el-form-item label="工作状态">
+      <el-form-item label="工作状态">
         <el-radio-group size="small" v-model="sourceAlarm.rulePo.state">
-          <el-radio-button label="启动" value="1" />
-          <el-radio-button label="关闭" value="0" />
+          <el-radio-button label="启动" :value="1" />
+          <el-radio-button label="关闭" :value="0" />
         </el-radio-group>
-      </el-form-item> -->
+      </el-form-item>
       <el-form-item label="触发方式">
         <el-radio-group size="small" v-model="sourceAlarm.rulePo.ruleData.type">
           <el-radio-button label="time" value="time" />
@@ -38,20 +38,6 @@
           <el-option label="时" value="时"></el-option>
           <el-option label="天" value="天"></el-option>
         </el-select>
-      </el-form-item>
-      <el-form-item label="采集时间(秒)">
-        <div v-if="sourceAlarm.rulePo.ruleData.type == 'time'">
-          <el-input-number
-            v-model="sourceAlarm.rulePo.ruleData.collTime"
-            size="small"
-            :min="0"
-            :max="collectTimeMax"
-          ></el-input-number>
-        </div>
-
-        <!-- <div v-if="sourceAlarm.rulePo.ruleData.type == 'cron'">
-          <el-input v-model="sourceAlarm.rulePo.ruleData.cron"></el-input>
-        </div> -->
       </el-form-item>
       <el-form-item label="阈值次数">
         <el-input-number
@@ -134,10 +120,10 @@ export default defineComponent({
       default: () => ({
         columns: [],
         rulePo: {
+          state: 0,
           ruleData: {
             type: "",
             cron: "",
-            collTime: 0,
             count: 0,
             cronNum: 0,
             cronJg: "",
@@ -152,7 +138,7 @@ export default defineComponent({
     const sourceproduct = toRef(props, "productData");
     const sourceAlarm = ref({
       columns: [],
-      rulePo: { ruleData: { type: "", cron: "", collTime: 0, count: 0 } },
+      rulePo: { state: 0, ruleData: { type: "", cron: "", count: 0 } },
     });
     const sourcestatus = toRef(props, "status");
     const alarmItems = ref([]);
@@ -186,30 +172,21 @@ export default defineComponent({
       }
       return (parseFloat(val) || 0) * unitFactor;
     };
-        // 自动纠正 collTime 不大于轮询周期（采集时间单位为秒，所以直接与轮询周期的秒数比）
         watch(
       () => [
-        sourceAlarm.value.rulePo?.ruleData?.collTime,
         sourceAlarm.value.rulePo?.ruleData?.cronNum,
         sourceAlarm.value.rulePo?.ruleData?.cronJg,
       ],
-      ([collTime, cronNum, cronJg]) => {
+      ([cronNum, cronJg]) => {
         if (
-          typeof collTime === "undefined" || collTime === null ||
           typeof cronNum === "undefined" || cronNum === null
         ) {
           return;
         }
         const cNum = parseFloat(cronNum);
-        const cTime = parseFloat(collTime);
-        if (isNaN(cNum) || isNaN(cTime)) return;
+        if (isNaN(cNum)) return;
         // 采集时间单位为秒，轮询周期要转换为秒
         const cycleSec = intervalToSeconds(cNum, cronJg || "秒");
-        // collTime就是秒
-        if (cTime > cycleSec) {
-          // 如果采集时间大于轮询周期则自动重置采集时间
-          sourceAlarm.value.rulePo.ruleData.collTime = cycleSec;
-        }
       },
       { immediate: false }
     );
@@ -220,6 +197,14 @@ export default defineComponent({
         if (value) {
           // 深拷贝数据
           const processedData = JSON.parse(JSON.stringify(value));
+          processedData.rulePo = processedData.rulePo || {};
+          processedData.rulePo.ruleData = processedData.rulePo.ruleData || {};
+          if (
+            typeof processedData.rulePo.state === "undefined" ||
+            processedData.rulePo.state === null
+          ) {
+            processedData.rulePo.state = 0;
+          }
 
           // 如果有 cron 值，通过 handlerCroe 方法处理
           if (processedData.rulePo?.ruleData?.cron) {
@@ -239,7 +224,16 @@ export default defineComponent({
         } else {
           sourceAlarm.value = {
             columns: [],
-            rulePo: { ruleData: { type: "", cron: "", collTime: 0, count: 0, cronNum: null, cronJg: null } },
+            rulePo: {
+              state: 0,
+              ruleData: {
+                type: "",
+                cron: "",
+                count: 0,
+                cronNum: null,
+                cronJg: null,
+              },
+            },
           };
         }
       },

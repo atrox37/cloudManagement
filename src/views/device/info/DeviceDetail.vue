@@ -31,9 +31,9 @@
       </el-descriptions-item>
       <el-descriptions-item label="所属人">{{ data.sysUserPo.username }}</el-descriptions-item>
       <el-descriptions-item label="网关设备" v-if="data.productPo.type=='children'">{{ parentName }}</el-descriptions-item>
-      <el-descriptions-item label="采集网关">{{ data.gatewayPo.name }}</el-descriptions-item>
+      <el-descriptions-item label="采集网关">{{ data.gatewayPo?.name ?? '' }}</el-descriptions-item>
       <el-descriptions-item label="采集方式">
-        <el-tag size="small">{{ data.networkConfigPo.type }}</el-tag>
+        <el-tag size="small">{{ data.networkConfigPo?.type ?? '' }}</el-tag>
       </el-descriptions-item>
       <el-descriptions-item label="创建时间">{{ data.deviceInstancePo.createTime }}</el-descriptions-item>
       <el-descriptions-item label="更新时间">{{ data.deviceInstancePo.updateTime }}</el-descriptions-item>

@@ -13,11 +13,6 @@
           {{ handlerCroe(scope.row) }}
         </template>
       </el-table-column>
-      <el-table-column label="采集时长" header-align="center" align="center">
-        <template #default="scope">
-          {{ handlerColTime(scope.row) }}
-        </template>
-      </el-table-column>
       <el-table-column label="阈值次数" header-align="center" align="center">
         <template #default="scope">
           {{ handerCount(scope.row) }}
@@ -73,6 +68,7 @@ import DialogProductRule from "@/components/product/DialogProductRule.vue";
 import cronstrue from "cronstrue/i18n";
 import { productParse } from "@/util/request";
 import { Finished, Plus } from "@element-plus/icons-vue";
+import { randomIds } from "@/util/common/randomUtil.js";
 
 export default defineComponent({
   name: "TabProductRule",
@@ -97,7 +93,6 @@ export default defineComponent({
 
     const handlerCroe = (row) =>
       cronstrue.toString(row.ruleData.cron, { locale: "zh_CN" });
-    const handlerColTime = (row) => `采集${row.ruleData.collTime}秒`;
     const handerCount = (row) => "阈值" + row.ruleData.count + "次";
 
     // 条件列：将 SQL 中的占位符用参数替换，并将属性 id 替换为 name
@@ -179,6 +174,9 @@ export default defineComponent({
     };
     const edit = (row, index) => {
       ruleData.rule = JSON.parse(JSON.stringify(row));
+      if (typeof ruleData.rule.state === "undefined" || ruleData.rule.state === null) {
+        ruleData.rule.state = 0;
+      }
       console.log("edit");
       parseApi(row, index);
     };
@@ -187,13 +185,17 @@ export default defineComponent({
     };
     const add = () => {
       const index = data.value.rules.length;
+      const ids = data.value.rules.map(({ id }) => id);
+      var newId=randomIds(ids)
       context.emit(
         "open",
         {
           columns: [],
           rulePo: {
+            id: newId,
             name: "",
-            ruleData: { type: "time", cron: "", collTime: 0, count: 0 },
+            state: 0,
+            ruleData: { type: "time", cron: "", count: 0 },
           },
         },
         index,
@@ -210,7 +212,6 @@ export default defineComponent({
       data,
       ruleData,
       handlerCroe,
-      handlerColTime,
       handerCount,
       formatSql,
       add,
