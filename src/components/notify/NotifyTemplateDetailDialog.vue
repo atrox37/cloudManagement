@@ -445,22 +445,20 @@ export default defineComponent({
           testForm.loading = false;
           showRecipientDialog.value = false;
           console.log("sendTemplateApi", value);
-          var s = 0,
-            f = 0;
-          // 根据新的响应结构处理数据：value.data.data 是数组
-          if (value.data && value.data.data && Array.isArray(value.data.data)) {
-            for (var item of value.data.data) {
-              if (item.result) {
-                s++;
-              } else {
-                f++;
-              }
-            }
+          const list = value.data && Array.isArray(value.data) ? value.data : [];
+          const successItems = list.filter(item => item.state === 'SUCCESS');
+          const failItems = list.filter(item => item.state !== 'SUCCESS');
+          const successNames = successItems.map(item => item.username).join('、');
+          const failNames = failItems.map(item => item.username).join('、');
+          let msg = `发送完成，成功 ${successItems.length} 人`;
+          if (successNames) msg += `（${successNames}）`;
+          if (failItems.length > 0) {
+            msg += `，失败 ${failItems.length} 人`;
+            if (failNames) msg += `（${failNames}）`;
           }
-          var str = "操作成功,成功:" + s + ",失败:" + f;
           ElMessage({
-            message: str,
-            type: "success",
+            message: msg,
+            type: failItems.length === 0 ? "success" : "warning",
           });
         })
         .catch((error) => {
@@ -478,8 +476,8 @@ export default defineComponent({
       newVars.push(...templateVariables.value);
       newVars.push(...templateDevice.value);
       templateDeviceList.value = [...templateDevice.value]
-      // 更新变量列表
-      templateVariablesList.value = [...newVars];
+      // 更新变量列表，模板变量默认值只显示 {$***} 变量
+      templateVariablesList.value = [...templateVariables.value];
 
       // 保存当前已填写的变量值
       const currentValues = { ...templateVariablesData };

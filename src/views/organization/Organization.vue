@@ -173,7 +173,7 @@
             const userClick=(dropCommand)=>{
                 let splitData = dropCommand.split('-');
                 let commandId=splitData[0]
-                selectId.value=splitData[1]
+                selectId.value=parseInt(splitData[1])
                 orgsRef.value.length=0
                 for(let index in orgs){
                     if(orgs[index] != selectId.value){

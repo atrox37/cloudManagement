@@ -227,6 +227,7 @@ export default defineComponent({
       return label;
     };
     const addClick = () => {
+      newNotifyTempate.data = { name: "", configId: undefined, msgType: 1,variables:{} };
       newNotifyTempate.state = true;
     };
     const editClick = (row) => {

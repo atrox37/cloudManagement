@@ -153,8 +153,9 @@ export default defineComponent({
           ruleMeta: {
             sql: "select *",
             param: {},
-          },
+          }
         },
+        notifyDtos:[]
       });
     };
     onMounted(() => {

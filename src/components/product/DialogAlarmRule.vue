@@ -293,9 +293,9 @@ export default defineComponent({
       context.emit("close");
     };
     const saveAlarm = () => {
+      sourceAlarm.value.columns = [];
       for (var item of alarmItems.value) {
         if (item.getProperty().length > 0) {
-          sourceAlarm.value.columns = [];
           sourceAlarm.value.columns.push(item.getProperty());
         }
       }

@@ -325,9 +325,9 @@ export default defineComponent({
 
     const connectFunc = function() {
       disConnectFunc();
-      const socketUrl = "http://" + import.meta.env.VITE_APP_URL + "/register-app/socket";
+      //const socketUrl = "http://" + import.meta.env.VITE_APP_URL + "/register-app/socket";
       //TODO 打包
-      //const socketUrl ="/api/register-app/socket";
+      const socketUrl ="/api/register-app/socket";
       console.log("socketUrl:" + socketUrl);
       socket = new SockJS(socketUrl);
       stomp = Stomp.over(socket);
