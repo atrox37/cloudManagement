@@ -3,11 +3,27 @@
     <el-header>
       <div class="search-box">
         <el-form v-model="searchParams" :inline="true">
-          <el-form-item label="名称">
-            <el-input v-model="searchParams.name" placeholder="" clearable />
+          <el-form-item v-for="(item,index) in searchParams" :label="item.label" :key="index">
+            <el-input v-if="item.type == 'input'" v-model="item.value" placeholder="" clearable />
+            <el-tree-select
+              style="width: 220px;"
+              v-if="item.type == 'tree'"
+              v-model="item.value"
+              :data="dimensionAllTree"
+              check-strictly
+              :render-after-expand="false">
+              <template #empty>
+                <el-empty description="暂无数据" />
+              </template>
+            </el-tree-select>
+            <el-select v-if="item.type == 'select'" v-model="item.value" style="width:200px">
+              <el-option v-for="(item,index) in item.select" :key="index" :label="item.name"
+                         :value="item.type"></el-option>
+            </el-select>
           </el-form-item>
           <el-form-item>
             <el-button type="primary" @click="queryClick">查询</el-button>
+            <el-button type="info" @click="resetClick">重置</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -152,11 +168,11 @@ export default defineComponent({
   setup() {
     const { proxy } = getCurrentInstance();
     const router = useRouter();
-    const searchParams = ref({});
+    const searchParams = reactive([]);
     const tableData = reactive([]);
     const loading = ref(true);
     const pageTotal = ref(0);
-    const page = ref({ size: 10, current: 1, sorts: [{ column: "t.create_time", order: "desc" }] });
+    const page = reactive({ size: 10, current: 1,terms:[], sorts: [{ column: "t.create_time", order: "desc" }] });
     const nType = toRef(notifyType);
     const newNotifyTempate = reactive({
       state: false,
@@ -168,10 +184,18 @@ export default defineComponent({
     const deleteDialg=reactive({state:false,template:{}})
     // const templateDetailData=reactive({state:false,loading:false,name:'',content:'',id:null})
     // const selectTemplateId = ref(null);
+    const resetParam = () => {
+      searchParams.length = 0;
+      searchParams.push({ column: "t.name", value: "", termType: "like", label: "名称", type: "input" });
+      console.log("resetParam");
+    };
+
     const pageApi = () => {
       console.log("pageApi");
       loading.value = true;
-      proxy.$http.notifyTemplatePage(page.value).then((value) => {
+      page.terms.length = 0;
+      page.terms.push(...searchParams)
+      proxy.$http.notifyTemplatePage(page).then((value) => {
         pageTotal.value = value.data.total;
         loading.value = false;
         tableData.length = 0;
@@ -247,13 +271,20 @@ export default defineComponent({
       deleteDialg.state=true
     };
     const queryClick = () => {
-      console.log("queryClick");
+      page.current = 1;
+      pageApi();
     };
+    const resetClick=()=>{
+      console.log("resetClick");
+      resetParam()
+      page.current = 1;
+      pageApi()
+    }
     const handleSelectionChange = (selection) => {
       console.log(selection);
     };
     const pageChange = (current) => {
-      page.value.current = current;
+      page.current = current;
       console.log("pageChange" + current);
       pageApi();
     };
@@ -261,7 +292,7 @@ export default defineComponent({
     const reload = () => {
       deleteDialg.state=false
       deleteDialg.template={}
-      page.value.current = 1;
+      page.current = 1;
       newNotifyTempate.loading = false;
       newNotifyTempate.state = false;
       pageApi();
@@ -274,6 +305,7 @@ export default defineComponent({
     };
 
     onMounted(() => {
+      resetParam();
       pageApi();
       notifyAllApi();
     });
@@ -289,6 +321,7 @@ export default defineComponent({
       deleteDialg,
       notifyEnum,
       queryClick,
+      resetClick,
       addClick,
       editClick,
       deleteClick,

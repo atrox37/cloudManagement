@@ -3,11 +3,27 @@
         <el-header>
             <div class="search-box">
                 <el-form v-model="searchParams" :inline="true">
-                    <el-form-item label="名称">
-                        <el-input v-model="searchParams.name" placeholder="" clearable />
+                    <el-form-item v-for="(item,index) in searchParams" :label="item.label" :key="index">
+                        <el-input v-if="item.type == 'input'" v-model="item.value" placeholder="" clearable />
+                        <el-tree-select
+                        style="width: 220px;"
+                        v-if="item.type == 'tree'"
+                        v-model="item.value"
+                        :data="dimensionAllTree"
+                        check-strictly
+                        :render-after-expand="false">
+                        <template #empty>
+                            <el-empty description="暂无数据" />
+                        </template>
+                        </el-tree-select>
+                        <el-select v-if="item.type == 'select'" v-model="item.value" style="width:200px">
+                        <el-option v-for="(item,index) in item.select" :key="index" :label="item.name"
+                                    :value="item.type"></el-option>
+                        </el-select>
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="queryClick">查询</el-button>
+                        <el-button type="info" @click="resetClick">重置</el-button>
                     </el-form-item>
                 </el-form>
             </div>
@@ -81,12 +97,12 @@
         setup(context){
             const {proxy} = getCurrentInstance()
             const router = useRouter()
-            const searchParams=ref({})
+            const searchParams = reactive([]);
             const tableData = reactive([])
             const loading = ref(true)
             const nType=toRef(notifyType)
             const pageTotal = ref(0)
-            const page=ref({size:10,current:1, sorts: [{ column: "t.create_time", order: "desc" }]})
+            const page=reactive({size:10,current:1,terms:[], sorts: [{ column: "t.create_time", order: "desc" }]})
 
             const configData=reactive({state:false,loading:false,data:{}});
 
@@ -102,10 +118,20 @@
                 return label
             }
 
+            const resetParam = () => {
+                searchParams.length = 0;
+                searchParams.push({ column: "t.name", value: "", termType: "like", label: "名称", type: "input" });
+                console.log("resetParam");
+            };
+
             const pageApi=()=>{
                 console.log('notifyPageApi')
                 loading.value=true
-                proxy.$http.notifyPage(page.value).then(value => {
+                page.terms.length = 0;
+                for (var item of searchParams) {
+                    page.terms.push(item);
+                }
+                proxy.$http.notifyPage(page).then(value => {
                     pageTotal.value=value.data.total
                     loading.value=false
                     tableData.length=0
@@ -169,13 +195,19 @@
                 }).catch(() => {})
             }
             const queryClick=()=>{
-                console.log('queryClick')
+                page.current = 1;
+                pageApi();
+            }
+            const resetClick=()=>{
+                page.current = 1;
+                resetParam()
+                pageApi()
             }
             const handleSelectionChange=(selection)=>{
                 console.log(selection)
             }
             const pageChange=(current)=>{
-                page.value.current=current
+                page.current=current
                 console.log('pageChange'+current)
                 pageApi()
             }
@@ -191,6 +223,7 @@
             }
 
             onMounted(() => {
+                resetParam()
                 pageApi()
             })
             return {
@@ -202,6 +235,7 @@
                 configData,
                 closeDraw,
                 notifyEnum,
+                resetClick,
                 queryClick,
                 addClick,
                 editClick,
