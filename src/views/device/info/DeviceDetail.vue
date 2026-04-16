@@ -31,7 +31,17 @@
       </el-descriptions-item>
       <el-descriptions-item label="所属人">{{ data.sysUserPo.username }}</el-descriptions-item>
       <el-descriptions-item label="网关设备" v-if="data.productPo.type=='children'">{{ parentName }}</el-descriptions-item>
-      <el-descriptions-item label="采集网关">{{ data.gatewayPo?.name ?? '' }}</el-descriptions-item>
+      <el-descriptions-item label="采集网关" v-if="data.productPo.type=='children'">{{ data.gatewayPo?.name ?? '' }}</el-descriptions-item>
+      <el-descriptions-item label="采集网关" v-if="data.productPo.type!='children'">
+        <el-select v-model="selectedGatewayId" placeholder="请选择网关设备" style="width: 220px;" clearable>
+          <el-option
+            v-for="item in gatewayData"
+            :key="item.gatewayPo.id"
+            :label="item.gatewayPo.name"
+            :value="item.gatewayPo.id">
+          </el-option>
+        </el-select>
+      </el-descriptions-item>
       <el-descriptions-item label="采集方式">
         <el-tag size="small">{{ data.networkConfigPo?.type ?? '' }}</el-tag>
       </el-descriptions-item>
@@ -55,6 +65,11 @@ import handlerDimensionTree from "@/util/dimension/DimensionTree";
 export default defineComponent({
   name: "DeviceDetail",
   props: {
+    gateways: {
+      type: Array,
+      required: true,
+      default: () => ([])
+    },
     deviceData: {
       type: Object,
       required: false
@@ -68,6 +83,7 @@ export default defineComponent({
   setup(props, context) {
     const {proxy} = getCurrentInstance()
     const pt = toRef(productType);
+    const gatewayData=toRef(props,'gateways')
     const data = toRef(props, "deviceData");
     const parent=toRef(props,'parentData');
     const networkConfiguration = ref(data.value.networkConfigPo);
@@ -82,6 +98,17 @@ export default defineComponent({
         return "无"
       }else {
         return parent.value.deviceInstancePo.name
+      }
+    })
+    const selectedGatewayId = computed({
+      get: () => data.value.deviceInstancePo.gatewayId ?? -1,
+      
+      set: (val) => {
+        if (val === null || val === undefined || val === '') {
+          data.value.deviceInstancePo.gatewayId = null
+          return
+        }
+        data.value.deviceInstancePo.gatewayId = val
       }
     })
     watch(data, (o, n) => {
@@ -115,6 +142,8 @@ export default defineComponent({
       context.emit("detailSave",data.value.deviceInstancePo);
     };
     return {
+      selectedGatewayId,
+      gatewayData,
       dimensionAllTree,
       type,
       data,

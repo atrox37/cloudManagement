@@ -34,7 +34,7 @@
                 style="width: 100%">
         <el-table-column prop="deviceInstancePo.name" label="设备名称" min-width="150" header-align="center"
                          align="center" />
-        <el-table-column prop="deviceInstancePo.name" label="产品名称" min-width="150" header-align="center"
+        <el-table-column prop="productPo.name" label="产品名称" min-width="150" header-align="center"
                          align="center" />
         <el-table-column label="产品类型" header-align="center" align="center" width="100">
           <template #default="scope">

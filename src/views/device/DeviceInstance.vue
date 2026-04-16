@@ -42,8 +42,11 @@
       @tab-click="handleClick"
     >
       <el-tab-pane label="基本信息" name="first">
-        <DeviceDetail :deviceData="deviceData" :parentData="parentData"
-                      @detailSave="detailSaveClick"></DeviceDetail>
+        <DeviceDetail
+          :gateways="gatewayData"
+          :deviceData="deviceData" 
+          :parentData="parentData"
+          @detailSave="detailSaveClick"></DeviceDetail>
       </el-tab-pane>
       <el-tab-pane label="模型属性" name="five">
         <DeviceMeta

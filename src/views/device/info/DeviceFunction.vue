@@ -261,8 +261,10 @@ export default defineComponent({
       console.log('handlerRecord')
     }
     const queryApi = () => {
+      console.log('functionlog')
       query.loading = true;
       query.terms.length = 0;
+      query.terms.push({ column: "device_id",termType: "eq", value: meta.value.id })
       query.terms.push({ column: "ts", termType: "gt", value: formatTs(pickTime.value[0]) });
       query.terms.push({ column: "ts", termType: "lte", value: formatTs(pickTime.value[1]) });
       proxy.$http.deviceFuntionLog(query).then(value => {
