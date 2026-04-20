@@ -40,7 +40,6 @@
             :value="item.value"
           />
         </el-select>
-        <span style="margin-left: 10px">秒</span>
       </el-form-item>
       <el-form-item label="阈值次数">
         <el-input-number
@@ -132,29 +131,7 @@ import AlarmHandlerItem from "@/components/device/item/AlarmHandlerItem.vue";
 import AlarmNotify from "@/components/device/item/AlarmNotify.vue";
 import AlarmHandler from "@/components/device/item/AlarmHandler Copy.vue";
 import { ElMessage } from "element-plus";
-import { quickConvert, cronToDescription } from "@/util/cron/cronConverter";
-
-// 单位换算表
-const intervalToSeconds = (val, unit) => {
-  let unitFactor = 1;
-  switch (unit) {
-    case "秒":
-      unitFactor = 1;
-      break;
-    case "分":
-      unitFactor = 60;
-      break;
-    case "时":
-      unitFactor = 3600;
-      break;
-    case "天":
-      unitFactor = 86400;
-      break;
-    default:
-      unitFactor = 1;
-  }
-  return (parseFloat(val) || 0) * unitFactor;
-};
+import { pollIntervalOptions, cronToSeconds } from "@/util/common/pollInterval";
 
 export default defineComponent({
   name: "DialogAlarm",
@@ -189,16 +166,6 @@ export default defineComponent({
     // const notifyTemplateUserPo = reactive([]);
     const alarmColumn = ref([]);
 
-    // 轮询周期选项（秒）
-    const pollIntervalOptions = [
-      { value: 5, label: '5 秒' },
-      { value: 10, label: '10 秒' },
-      { value: 15, label: '15 秒' },
-      { value: 20, label: '20 秒' },
-      { value: 30, label: '30 秒' },
-      { value: 60, label: '60 秒' },
-      { value: 120, label: '120 秒' },
-    ];
 
 
     // 创建一个响应式的本地数据副本，而不是直接使用props的引用 cronNum cronJg
@@ -216,9 +183,8 @@ export default defineComponent({
 
     // 采集时间不能大于轮询周期（采集时间单位为秒）
     const collectTimeMax = computed(() => {
-      const { cronNum = 0 } = sourceAlarm.value.rulePo?.ruleData || {};
-      // 轮询周期固定为秒，直接返回
-      return isNaN(Number(cronNum)) ? 0 : Number(cronNum);
+      const { cronNum } = sourceAlarm.value.rulePo?.ruleData || {};
+      return cronToSeconds(cronNum);
     });
 
 
@@ -230,18 +196,11 @@ export default defineComponent({
           // 深拷贝数据
           const processedData = JSON.parse(JSON.stringify(value));
 
-          // 如果有 cron 值，通过 handlerCroe 方法处理
+          // 如果有 cron 值，直接作为轮询周期下拉值
           if (processedData.rulePo?.ruleData?.cron) {
-            const cronDescription = cronToDescription(
-              processedData.rulePo?.ruleData?.cron
-            );
-            // 将处理后的描述保存到新的字段中，保留原始cron值
-            const arr = cronDescription.split(" ");
-            processedData.rulePo.ruleData.cronNum = parseFloat(arr[0]);
-            
-          }else{
-            processedData.rulePo.ruleData.cronNum = 5;
-            
+            processedData.rulePo.ruleData.cronNum = processedData.rulePo.ruleData.cron;
+          } else {
+            processedData.rulePo.ruleData.cronNum = pollIntervalOptions[0].value;
           }
 
           sourceAlarm.value = processedData;
@@ -259,7 +218,7 @@ export default defineComponent({
                 type: "",
                 cron: "",
                 count: 0,
-                cronNum: 5,
+                cronNum: pollIntervalOptions[0].value,
               },
             },
           };
@@ -274,13 +233,13 @@ export default defineComponent({
       }
     })
 
-    // 监听轮询周期变化，自动转换为 cron 表达式
+    // 监听轮询周期变化，同步 cron 表达式
     watch(
       () => sourceAlarm.value.rulePo?.ruleData?.cronNum,
       (newVal) => {
         if (newVal != null && newVal !== '') {
-          sourceAlarm.value.rulePo.ruleData.cron = quickConvert(newVal + " 秒");
-          console.log("cronNum 变化，生成 cron:", sourceAlarm.value.rulePo.ruleData.cron);
+          sourceAlarm.value.rulePo.ruleData.cron = newVal;
+          console.log("cronNum 变化，生成 cron:", newVal);
         }
       },
       { immediate: true }
@@ -306,11 +265,8 @@ export default defineComponent({
       context.emit("close");
     };
     const saveAlarm = () => {
-      // 在保存之前再次校验采集时间
       const ruleData = sourceAlarm.value.rulePo?.ruleData || {};
-      const cronNum = parseFloat(ruleData.cronNum);
-      // 轮询周期固定为秒，直接使用 cronNum
-      const cycleSec = cronNum;
+      const cycleSec = cronToSeconds(ruleData.cronNum);
 
       var data = {
         deviceId: sourceDevice.value.deviceInstancePo.id,
