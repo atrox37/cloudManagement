@@ -22,20 +22,17 @@
         </el-radio-group>
       </el-form-item>
       <el-form-item :label="$t('alarmRule.pollInterval')">
-        <el-input-number
+        <el-select
           v-model="sourceAlarm.rulePo.ruleData.cronNum"
           size="small"
-          :min="1"
-        ></el-input-number>
-        <el-select
-          size="small"
-          v-model="sourceAlarm.rulePo.ruleData.cronJg"
-          style="margin-left: 10px; width: 120px"
+          style="width: 120px"
         >
-          <el-option :label="$t('alarmRule.second')" value="秒"></el-option>
-          <el-option :label="$t('alarmRule.minute')" value="分"></el-option>
-          <el-option :label="$t('alarmRule.hour')" value="时"></el-option>
-          <el-option :label="$t('alarmRule.day')" value="天"></el-option>
+          <el-option
+            v-for="item in pollIntervalOptionsI18n"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
         </el-select>
       </el-form-item>
       <el-form-item :label="$t('alarmRule.thresholdCount')">
@@ -93,12 +90,11 @@ import {
   onUpdated,
   toRef,
   getCurrentInstance,
-  watchEffect,
   computed,
 } from "vue";
 import { Plus, Delete } from "@element-plus/icons-vue";
 import ProductAlarmItem from "@/components/product/item/ProductAlarmItem.vue";
-import { quickConvert, cronToDescription } from "@/util/cron/cronConverter";
+import { pollIntervalOptions, cronToSeconds } from "@/util/common/pollInterval";
 import { useI18n } from 'vue-i18n';
 
 export default defineComponent({
@@ -126,8 +122,7 @@ export default defineComponent({
             type: "",
             cron: "",
             count: 0,
-            cronNum: 0,
-            cronJg: "",
+            cronNum: '',
           },
         },
       }),
@@ -135,7 +130,7 @@ export default defineComponent({
   },
   emits: ["close", "reload", "save"],
   setup(props, context) {
-    const { t } = useI18n()
+    const { t } = useI18n();
     const { proxy } = getCurrentInstance();
     const sourceproduct = toRef(props, "productData");
     const sourceAlarm = ref({
@@ -146,48 +141,21 @@ export default defineComponent({
     const alarmItems = ref([]);
     const notifyConfig = reactive([]);
     const alarmNotifys = ref(null);
-    const collectTimeMax = computed(() => {
-      const { cronNum = 0, cronJg = "秒" } =
-        sourceAlarm.value.rulePo?.ruleData || {};
-      return isNaN(Number(cronNum)) ? 0 : intervalToSeconds(cronNum, cronJg);
-    });
-    const intervalToSeconds = (val, unit) => {
-      let unitFactor = 1;
-      switch (unit) {
-        case "秒":
-          unitFactor = 1;
-          break;
-        case "分":
-          unitFactor = 60;
-          break;
-        case "时":
-          unitFactor = 3600;
-          break;
-        case "天":
-          unitFactor = 86400;
-          break;
-        default:
-          unitFactor = 1;
-      }
-      return (parseFloat(val) || 0) * unitFactor;
-    };
-    watch(
-      () => [
-        sourceAlarm.value.rulePo?.ruleData?.cronNum,
-        sourceAlarm.value.rulePo?.ruleData?.cronJg,
-      ],
-      ([cronNum, cronJg]) => {
-        if (
-          typeof cronNum === "undefined" || cronNum === null
-        ) {
-          return;
-        }
-        const cNum = parseFloat(cronNum);
-        if (isNaN(cNum)) return;
-        const cycleSec = intervalToSeconds(cNum, cronJg || "秒");
-      },
-      { immediate: false }
+
+    // 轮询周期选项（i18n 包装）
+    const pollIntervalOptionsI18n = computed(() =>
+      pollIntervalOptions.map(opt => ({
+        ...opt,
+        label: t('alarmDialog.pollIntervalSec', { n: opt.seconds }),
+      }))
     );
+
+    // 采集时间不能大于轮询周期（采集时间单位为秒）
+    const collectTimeMax = computed(() => {
+      const { cronNum } = sourceAlarm.value.rulePo?.ruleData || {};
+      return cronToSeconds(cronNum);
+    });
+
     watch(
       () => props.alarmData,
       (value) => {
@@ -203,16 +171,11 @@ export default defineComponent({
             processedData.rulePo.state = 0;
           }
 
+          // 如果有 cron 值，直接作为轮询周期下拉值
           if (processedData.rulePo?.ruleData?.cron) {
-            const cronDescription = cronToDescription(
-              processedData.rulePo?.ruleData?.cron
-            );
-            const arr = cronDescription.split(" ");
-            processedData.rulePo.ruleData.cronNum = parseFloat(arr[0]);
-            processedData.rulePo.ruleData.cronJg = arr[1];
+            processedData.rulePo.ruleData.cronNum = processedData.rulePo.ruleData.cron;
           } else {
-            processedData.rulePo.ruleData.cronNum = 1;
-            processedData.rulePo.ruleData.cronJg = "秒";
+            processedData.rulePo.ruleData.cronNum = pollIntervalOptions[0].value;
           }
 
           sourceAlarm.value = processedData;
@@ -225,8 +188,7 @@ export default defineComponent({
                 type: "",
                 cron: "",
                 count: 0,
-                cronNum: null,
-                cronJg: null,
+                cronNum: pollIntervalOptions[0].value,
               },
             },
           };
@@ -235,18 +197,17 @@ export default defineComponent({
       { deep: true, immediate: true }
     );
 
-    watchEffect(() => {
-      if (
-        sourceAlarm.value.rulePo?.ruleData?.cronNum &&
-        sourceAlarm.value.rulePo?.ruleData?.cronJg
-      ) {
-        sourceAlarm.value.rulePo.ruleData.cron = quickConvert(
-          sourceAlarm.value.rulePo.ruleData.cronNum +
-            " " +
-            sourceAlarm.value.rulePo.ruleData.cronJg
-        );
-      }
-    });
+    // 监听轮询周期变化，同步 cron 表达式
+    watch(
+      () => sourceAlarm.value.rulePo?.ruleData?.cronNum,
+      (newVal) => {
+        if (newVal != null && newVal !== '') {
+          sourceAlarm.value.rulePo.ruleData.cron = newVal;
+        }
+      },
+      { immediate: true }
+    );
+
     const alarmColumn = ref([]);
     watch(sourceAlarm, (value) => {
       alarmColumn.value.length = 0;
@@ -311,7 +272,8 @@ export default defineComponent({
       delGroup,
       saveAlarm,
       closeHandler,
-      collectTimeMax
+      collectTimeMax,
+      pollIntervalOptionsI18n,
     };
   },
 });
