@@ -11,16 +11,16 @@
                                 <template #dropdown>
                                     <el-dropdown-menu>
                                         <el-dropdown-item :command="`1-`+scope.nodeData.id">
-                                            <el-text><el-icon><Edit /></el-icon>编辑</el-text>
+                                            <el-text><el-icon><Edit /></el-icon>{{ $t('organization.edit') }}</el-text>
                                         </el-dropdown-item>
                                         <el-dropdown-item :command="`2-`+scope.nodeData.id">
-                                            <el-text><el-icon><User /></el-icon>人员</el-text>
+                                            <el-text><el-icon><User /></el-icon>{{ $t('organization.members') }}</el-text>
                                         </el-dropdown-item>
                                         <el-dropdown-item :command="`3-`+scope.nodeData.id">
-                                            <el-text><el-icon><Plus /></el-icon>添加</el-text>
+                                            <el-text><el-icon><Plus /></el-icon>{{ $t('organization.add') }}</el-text>
                                         </el-dropdown-item>
                                         <el-dropdown-item :command="`4-`+scope.nodeData.id" divided>
-                                            <el-text><el-icon><Delete /></el-icon>删除</el-text>
+                                            <el-text><el-icon><Delete /></el-icon>{{ $t('organization.delete') }}</el-text>
                                         </el-dropdown-item>
                                     </el-dropdown-menu>
                                 </template>
@@ -38,14 +38,14 @@
 
     </div>-->
 
-    <el-drawer v-if="userDatas!=null" v-model="userDraw" direction="rtl" :size="drawSize" title="关联用户">
+    <el-drawer v-if="userDatas!=null" v-model="userDraw" direction="rtl" :size="drawSize" :title="$t('organization.relatedUsers')">
         <template #default>
             <el-table :data="userDatas">
-                <el-table-column prop="username" label="用户"/>
-                <el-table-column label="状态" align="center" min-width="100">
+                <el-table-column prop="username" :label="$t('organization.user')"/>
+                <el-table-column :label="$t('organization.status')" align="center" min-width="100">
                     <template #default="scope">
-                        <el-tag v-if="scope.row.state == 0" effect="dark" type="danger">禁用</el-tag>
-                        <el-tag v-else effect="dark">正常</el-tag>
+                        <el-tag v-if="scope.row.state == 0" effect="dark" type="danger">{{ $t('common.disable') }}</el-tag>
+                        <el-tag v-else effect="dark">{{ $t('common.enable') }}</el-tag>
                     </template>
                 </el-table-column>
             </el-table>

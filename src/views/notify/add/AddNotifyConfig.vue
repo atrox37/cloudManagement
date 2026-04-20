@@ -3,11 +3,11 @@
         <MenuContainerHeader :label="titleLabel" @backFunc="backClick">
         </MenuContainerHeader>
         <el-form label-position="left" class="el_form_style">
-            <el-form-item class="el_item_style" label="通知名称" :label-width="labelWidth">
+            <el-form-item class="el_item_style" :label="$t('addNotifyConfig.notifyName')" :label-width="labelWidth">
                 <el-input v-model="saveData.name" class="el_item_input"></el-input>
             </el-form-item>
 
-            <el-form-item class="el_item_style" label="通知类型" :label-width="labelWidth">
+            <el-form-item class="el_item_style" :label="$t('addNotifyConfig.notifyType')" :label-width="labelWidth">
                 <el-select v-model="selectCode" class="el_item_input">
                     <el-option v-for="(item,index) in configs" :key="index" :value="item.code" :label="item.name"></el-option>
                 </el-select>
@@ -22,14 +22,14 @@
                 </div>
                 <div v-if="item.type == 'boolean'">
                     <el-select v-model="item.value" class="el_item_input">
-                        <el-option key="1" label="是" value="true"/>
-                        <el-option key="0" label="否" value="false"/>
+                        <el-option key="1" :label="$t('common.yes')" value="true"/>
+                        <el-option key="0" :label="$t('common.no')" value="false"/>
                     </el-select>
                 </div>
             </el-form-item>
             <el-form-item class="el_item_style" :label-width="labelWidth">
-                <el-button type="primary" @click="onSubmit">创建</el-button>
-                <el-button @click="backClick">取消</el-button>
+                <el-button type="primary" @click="onSubmit">{{ $t('addNotifyConfig.create') }}</el-button>
+                <el-button @click="backClick">{{ $t('common.cancel') }}</el-button>
             </el-form-item>
         </el-form>
     </div>
@@ -42,10 +42,12 @@
     import {defineComponent,reactive,ref,getCurrentInstance,onMounted,watch} from "vue"
     import {useRoute, useRouter} from "vue-router";
     import { ElMessage } from 'element-plus'
+    import { useI18n } from 'vue-i18n'
     export default defineComponent({
         name: "AddNotifyConfig",
         components:{MenuContainerHeader,Loading},
         setup(){
+            const { t } = useI18n()
             const {proxy} = getCurrentInstance()
             const saveData=reactive({})
             const labelWidth=ref('100')
@@ -55,7 +57,7 @@
             const selectConfig = reactive([])
             const selectCode=ref('')
             const loading=ref(true)
-            const titleLabel=ref('详情');
+            const titleLabel=ref('');
 
             watch(selectCode,value => {
                 for(let item of configs){
@@ -79,14 +81,14 @@
                 proxy.$http.notifyConfigSaveUpdate(saveData).then(value =>{
                     console.log('saveApi')
                         ElMessage({
-                            message: '操作成功',
+                            message: t('common.operationSuccess'),
                             type: 'success',
                         })
                         backClick()
                 },error=>{
                     console.log('saveApi error')
                         ElMessage({
-                            message: '操作失败',
+                            message: t('common.operationFail'),
                             type: 'error',
                         })
                         backClick()
@@ -152,9 +154,10 @@
                 })
             }
             onMounted(() => {
+                titleLabel.value = t('addNotifyConfig.detail')
                 supportConfigApi()
             })
-            return {saveData,labelWidth,configs,selectCode,selectConfig,loading,titleLabel,backClick,onSubmit}
+            return {saveData,labelWidth,configs,selectCode,selectConfig,loading,titleLabel,backClick,onSubmit,t}
         }
     })
 </script>

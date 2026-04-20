@@ -9,28 +9,28 @@
     >
       <el-form-item
         prop="account"
-        label="邮箱"
+        :label="$t('login.email')"
         :rules="[
           {
             required: true,
-            message: '邮箱不能为空',
+            message: $t('login.emailRequired'),
             trigger: 'blur',
           },
         ]"
       >
         <el-input
           v-model="loginform.account"
-          placeholder="请输入邮箱"
+          :placeholder="$t('login.emailPlaceholder')"
         ></el-input>
       </el-form-item>
       <el-form-item
         class="clearfix"
-        label="密码"
+        :label="$t('login.password')"
         prop="password"
         :rules="[
           {
             required: true,
-            message: '密码不能为空',
+            message: $t('login.passwordRequired'),
             trigger: 'blur',
           },
         ]"
@@ -38,13 +38,13 @@
         <el-input
           v-model="loginform.password"
           show-password
-          placeholder="请输入密码"
+          :placeholder="$t('login.passwordPlaceholder')"
         ></el-input>
       </el-form-item>
-      <el-form-item label="验证码">
+      <el-form-item :label="$t('login.captcha')">
         <el-input
           v-model="loginform.captcha"
-          placeholder="请输入验证码"
+          :placeholder="$t('login.captchaPlaceholder')"
         ></el-input>
         <img ref="captchaRef" alt="图片" @click="captchaclick" />
       </el-form-item>
@@ -55,8 +55,7 @@
             class="login_btn"
             type="primary"
             :loading="loading"
-          >登陆</el-button
-          >
+          >{{ $t('login.loginBtn') }}</el-button>
         </div>
 
       </el-form-item>
@@ -94,8 +93,6 @@ export default defineComponent({
     const loading = ref(false);
 
     const request = async () => {
-      /*const data = await loginApi({ username: `${ loginform.username }`, password: `${ loginform.password }` })
-      console.log(data);*/
       loading.value = true;
       proxy.$http.loginApi({...loginform,password:MD5(loginform.password).toString()}).then(
         (v) => {

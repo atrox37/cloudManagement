@@ -8,7 +8,7 @@
           style="background-color: transparent"
         >
           <template #extra>
-            <el-button @click="syncApi" type="info" plain :loading="deviceSync.loading">模型同步</el-button>
+            <el-button @click="syncApi" type="info" plain :loading="deviceSync.loading">{{ $t('deviceInstance.modelSync') }}</el-button>
           </template>
           <el-descriptions-item span="2">
             <template #label>
@@ -20,14 +20,14 @@
           </el-descriptions-item>
           <el-descriptions-item span="4">
             <template #label>
-              <el-text tag="b">状态</el-text>
+              <el-text tag="b">{{ $t('deviceInstance.statusLabel') }}</el-text>
             </template>
             <template #default>
               <el-tag :type="deviceStatusTag">
                 {{
                   deviceData.deviceInstancePo.status == "offline"
-                    ? "离线"
-                    : "在线"
+                    ? $t('common.offline')
+                    : $t('common.online')
                 }}
               </el-tag>
             </template>
@@ -41,14 +41,14 @@
       class="tab-container"
       @tab-click="handleClick"
     >
-      <el-tab-pane label="基本信息" name="first">
+      <el-tab-pane :label="$t('deviceInstance.tabBasicInfo')" name="first">
         <DeviceDetail
           :gateways="gatewayData"
           :deviceData="deviceData" 
           :parentData="parentData"
           @detailSave="detailSaveClick"></DeviceDetail>
       </el-tab-pane>
-      <el-tab-pane label="模型属性" name="five">
+      <el-tab-pane :label="$t('deviceInstance.tabModelProps')" name="five">
         <DeviceMeta
           ref="deviceMetaRef"
           :deviceUnit="deviceUnit"
@@ -56,7 +56,7 @@
           @updateClick="updateDeviceInstanceApi"
         ></DeviceMeta>
       </el-tab-pane>
-      <el-tab-pane label="运行状态" name="second">
+      <el-tab-pane :label="$t('deviceInstance.tabRunStatus')" name="second">
         <DeviceRun
           ref="deviceRunView"
           :historyData="propertyHistoryData"
@@ -66,7 +66,7 @@
           @propertyClick="propertyDialogShow"
         ></DeviceRun>
       </el-tab-pane>
-      <el-tab-pane label="设备功能" name="third">
+      <el-tab-pane :label="$t('deviceInstance.tabFunctions')" name="third">
         <DeviceFunction
           ref="deviceFuncRef"
           :deviceMeta="deviceData.deviceInstancePo"
@@ -74,14 +74,14 @@
           @funcExecution="funcExecution"
         ></DeviceFunction>
       </el-tab-pane>
-      <el-tab-pane label="日志信息" name="fourth">
+      <el-tab-pane :label="$t('deviceInstance.tabLog')" name="fourth">
         <DeviceLog
           ref="deviceLogRef"
           :data="logData"
           @pageRequest="deviceLogApi"
         ></DeviceLog>
       </el-tab-pane>
-      <el-tab-pane label="设备告警" name="six">
+      <el-tab-pane :label="$t('deviceInstance.tabAlarm')" name="six">
         <DeviceAlarm
           ref="deviceAlarmRef"
           :deviceData="deviceData"
@@ -89,7 +89,7 @@
           @open="alarmOpen"
         ></DeviceAlarm>
       </el-tab-pane>
-      <el-tab-pane label="告警记录" name="eight">
+      <el-tab-pane :label="$t('deviceInstance.tabAlarmLog')" name="eight">
         <DeviceAlarmLog
           ref="deviceAlarmLogRef"
           :deviceMeta="deviceData.deviceInstancePo">
@@ -97,7 +97,7 @@
       </el-tab-pane>
       <el-tab-pane
         v-if="deviceData.productPo.type == 'gateway'"
-        label="子设备"
+        :label="$t('deviceInstance.tabChildren')"
         name="seven"
       >
         <DeviceChildren
@@ -193,6 +193,7 @@ import DialogPropertyControl from "@/components/device/DialogPropertyControl.vue
 import { column } from "element-plus/es/components/table-v2/src/common";
 import { ElMessage } from "element-plus";
 import { deviceSync } from "@/util/request";
+import { useI18n } from "vue-i18n";
 
 export default defineComponent({
   name: "DeviceInstance",
@@ -214,6 +215,7 @@ export default defineComponent({
     DialogPropertyControl
   },
   setup() {
+    const { t } = useI18n();
     const { proxy } = getCurrentInstance();
     let deviceId = null;
     const gatewayData = ref([]);
@@ -369,16 +371,16 @@ export default defineComponent({
               for (var p of JSON.parse(error.body).targetMsg.property) {
                 propertyLoading(p, "read", false);
               }
-              denied='当前用户缺少"设备读取点位"权限';
+              denied=t('deviceInstance.permDeniedRead');
             }else if(JSON.parse(error.body).type=='write-property'){
               for (var p of JSON.parse(error.body).targetMsg.property) {
                 propertyLoading(p, "write", false);
               }
-              denied='当前用户缺少"设备写入点位"权限';
+              denied=t('deviceInstance.permDeniedWrite');
             }else if(JSON.parse(error.body).type=='function'){
               tabFunctionData.loading = false;
               tabFunctionData.result = {};
-              denied='当前用户缺少"设备功能控制"权限';
+              denied=t('deviceInstance.permDeniedFunc');
             }
             ElMessage({
               message: denied,
@@ -432,7 +434,7 @@ export default defineComponent({
             propertyLoading(p, "read", false);
           }
           ElMessage({
-            message: "读取超时",
+            message: t('deviceInstance.readTimeout'),
             type: "error",
             plain: true
           });
@@ -442,7 +444,7 @@ export default defineComponent({
             propertyLoading(p, "read", false);
           }
           ElMessage({
-            message: "读取成功",
+            message: t('deviceInstance.readSuccess'),
             type: "success",
             plain: true
           });
@@ -458,7 +460,7 @@ export default defineComponent({
             false
           );
           ElMessage({
-            message: "写入超时",
+            message: t('deviceInstance.writeTimeout'),
             type: "error",
             plain: true
           });
@@ -470,7 +472,7 @@ export default defineComponent({
             false
           );
           ElMessage({
-            message: "写入成功",
+            message: t('deviceInstance.writeSuccess'),
             type: "success",
             plain: true
           });
@@ -482,7 +484,7 @@ export default defineComponent({
             false
           );
           ElMessage({
-            message: "写入失败",
+            message: t('deviceInstance.writeFail'),
             type: "error",
             plain: true
           });
@@ -498,7 +500,7 @@ export default defineComponent({
           tabFunctionData.resultStr = JSON.stringify(JSON.parse(m.body).resultData);//JSON.parse(m.body).resultStrData;
           console.log("function success");
           ElMessage({
-            message: "操作成功",
+            message: t('common.operationSuccess'),
             type: "success",
             plain: true
           });
@@ -509,9 +511,9 @@ export default defineComponent({
             JSON.parse(m.body).resultData == undefined
               ? {}
               : JSON.parse(m.body).resultData;
-          tabFunctionData.resultStr = JSON.stringify(JSON.parse(m.body).resultData);//JSON.parse(m.body).resultStrData;
+          tabFunctionData.resultStr = JSON.stringify(JSON.parse(m.body).resultData);
           ElMessage({
-            message: "返回结果失败",
+            message: t('deviceInstance.funcFail'),
             type: "error",
             plain: true
           });
@@ -519,7 +521,7 @@ export default defineComponent({
         if (JSON.parse(m.body).replyType == "TIMEOUT" &&JSON.parse(m.body).type == "function-reply") {
           tabFunctionData.loading = false;
           ElMessage({
-            message: "请求超时",
+            message: t('deviceInstance.requestTimeout'),
             type: "error",
             plain: true
           });
@@ -591,9 +593,9 @@ export default defineComponent({
         console.log("deviceSync");
         deviceSync.loading=false
         if(value.data.change==0){
-          ElMessage.info("暂无更新内容")
+          ElMessage.info(t('deviceInstance.syncNoUpdate'))
         }else{
-          ElMessage.success("已完成更新")
+          ElMessage.success(t('deviceInstance.syncDone'))
           // 模型同步成功并且确实发生了变化，重新进行初始化操作
           reload();
         }
@@ -678,9 +680,9 @@ export default defineComponent({
 
     const updateDeviceInstance = (deviceData) => {
       proxy.$http.updateDeviceInstanceApi(deviceData).then((value) => {
-        console.log("修改成功");
+        console.log("updateDeviceInstance success");
         ElMessage({
-          message: "操作成功",
+          message: t('common.operationSuccess'),
           type: "success"
         });
         reload();
@@ -765,12 +767,12 @@ export default defineComponent({
 
     const delChildrenClick = (row) => {
       console.log("delChildrenClick:" + row.deviceInstancePo.id);
-      proxy.$http
+        proxy.$http
         .updateDeviceInstanceApi({ id: row.deviceInstancePo.id })
         .then((value) => {
-          console.log("修改成功");
+          console.log("delChildrenClick success");
           ElMessage({
-            message: "操作成功",
+            message: t('common.operationSuccess'),
             type: "success"
           });
           deviceChildrenRef.value.initPage();
@@ -785,7 +787,7 @@ export default defineComponent({
     };
     const addChildrenSubmit = (vs) => {
       ElMessage({
-        message: "操作成功",
+        message: t('common.operationSuccess'),
         type: "success"
       });
       dialogChildrenData.status = false;

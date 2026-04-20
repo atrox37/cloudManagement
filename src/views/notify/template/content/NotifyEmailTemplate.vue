@@ -1,9 +1,9 @@
 <template>
     <el-form v-model="contentModel" label-width="100px">
-        <el-form-item label="标题(title)">
+        <el-form-item :label="$t('emailTemplate.title')">
           <el-input v-model="contentModel.title" />
         </el-form-item>
-        <el-form-item label="内容(content)">
+        <el-form-item :label="$t('emailTemplate.content')">
             <el-input v-model="contentModel.content" />
         </el-form-item>
     </el-form>
@@ -12,6 +12,7 @@
 
 <script>
     import {defineComponent,watch,ref,getCurrentInstance,onMounted,toRef,computed} from "vue"
+    import { useI18n } from "vue-i18n"
     export default defineComponent({
         name: "NotifyEmailTemplate",
         props:{
@@ -22,6 +23,7 @@
             }
         },
         setup(props,context) {
+            const { t } = useI18n()
             const {proxy} = getCurrentInstance()
             const contentModel=toRef(props,'content')
             const getContent=()=>{

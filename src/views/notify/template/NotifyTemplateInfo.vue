@@ -1,13 +1,13 @@
 <template>
   <div v-if="!loading" style="width: 100%;height:100%;padding: 0;margin: 0px">
     <el-form v-model="templateData" class="tiny-template-header" inline>
-      <el-form-item label="模板名称" prop="name">
+      <el-form-item :label="$t('templateInfo.templateName')" prop="name">
         <el-input v-model="templateData.templatePo.name" clearable class="tiny-template-input"></el-input>
       </el-form-item>
       <el-form-item prop="type">
         <template #label>
           <el-space wrap>
-            <el-text>通知配置</el-text>
+            <el-text>{{ $t('templateInfo.notifyConfig') }}</el-text>
             <el-tag>{{ templateData.configPo.codeName }}</el-tag>
           </el-space>
 
@@ -20,7 +20,7 @@
         </template>
 
       </el-form-item>
-      <el-form-item label="模板内容" prop="content">
+      <el-form-item :label="$t('templateInfo.templateContent')" prop="content">
         <el-space wrap>
           <el-input v-model="templateData.templatePo.msgContent" disabled class="tiny-template-input">
             <template #append>
@@ -31,8 +31,8 @@
       </el-form-item>
       <el-form-item>
         <el-button-group>
-          <el-button size="small" @click="onTest">测试</el-button>
-          <el-button size="small" @click="onSubmit">保存</el-button>
+          <el-button size="small" @click="onTest">{{ $t('templateInfo.test') }}</el-button>
+          <el-button size="small" @click="onSubmit">{{ $t('common.save') }}</el-button>
         </el-button-group>
       </el-form-item>
     </el-form>
@@ -40,10 +40,10 @@
       <el-main class="tiny-main">
         <el-table :data="page.record" border stripe >
           <!-- <el-table-column prop="templateUserPo.id" label="Id" width="50"/> -->
-          <el-table-column prop="templateUserPo.name" label="名称" width="180"/>
-          <el-table-column prop="templateUserPo.receiver" label="接受对象"/>
-          <el-table-column prop="templateUserPo.variables" label="模板内容"/>
-          <el-table-column prop="templateUserPo.updateTime" label="更新时间" width="180"/>
+          <el-table-column prop="templateUserPo.name" :label="$t('common.name')" width="180"/>
+          <el-table-column prop="templateUserPo.receiver" :label="$t('templateInfo.receiver')"/>
+          <el-table-column prop="templateUserPo.variables" :label="$t('templateInfo.templateContent')"/>
+          <el-table-column prop="templateUserPo.updateTime" :label="$t('common.updateTime')" width="180"/>
           <el-table-column width="80">
             <template #header>
               <div class="center-flex-contain">
@@ -77,9 +77,9 @@
     </el-container>
   </div>
   <Loading :loading="loading"></Loading>
-  <TestEmail title="邮箱模板测试" :user="accountUser" submitLabel="发送" :data="testEmail" @click="testClick"></TestEmail>
+  <TestEmail :title="$t('templateInfo.emailTest')" :user="accountUser" :submitLabel="$t('templateInfo.send')" :data="testEmail" @click="testClick"></TestEmail>
 <!--  <TestEmail title="邮箱模板新增编辑" submitLabel="保存" :data="selectEmail" @click="selectClick"></TestEmail>-->
-  <el-drawer v-model="drawableContent" size="25%" title="模板内容" @close="drawClose">
+  <el-drawer v-model="drawableContent" size="25%" :title="$t('templateInfo.templateContent')" @close="drawClose">
     <template #default>
       <NotifyEmailTemplate v-if="templateData.configPo.code == 'email'" ref="drawableEmailRef"
                            :content="templateData.templatePo.msgContent"></NotifyEmailTemplate>
@@ -96,17 +96,19 @@ import {defineComponent, reactive, ref, getCurrentInstance, onMounted, watch, to
 import {useRoute, useRouter} from "vue-router";
 import {ElMessage} from 'element-plus'
 import { notifyTemplateUpdate, notifyTemplateUserDelete, notifyTemplateUserUpdate, sysUserPage } from "@/util/request";
+import { useI18n } from 'vue-i18n'
 
 export default defineComponent({
   name: "NotifyTemplateInfo",
   components: {ContentHeader, NotifyEmailTemplate, Loading, TestEmail},
   setup() {
+    const { t } = useI18n()
     const {proxy} = getCurrentInstance()
     const route = useRoute()
     const router = useRouter()
     const loading = ref(true)
     const configs = reactive([])
-    const titleLabel = ref('模板详情')
+    const titleLabel = ref('')
     let contentModel = reactive([])
     const selectConfig = reactive([])
     let templateData = ref()
@@ -229,7 +231,7 @@ export default defineComponent({
             f++;
           }
         }
-        var str = '操作成功,成功:' + s + ",失败:" + f
+        var str = t('templateInfo.testResult', {s, f})
         ElMessage({
           message: str,
           type: 'success',
@@ -338,6 +340,7 @@ export default defineComponent({
     }
 
     onMounted(() => {
+      titleLabel.value = t('templateInfo.detail')
       queryData = route.query
       console.log('onMounted')
       accountApi()

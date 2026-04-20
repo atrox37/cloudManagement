@@ -13,30 +13,30 @@
                     check-strictly
                     :render-after-expand="false">
               <template #empty>
-                <el-empty description="暂无数据" />
+                <el-empty :description="$t('common.noData')" />
               </template>
             </el-tree-select>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="queryClick">查询</el-button>
-            <el-button type="info" @click="resetClick">重置</el-button>
+            <el-button type="primary" @click="queryClick">{{ $t('common.search') }}</el-button>
+            <el-button type="info" @click="resetClick">{{ $t('common.reset') }}</el-button>
           </el-form-item>
         </el-form>
       </div>
 
     </el-header>
     <el-main>
-      <el-table height="100%" v-loading="loading" @row-click="selectClick" :data="tableData" border highlight-current-row >
-        <el-table-column prop="sysUserPo.username" label="用户" align="center" min-width="100"/>
-        <el-table-column prop="sysRolePo.roleName" label="角色" align="center" min-width="100"/>
-        <el-table-column prop="dimensionPo.name" label="机构" align="center" min-width="100"/>
-        <el-table-column prop="sysUserPo.state" label="状态" align="center" min-width="100">
+      <el-table height="100%" v-loading="loading" @row-click="selectClick" :data="tableData" border highlight-current-row :row-key="row => row.sysUserPo.id">
+        <el-table-column prop="sysUserPo.username" :label="$t('user.username')" align="center" min-width="100"/>
+        <el-table-column prop="sysRolePo.roleName" :label="$t('user.role')" align="center" min-width="100"/>
+        <el-table-column prop="dimensionPo.name" :label="$t('user.org')" align="center" min-width="100"/>
+        <el-table-column prop="sysUserPo.state" :label="$t('user.status')" align="center" min-width="100">
           <template #default="scope">
-            <el-tag v-if="scope.row.sysUserPo.state == 0" effect="dark" type="danger">禁用</el-tag>
-            <el-tag v-else effect="dark">正常</el-tag>
+            <el-tag v-if="scope.row.sysUserPo.state == 0" effect="dark" type="danger" :key="`state-${scope.row.sysUserPo.id}`">{{ $t('common.disable') }}</el-tag>
+            <el-tag v-else effect="dark" :key="`state-${scope.row.sysUserPo.id}`">{{ $t('common.enable') }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="sysUserPo.updateTime" label="更新时间" align="center" min-width="100"/>
+        <el-table-column prop="sysUserPo.updateTime" :label="$t('user.updateTime')" align="center" min-width="100"/>
         <el-table-column >
           <template #header>
             <div class="center-flex-contain">
@@ -66,15 +66,15 @@
   </el-container>
 
   <el-drawer v-model="isDrawer"
-             :title="isAdd?'新建用户':'编辑'"
+             :title="isAdd ? $t('user.addUser') : $t('user.editUser')"
              direction="rtl"
              size="30%">
     <template #default>
       <el-form ref="formUser" :model="selectUser" label-width="70px" :rules="rules" status-icon>
-        <el-form-item label="用户名"  prop="username">
+        <el-form-item :label="$t('user.username')"  prop="username">
           <el-input v-model="selectUser.sysUserPo.username" />
         </el-form-item>
-        <el-form-item label="角色" prop="roleId">
+        <el-form-item :label="$t('user.role')" prop="roleId">
           <el-select v-model="selectUser.sysUserPo.roleId">
             <el-option v-for="(item,index) in roleData"
                        :key="index"
@@ -82,27 +82,27 @@
                        :value="item.id"></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="机构" prop="orgId">
+        <el-form-item :label="$t('user.org')" prop="orgId">
           <el-tree-select
                   v-model="selectUser.sysUserPo.orgId"
                   :data="dimensionTree"
                   check-strictly
                   :render-after-expand="false">
             <template #empty>
-              <el-empty description="暂无数据" />
+              <el-empty :description="$t('common.noData')" />
             </template>
           </el-tree-select>
         </el-form-item>
-        <el-form-item label="邮箱"  prop="email">
+        <el-form-item :label="$t('user.email')"  prop="email">
           <el-input v-model="selectUser.sysUserPo.email" />
         </el-form-item>
-        <el-form-item label="电话"  prop="phone">
+        <el-form-item :label="$t('user.phone')"  prop="phone">
           <el-input v-model="selectUser.sysUserPo.phone" />
         </el-form-item>
-        <el-form-item label="状态">
+        <el-form-item :label="$t('user.status')">
           <el-radio-group v-model="selectUser.sysUserPo.state" size="small">
-            <el-radio-button :label="0">禁用</el-radio-button>
-            <el-radio-button :label="1">正常</el-radio-button>
+            <el-radio-button :label="0">{{ $t('common.disable') }}</el-radio-button>
+            <el-radio-button :label="1">{{ $t('common.enable') }}</el-radio-button>
           </el-radio-group>
         </el-form-item>
       </el-form>
@@ -110,10 +110,10 @@
     <template #footer>
       <div class="right-flex-contain">
         <el-button type="primary" v-if="uploading" :disabled="uploading">
-          <el-icon><Loading /></el-icon>正在提交
+          <el-icon><Loading /></el-icon>{{ $t('common.submitting') }}
         </el-button>
         <el-button type="primary" v-else @click="submitClick" :disabled="uploading">
-          保存提交
+          {{ $t('common.submit') }}
         </el-button>
       </div>
 
@@ -121,19 +121,19 @@
 
   </el-drawer>
 
-  <el-dialog v-model="passDialog" title="修改密码" width="500">
+  <el-dialog v-model="passDialog" :title="$t('user.changePassword')" width="500">
     <el-form :model="selectUser.sysUserPo" label-width="auto">
-      <el-form-item label="密码">
+      <el-form-item :label="$t('user.password')">
         <el-input v-model="selectUser.sysUserPo.password" />
       </el-form-item>
     </el-form>
     <template #footer>
       <div class="right-flex-contain">
-        <el-button @click="()=>{passDialog=false}">取消</el-button>
+        <el-button @click="()=>{passDialog=false}">{{ $t('common.cancel') }}</el-button>
         <el-button type="primary" v-if="uploading" :disabled="uploading">
-          <el-icon><Loading /></el-icon>正在提交
+          <el-icon><Loading /></el-icon>{{ $t('common.submitting') }}
         </el-button>
-        <el-button type="primary" @click="updatePassClick" v-else>修改</el-button>
+        <el-button type="primary" @click="updatePassClick" v-else>{{ $t('user.modifyPassword') }}</el-button>
       </div>
     </template>
   </el-dialog>
@@ -143,17 +143,19 @@
   import {defineComponent, onMounted, ref, reactive, getCurrentInstance,computed} from "vue"
   import {ElMessage} from "element-plus";
   import MD5 from 'crypto-js/md5'
+  import { useI18n } from 'vue-i18n'
 export default defineComponent({
   name: "UserPage",
   setup(props,context){
     const {proxy} = getCurrentInstance()
+    const { t } = useI18n()
     let pageInfo = reactive({size:10,current:1,total:0,terms:[], sorts: [{ column: "t.update_time", order: "desc" }]})
     const loading=ref(false)
     const uploading=ref(false)
     const passDialog=ref(false)
     const tableData=reactive([])
     const searchParams=reactive([])
-    const tableEmpty=ref("暂无数据")
+    const tableEmpty=ref('')
     const radioModel=ref(1)
 
     const isDrawer=ref(false)
@@ -164,46 +166,46 @@ export default defineComponent({
     const formUser=ref(null)
 
     const dimensionAllTree=computed(()=>{
-      const rootTree={value:-1,label:'全部',children:[]}
+      const rootTree={value:-1,label:t('common.all'),children:[]}
       rootTree.children.push(...dimensionTree.value)
       return [rootTree]
     })
 
     const resetParam=()=>{
       searchParams.length=0
-      searchParams.push({column:'t.username',value:'',termType:'like',label:'用户名',type:'input'})
-      searchParams.push({column:'t.org_id',value:-1,termType:'eq',label:'机构',type:'tree'})
+      searchParams.push({column:'t.username',value:'',termType:'like',label:t('user.username'),type:'input'})
+      searchParams.push({column:'t.org_id',value:-1,termType:'eq',label:t('user.org'),type:'tree'})
     }
 
     const validateSelect=(rule, value, callback)=>{
       console.log('validateSelect:'+rule.field)
       if(rule.field == 'username'){
         if(selectUser.sysUserPo.username == undefined || selectUser.sysUserPo.username==''){
-          callback(('用户名不能为空'))
+          callback((t('user.usernameRequired')))
         }else{
           callback()
         }
       }else if(rule.field == 'roleId'){
         if(selectUser.sysUserPo.roleId == undefined || selectUser.sysUserPo.roleId==''){
-          callback(('角色不能为空'))
+          callback((t('user.roleRequired')))
         }else{
           callback()
         }
       }else if(rule.field == 'orgId'){
         if(selectUser.sysUserPo.orgId == undefined || selectUser.sysUserPo.orgId==''){
-          callback(('机构不能为空'))
+          callback((t('user.orgRequired')))
         }else{
           callback()
         }
       }else if(rule.field == 'email'){
         if(selectUser.sysUserPo.email == undefined || selectUser.sysUserPo.email==''){
-          callback(('邮箱不能为空'))
+          callback((t('user.emailRequired')))
         }else{
           callback()
         }
       }else if(rule.field == 'phone'){
         if(selectUser.sysUserPo.phone == undefined || selectUser.sysUserPo.phone==''){
-          callback(('电话不能为空'))
+          callback((t('user.phoneRequired')))
         }else{
           callback()
         }
@@ -222,7 +224,7 @@ export default defineComponent({
       console.log('pageApi')
       loading.value=true
       proxy.$http.sysUserPage(pageInfo).then(value=>{
-        tableEmpty.value='暂无数据'
+        tableEmpty.value=t('common.noData')
         console.log(JSON.stringify(value))
         pageInfo.total=value.data.total
         tableData.length=0
@@ -289,7 +291,7 @@ export default defineComponent({
       proxy.$http.sysUserSaveUpdate(param).then(value=>{
         reloadApi()
         ElMessage({
-          message: '操作成功',
+          message: t('common.operationSuccess'),
           type: 'success',
           plain: true,
         })
@@ -304,11 +306,11 @@ export default defineComponent({
     const queryClick=()=>{
       pageInfo.terms.length=0
       pageInfo.terms.push(...searchParams)
-      console.log('查询')
+      console.log('queryClick')
       pageApi()
     }
     const resetClick=()=>{
-      console.log('重置')
+      console.log('resetClick')
       resetParam()
       pageInfo.terms.length=0
       pageInfo.terms.push(...searchParams)

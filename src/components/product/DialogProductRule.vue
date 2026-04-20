@@ -1,8 +1,8 @@
 <template>
-  <el-dialog v-model="dialogData.status" title="产品规则" width="50%">
+  <el-dialog v-model="dialogData.status" :title="$t('productRule.title')" width="50%">
     <el-form label-position="left" label-width="auto">
 
-      <el-form-item label="触发条件">
+      <el-form-item :label="$t('productRule.triggerCondition')">
         <AlarmItem ref="alarmItems" :deviceData="sourceDevice" v-for="(columns,key) in alarmColumn"
                    @delGroup="delGroup(key)" :key="key" :alarmData="columns"
                    style="width: 100%;height: auto;padding: 0;margin: 5px 0 0 0;overflow: hidden;"></AlarmItem>
@@ -19,6 +19,7 @@
 <script>
 import {defineComponent, toRef, computed} from "vue"
 import AlarmItem from "@/components/device/item/AlarmItem.vue";
+import { useI18n } from 'vue-i18n'
 
 export default defineComponent({
   name: "DialogProductRule",
@@ -32,6 +33,7 @@ export default defineComponent({
     }
   },
   setup(props) {
+    const { t } = useI18n()
     const dialogData = toRef(props, 'data')
 
     const meta = computed(() => {

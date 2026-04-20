@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="sourcestatus"
-    title="编辑"
+    :title="$t('alarmDialog.edit')"
     :show-close="false"
     @close="closeHandler"
     class="gload-dialog"
@@ -12,43 +12,43 @@
       v-model="sourceAlarm"
       label-
     >
-      <el-form-item label="名称">
+      <el-form-item :label="$t('common.name')">
         <el-input v-model="sourceAlarm.rulePo.name"></el-input>
       </el-form-item>
-      <el-form-item label="状态">
+      <el-form-item :label="$t('common.status')">
         <el-radio-group v-model="sourceAlarm.rulePo.state">
-          <el-radio :value="0">关闭</el-radio>
-          <el-radio :value="1">打开</el-radio>
+          <el-radio :value="0">{{ $t('alarmDialog.closeState') }}</el-radio>
+          <el-radio :value="1">{{ $t('alarmDialog.open') }}</el-radio>
         </el-radio-group>
       </el-form-item>
-      <el-form-item label="触发方式">
+      <el-form-item :label="$t('alarmDialog.triggerMethod')">
         <el-radio-group size="small" v-model="sourceAlarm.rulePo.ruleData.type">
           <el-radio-button label="time" value="time" />
           <!-- <el-radio-button label="cron" value="cron" /> -->
         </el-radio-group>
       </el-form-item>
-      <el-form-item label="轮询周期">
+      <el-form-item :label="$t('tabProductRule.pollInterval')">
         <el-select
           v-model="sourceAlarm.rulePo.ruleData.cronNum"
           size="small"
           style="width: 120px"
         >
           <el-option
-            v-for="item in pollIntervalOptions"
+            v-for="item in pollIntervalOptionsI18n"
             :key="item.value"
             :label="item.label"
             :value="item.value"
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="阈值次数">
+      <el-form-item :label="$t('alarmDialog.thresholdCount')">
         <el-input-number
           v-model="sourceAlarm.rulePo.ruleData.count"
           size="small"
           :min="0"
         ></el-input-number>
       </el-form-item>
-      <el-form-item label="触发条件">
+      <el-form-item :label="$t('alarmDialog.triggerCondition')">
         <AlarmItem
           ref="alarmItems"
           :deviceData="sourceDevice"
@@ -75,24 +75,7 @@
           </el-col>
         </el-row>
       </el-form-item>
-      <el-form-item label="处理方式">
-        <!-- <el-select
-          v-model="notifyTemplateUserPo"
-          placeholder="请选择下发用户（通知）"
-          multiple
-        >
-          <el-option
-            v-for="item in notifyTemplateUser"
-            :key="item.templateUserPo.id"
-            :label="item.templateUserPo.name"
-            :value="item.templateUserPo.id"
-          />
-        </el-select> -->
-        <!-- <div class="dispose">
-            <div class="dispose-notify">133</div>
-            <div class="dispose-function">133</div>
-        </div> -->
-        <!--<AlarmHandlerItem ref="alarmNotifys" v-for="(item,index) in ruleNotifyData" :key="index" :notifyPo="item" :deviceData="sourceDevice"></AlarmHandlerItem>-->
+      <el-form-item :label="$t('alarmDialog.handleMethod')">
         <AlarmHandler
           ref="alarmNotifys"
           :rulePo="sourceAlarm.rulePo"
@@ -103,8 +86,8 @@
     </el-form>
     <template #footer>
       <div class="right-flex-contain">
-        <el-button @click="closeHandler">取消</el-button>
-        <el-button type="primary" @click="saveAlarm">保存</el-button>
+        <el-button @click="closeHandler">{{ $t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="saveAlarm">{{ $t('common.save') }}</el-button>
       </div>
     </template>
   </el-dialog>
@@ -132,6 +115,7 @@ import AlarmNotify from "@/components/device/item/AlarmNotify.vue";
 import AlarmHandler from "@/components/device/item/AlarmHandler Copy.vue";
 import { ElMessage } from "element-plus";
 import { pollIntervalOptions, cronToSeconds } from "@/util/common/pollInterval";
+import { useI18n } from "vue-i18n";
 
 export default defineComponent({
   name: "DialogAlarm",
@@ -155,6 +139,7 @@ export default defineComponent({
   },
   emits: ["close", "reload"],
   setup(props, context) {
+    const { t } = useI18n();
     const { proxy } = getCurrentInstance();
     const sourceDevice = toRef(props, "deviceData");
     const sourcestatus = toRef(props, "status");
@@ -163,12 +148,17 @@ export default defineComponent({
     const alarmNotifys = ref(null);
     const notifyTemplateUser = reactive([]);
     const ruleNotifyData = reactive([]);
-    // const notifyTemplateUserPo = reactive([]);
     const alarmColumn = ref([]);
 
+    // 轮询周期选项（i18n 包装）
+    const pollIntervalOptionsI18n = computed(() =>
+      pollIntervalOptions.map(opt => ({
+        ...opt,
+        label: t('alarmDialog.pollIntervalSec', { n: opt.seconds }),
+      }))
+    );
 
-
-    // 创建一个响应式的本地数据副本，而不是直接使用props的引用 cronNum cronJg
+    // 创建一个响应式的本地数据副本，而不是直接使用props的引用
     const sourceAlarm = ref({
       columns: [],
       notifyDtos:[],
@@ -187,7 +177,6 @@ export default defineComponent({
       return cronToSeconds(cronNum);
     });
 
-
     watch(
       () => props.alarmData,
       (value) => {
@@ -204,7 +193,6 @@ export default defineComponent({
           }
 
           sourceAlarm.value = processedData;
-
 
           alarmColumn.value.length = 0;
           alarmColumn.value.push(...processedData.columns);
@@ -239,11 +227,12 @@ export default defineComponent({
       (newVal) => {
         if (newVal != null && newVal !== '') {
           sourceAlarm.value.rulePo.ruleData.cron = newVal;
-          console.log("cronNum 变化，生成 cron:", newVal);
+          console.log("cronNum 变化，同步 cron:", newVal);
         }
       },
       { immediate: true }
     );
+
     const apiNotifyConfig = () => {
       proxy.$http.notifyPage({ size: -1 }).then((value) => {
         notifyConfig.length = 0;
@@ -283,10 +272,7 @@ export default defineComponent({
       const notifyD = toRaw(alarmNotifys.value.notifyD);
       const delMap = toRaw(alarmNotifys.value.delMap);
       for (var item of notifyD) {
-        // 排除不需要的字段（configId是UI用的）
         const { configId, ...rest } = item;
-        
-        // 处理handlerType，确保是字符串
         if (rest.handlerType && typeof rest.handlerType !== 'string') {
           rest.handlerType = rest.handlerType.value || rest.handlerType || 'notify';
         }
@@ -307,7 +293,7 @@ export default defineComponent({
         console.log("保存成功");
         ElMessage({
           showClose: true,
-          message: "修改成功",
+          message: t('common.modifySuccess'),
           type: "success",
         });
         context.emit("reload");
@@ -337,7 +323,7 @@ export default defineComponent({
       closeHandler,
       notifyTemplateUser,
       collectTimeMax,
-      pollIntervalOptions,
+      pollIntervalOptionsI18n,
     };
   },
 });

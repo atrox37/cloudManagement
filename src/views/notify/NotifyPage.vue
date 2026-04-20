@@ -13,7 +13,7 @@
                         check-strictly
                         :render-after-expand="false">
                         <template #empty>
-                            <el-empty description="暂无数据" />
+                            <el-empty :description="$t('common.noData')" />
                         </template>
                         </el-tree-select>
                         <el-select v-if="item.type == 'select'" v-model="item.value" style="width:200px">
@@ -22,8 +22,8 @@
                         </el-select>
                     </el-form-item>
                     <el-form-item>
-                        <el-button type="primary" @click="queryClick">查询</el-button>
-                        <el-button type="info" @click="resetClick">重置</el-button>
+                        <el-button type="primary" @click="queryClick">{{ $t('common.search') }}</el-button>
+                        <el-button type="info" @click="resetClick">{{ $t('common.reset') }}</el-button>
                     </el-form-item>
                 </el-form>
             </div>
@@ -31,16 +31,16 @@
         </el-header>
         <el-main>
             <el-table height="100%" :data="tableData" v-loading="loading" border stripe @selection-change="handleSelectionChange" @row-click="editClick">
-                <el-table-column prop="configPo.name" label="名称" header-align="center" align="center"/>
-                <el-table-column label="类型" width="100"  header-align="center" align="center">
+                <el-table-column prop="configPo.name" :label="$t('notify.name')" header-align="center" align="center"/>
+                <el-table-column :label="$t('notify.type')" width="100"  header-align="center" align="center">
                     <template #default="scope">
                         <el-text>{{notifyEnum(scope.row)}}</el-text>
                     </template>
                 </el-table-column>
-                <el-table-column prop="userPo.username" label="创建人" width="200"  header-align="center" align="center"/>
-                <el-table-column prop="dimensionPo.name" label="所属机构" width="250"  header-align="center" align="center"/>
-                <el-table-column prop="configPo.createTime" label="创建时间" width="200"  header-align="center" align="center"/>
-                <el-table-column prop="configPo.updateTime" label="更新时间" width="200"  header-align="center" align="center"/>
+                <el-table-column prop="userPo.username" :label="$t('notify.creator')" width="200"  header-align="center" align="center"/>
+                <el-table-column prop="dimensionPo.name" :label="$t('notify.org')" width="250"  header-align="center" align="center"/>
+                <el-table-column prop="configPo.createTime" :label="$t('notify.createTime')" width="200"  header-align="center" align="center"/>
+                <el-table-column prop="configPo.updateTime" :label="$t('notify.updateTime')" width="200"  header-align="center" align="center"/>
                 <el-table-column>
                     <template #header>
                         <div class="center-flex-contain">
@@ -50,7 +50,7 @@
                                 </el-button>
                                 <template #dropdown>
                                     <el-dropdown-menu>
-                                        <el-dropdown-item command="email">邮箱</el-dropdown-item>
+                                        <el-dropdown-item command="email">{{ $t('notify.emailType') }}</el-dropdown-item>
                                     </el-dropdown-menu>
                                 </template>
                             </el-dropdown>
@@ -91,12 +91,14 @@
     import {notifyType} from '@/model/notify/NotifyType'
     import {useRouter} from "vue-router";
     import { ElMessage, ElMessageBox } from "element-plus";
+    import { useI18n } from 'vue-i18n'
     export default defineComponent({
         name: "NotifyPage",
         components:{NotifyEmailConfig,NotifyAwsEmailConfig},
         setup(context){
             const {proxy} = getCurrentInstance()
             const router = useRouter()
+            const { t } = useI18n()
             const searchParams = reactive([]);
             const tableData = reactive([])
             const loading = ref(true)
@@ -120,7 +122,7 @@
 
             const resetParam = () => {
                 searchParams.length = 0;
-                searchParams.push({ column: "t.name", value: "", termType: "like", label: "名称", type: "input" });
+                searchParams.push({ column: "t.name", value: "", termType: "like", label: t('notify.nameLabel'), type: "input" });
                 console.log("resetParam");
             };
 
@@ -147,7 +149,7 @@
                 proxy.$http.notifyConfigSaveUpdate(configData.data).then(value => {
                   ElMessage({
                     showClose: true,
-                    message: "操作成功",
+                    message: t('common.operationSuccess'),
                     type: "success",
                   });
                   reload()
@@ -164,32 +166,24 @@
                     configData.data={name:'',code:'aws-email',config:{type:'type',from:'',host:'',smtpUsername:0,smtpPassword:''}}
                 }
                 configData.state=true
-                /*configData.data=row.configPo
-                configData.state=true*/
             }
             const editClick=(row)=>{
                 console.log('rowclick-->'+JSON.stringify(row))
                 configData.data=row.configPo
                 configData.state=true
-                /*router.push({
-                    path: '/notifyAdd',
-                    query: {
-                        id: row.configPo.id
-                    }
-                })*/
             }
             const deleteClick=(row,index)=>{
                 ElMessageBox.confirm(
-                    `确认删除通知配置「${row.configPo.name}」吗？`,
-                    '删除确认',
+                    t('notify.confirmDeleteMsg', { name: row.configPo.name }),
+                    t('notify.confirmDeleteTitle'),
                     {
-                        confirmButtonText: '确认',
-                        cancelButtonText: '取消',
+                        confirmButtonText: t('common.confirm'),
+                        cancelButtonText: t('common.cancel'),
                         type: 'warning',
                     }
                 ).then(() => {
                     proxy.$http.notifyConfigDelete({ id: row.configPo.id }).then(() => {
-                        ElMessage({ showClose: true, message: '删除成功', type: 'success' })
+                        ElMessage({ showClose: true, message: t('common.deleteSuccess'), type: 'success' })
                         reload()
                     })
                 }).catch(() => {})

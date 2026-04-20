@@ -1,24 +1,24 @@
 <template>
-    <el-dialog ref="selfDialog" v-model="drawerStatus" title="角色" @close="closeClick" width="30%">
+    <el-dialog ref="selfDialog" v-model="drawerStatus" :title="$t('role.dialogTitle')" @close="closeClick" width="30%">
         <el-form ref="formRole" :model="modeData" :rules="rules">
-            <el-form-item label="名称" prop="name">
-                <el-input v-model="modeData.name" placeholder="名称" clearable />
+            <el-form-item :label="$t('role.name')" prop="name">
+                <el-input v-model="modeData.name" :placeholder="$t('role.name')" clearable />
             </el-form-item>
-            <el-form-item label="机构" prop="orgId">
+            <el-form-item :label="$t('role.org')" prop="orgId">
                 <el-tree-select
                         v-model="modeData.select"
                         :data="modeData.data"
                         check-strictly
                         :render-after-expand="false">
                     <template #empty>
-                        <el-empty description="暂无数据" />
+                        <el-empty :description="$t('common.noData')" />
                     </template>
                 </el-tree-select>
             </el-form-item>
         </el-form>
         <template #footer>
-            <el-button @click="closeClick">关闭</el-button>
-            <el-button type="primary" @click="submitClick" loading-icon="Eleme" :loading="saveLoading">保存</el-button>
+            <el-button @click="closeClick">{{ $t('common.close') }}</el-button>
+            <el-button type="primary" @click="submitClick" loading-icon="Eleme" :loading="saveLoading">{{ $t('common.save') }}</el-button>
         </template>
     </el-dialog>
 </template>
@@ -27,6 +27,7 @@
     import {defineComponent, toRef, ref, toRefs, watch, getCurrentInstance} from "vue";
     import { Eleme } from '@element-plus/icons-vue'
     import { ElLoading } from 'element-plus'
+    import { useI18n } from 'vue-i18n'
     export default defineComponent({
         name: "RoleDialog",
         props:{
@@ -39,6 +40,7 @@
         emits:['closeListener','closeRefreshListener'],
         setup(props,context){
             const {proxy} = getCurrentInstance()
+            const { t } = useI18n()
             const saveLoading=ref(false)
             const drawerStatus=toRef(props,'status')
             const selfDialog=ref(null)
@@ -48,13 +50,13 @@
             const validateSelect=(rule, value, callback)=>{
                 if(rule.field == 'name'){
                     if(modeData.value.name == undefined || modeData.value.name == ''){
-                        callback(('名称不能为空'))
+                        callback((t('role.nameRequired')))
                     }else{
                         callback()
                     }
                 }else if(rule.field == 'orgId'){
                     if(modeData.value.select == undefined || modeData.value.select==''){
-                        callback(('机构不能为空'))
+                        callback((t('role.orgRequired')))
                     }else{
                         callback()
                     }
@@ -68,7 +70,6 @@
 
             const dimensionApi=()=>{
                 proxy.$http.dimensionTree().then(value => {
-                    //modeData.value.data=value.data
                     modeData.value.data.length=0
                     const dimenTree={}
                     handlerDimensionTree(value.data,dimenTree)
@@ -93,7 +94,7 @@
                 console.log('--->'+value)
                 if(value){
                     setTimeout(()=>{
-                        loading.value=ElLoading.service({ target: '.el-dialog', text: '加载中...',fullscreen: false})
+                        loading.value=ElLoading.service({ target: '.el-dialog', text: t('common.loading'),fullscreen: false})
                         dimensionApi()
                     },20)
                 }

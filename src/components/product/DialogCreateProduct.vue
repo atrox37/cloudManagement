@@ -1,16 +1,16 @@
 <template>
-  <el-dialog v-model="productDialog.status" title="创建产品" width="30%">
+  <el-dialog v-model="productDialog.status" :title="$t('productDialog.createTitle')" width="30%">
     <el-form ref="createForm" :rules="rules" :model="productDialog.product">
-      <el-form-item label="产品名称" prop="productName">
+      <el-form-item :label="$t('productDialog.productName')" prop="productName">
         <el-input v-model="productDialog.product.name"></el-input>
       </el-form-item>
-      <el-form-item label="产品型号" prop="productSn">
+      <el-form-item :label="$t('productDialog.productSn')" prop="productSn">
         <el-input v-model="productDialog.product.sn"></el-input>
       </el-form-item>
-      <el-form-item label="产品类型">
+      <el-form-item :label="$t('productDialog.productType')">
         <el-select v-model="productDialog.product.type">
           <el-option
-            v-for="(item, index) in productType"
+            v-for="(item, index) in productTypeList"
             :key="index"
             :label="item.name"
             :value="item.type"
@@ -25,8 +25,7 @@
           type="primary"
           @click="submitClick"
           :loading="productDialog.loading"
-          >保存提交</el-button
-        >
+          >{{ $t('common.submit') }}</el-button>
       </div>
     </template>
   </el-dialog>
@@ -36,12 +35,12 @@ import {
   defineComponent,
   reactive,
   ref,
+  computed,
   getCurrentInstance,
   onMounted,
   toRef,
 } from "vue";
-import { useRouter } from "vue-router";
-import { productType } from "@/model/product/ProductType";
+import { useI18n } from 'vue-i18n'
 
 export default defineComponent({
   name: "DialogCreateProduct",
@@ -54,20 +53,23 @@ export default defineComponent({
   },
   emits: ["createClick"],
   setup(props, context) {
+    const { t } = useI18n()
     const createForm = ref(null);
-    const productType = reactive([
-      { type: "device", name: "直连设备" },
-      { type: "gateway", name: "网关设备" },
-      { type: "children", name: "子设备" },
-    ]);
     const productDialog = toRef(props, "data");
+
+    const productTypeList = computed(() => [
+      { type: "device", name: t('productDialog.directDevice') },
+      { type: "gateway", name: t('productDialog.gatewayDevice') },
+      { type: "children", name: t('productDialog.childDevice') },
+    ])
+
     const validateSelect = (rule, value, callback) => {
       if (rule.field == "productName") {
         if (
           productDialog.value.product.name == undefined ||
           productDialog.value.product.name == ""
         ) {
-          callback("产品名称不能为空");
+          callback(t('productDialog.productNameRequired'));
         } else {
           callback();
         }
@@ -76,7 +78,7 @@ export default defineComponent({
           productDialog.value.product.sn == undefined ||
           productDialog.value.product.sn == ""
         ) {
-          callback("产品型号不能为空");
+          callback(t('productDialog.productSnRequired'));
         } else {
           callback();
         }
@@ -96,7 +98,7 @@ export default defineComponent({
         }
       });
     };
-    return { rules, createForm, productType, productDialog, submitClick };
+    return { rules, createForm, productTypeList, productDialog, submitClick };
   },
 });
 </script>

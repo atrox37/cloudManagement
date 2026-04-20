@@ -1,7 +1,7 @@
 <template>
     <!-- {{ dataCondition }} -->
     <el-table :data="dataCondition" class="border-dash-table" border>
-        <el-table-column label="属性" >
+        <el-table-column :label="$t('alarmItem.property')" >
             <template #default="scope">
                 <el-select v-model="scope.row.column" placeholder="Select" style="margin: 0;width: calc(80% - 5px)" @change="(value)=>{handlerOperation(value,scope.$index);}">
                     <el-option
@@ -13,7 +13,7 @@
             </template>
 
         </el-table-column>
-        <el-table-column label="比较" >
+        <el-table-column :label="$t('alarmItem.comparison')" >
             <template #default="scope">
                 <el-select v-model="scope.row.operation" placeholder="">
                     <el-option
@@ -24,7 +24,7 @@
                 </el-select>
             </template>
         </el-table-column>
-        <el-table-column label="值" >
+        <el-table-column :label="$t('alarmItem.value')" >
             <template #default="scope">
                 <el-input-number v-if="scope.row.valueType=='number'" v-model="scope.row.value" ></el-input-number>
                 <el-select v-if="scope.row.valueType=='enum'" v-model="scope.row.value">
@@ -37,7 +37,7 @@
                 <el-input v-if="scope.row.valueType=='string' && scope.row.operation!='IS NOT NULL'" style="margin: 0;width: calc(80% - 5px)" v-model="scope.row.value" ></el-input>
             </template>
         </el-table-column>
-        <el-table-column label="操作">
+        <el-table-column :label="$t('alarmItem.operation')">
             <template #header>
                 <el-button type="primary" icon="Plus" size="small" @click="addFunc"/>
                 <el-button type="primary" class="custom-class" icon="Delete" size="small" @click="delGroup()"/>
@@ -50,7 +50,8 @@
 </template>
 
 <script>
-    import {ref, reactive, defineComponent, watch, onMounted, toRef} from "vue";
+    import {ref, reactive, computed, defineComponent, watch, onMounted, toRef} from "vue";
+    import { useI18n } from 'vue-i18n';
     export default defineComponent({
         name: "AlarmItem",
         props:{
@@ -67,12 +68,20 @@
         },
         emits:['delGroup'],
         setup(props,context){
+            const { t } = useI18n()
             const sourceDevice=toRef(props,'deviceData')
             const sourceAlarmData=toRef(props,'alarmData')
             const property=ref([])
             const dataCondition=reactive([])
-            const compareNum = [{value: '>',label: '大于'},{value: '<',label: '小于'},{value: '=',label: '等于'}]
-            const compareStr = [{value: '=',label: '等于'},{value: 'IS NOT NULL',label: '非空'}]
+            const compareNum = computed(() => [
+                {value: '>',label: t('alarmItem.greaterThan')},
+                {value: '<',label: t('alarmItem.lessThan')},
+                {value: '=',label: t('alarmItem.equalTo')}
+            ])
+            const compareStr = computed(() => [
+                {value: '=',label: t('alarmItem.equalTo')},
+                {value: 'IS NOT NULL',label: t('alarmItem.notNull')}
+            ])
 
             const addFunc=()=>{
                 if(property.value.length === 0) return;
@@ -113,9 +122,9 @@
                 
                 // 根据属性类型设置条件选项
                 if(selectedProperty.valueType.type=='number'){
-                    selectedProperty.condition = compareNum;
+                    selectedProperty.condition = compareNum.value;
                 }else{
-                    selectedProperty.condition = compareStr;
+                    selectedProperty.condition = compareStr.value;
                 }
 
                 // 直接更新当前行的数据

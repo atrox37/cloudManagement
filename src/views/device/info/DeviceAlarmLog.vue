@@ -4,7 +4,6 @@
       <el-main>
         <el-table :data="query.records" :loading="query.loading" stripe border>
           <el-table-column prop="ts"
-                           label="时间"
                            header-align="center"
                            align="center"
                            width="320">
@@ -13,35 +12,33 @@
                 <el-date-picker
                   v-model="pickTime"
                   type="daterange"
-                  range-separator="至"
-                  start-placeholder="开始"
-                  end-placeholder="结束"
+                  :range-separator="$t('common.to')"
+                  :start-placeholder="$t('common.start')"
+                  :end-placeholder="$t('common.end')"
                   size="small" />
               </div>
             </template>
           </el-table-column>
 
           <el-table-column
-                           label="告警名称"
+                           :label="$t('deviceAlarmLog.alarmName')"
                            width="200"
                            align="center"
                            header-align="center" >
             <template #default="scope">
               <el-text>{{ruleName(scope.row)}}</el-text>
             </template>
-
-
           </el-table-column>
           <el-table-column
-            label="触发次数"
+            :label="$t('deviceAlarmLog.triggerCount')"
             align="center"
             header-align="center">
             <template #default="scope">
-              {{ scope.row.ruleData.length }}次
+              {{ $t('deviceAlarmLog.triggerCountUnit', { count: scope.row.ruleData.length }) }}
             </template>
           </el-table-column>
           <el-table-column
-            label="数据"
+            :label="$t('deviceAlarmLog.data')"
             align="center"
             header-align="center">
             <template #default="scope">
@@ -49,7 +46,7 @@
             </template>
           </el-table-column>
           <el-table-column
-            label="通知"
+            :label="$t('deviceAlarmLog.notification')"
             align="center"
             header-align="center">
             <template #default="scope">
@@ -59,25 +56,25 @@
                   :key="`success-${item.username}`"
                   type="success"
                 >
-                  发送{{ item.username }}-{{ item.count }}次
+                  {{ $t('deviceAlarmLog.sentSuccess', { user: item.username, count: item.count }) }}
                 </el-tag>
                 <el-tag
                   v-for="item in replyView(scope.row, 'FAIL')"
                   :key="`fail-${item.username}`"
                   type="danger"
                 >
-                  发送{{ item.username }}-{{ item.count }}次
+                  {{ $t('deviceAlarmLog.sentSuccess', { user: item.username, count: item.count }) }}
                 </el-tag>
               </el-space>
             </template>
           </el-table-column>
 
           <el-table-column
-            label="详情"
+            :label="$t('deviceAlarmLog.details')"
             align="center"
             header-align="center">
             <template #default="scope">
-              <el-button @click="infoClick(scope.row)">详情</el-button>
+              <el-button @click="infoClick(scope.row)">{{ $t('deviceAlarmLog.details') }}</el-button>
             </template>
           </el-table-column>
           <template #empty>
@@ -103,34 +100,31 @@
     </el-container>
   </div>
 
-  <el-dialog v-model="infoList.state" title="查看" :show-close="false" width="30%">
+  <el-dialog v-model="infoList.state" :title="$t('deviceAlarmLog.viewTitle')" :show-close="false" width="30%">
     <template #default>
       <el-table :data="infoList.data" stripe border>
         <el-table-column
-          label="记录序号"
+          :label="$t('deviceAlarmLog.recordNo')"
           align="center"
           header-align="center">
           <template #default="scope">
-            <el-text>第{{scope.$index+1}}条数据</el-text>
+            <el-text>{{ $t('deviceAlarmLog.recordData', { index: scope.$index + 1 }) }}</el-text>
           </template>
         </el-table-column>
         <el-table-column
-          label="数据"
+          :label="$t('deviceAlarmLog.data')"
           align="center"
           header-align="center">
           <template #default="scope">
             <el-space wrap>
               <el-tag v-for="(item,index) in scope.row" :key="index">{{item.property}}:{{item.value}}</el-tag>
             </el-space>
-
           </template>
         </el-table-column>
       </el-table>
     </template>
     <template #footer>
-
     </template>
-
   </el-dialog>
 
 
@@ -139,6 +133,7 @@
 import { onMounted, defineComponent, getCurrentInstance, reactive, ref, watch, toRef, computed } from "vue";
 import { initPickTime, formatTs } from "@/util/common/pickTime";
 import { deviceAlarmLog } from "@/util/request";
+import { useI18n } from 'vue-i18n';
 
 export default defineComponent({
   name: "DeviceAlarmLog",
@@ -149,6 +144,7 @@ export default defineComponent({
     }
   },
   setup(props, context) {
+    const { t } = useI18n()
     const { proxy } = getCurrentInstance();
     const pickTime = ref([]);
     const query = reactive({

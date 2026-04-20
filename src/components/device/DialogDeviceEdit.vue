@@ -1,10 +1,10 @@
 <template>
-    <el-dialog v-model="dialogStatus" title="编辑" :show-close="false" @close="closeHandler">
+    <el-dialog v-model="dialogStatus" :title="$t('deviceDialog.edit')" :show-close="false" @close="closeHandler">
         <el-form :model="copyData">
-            <el-form-item label="设备名称">
+            <el-form-item :label="$t('deviceDialog.deviceName')">
                 <el-input v-model="copyData.deviceInstancePo.name"></el-input>
             </el-form-item>
-            <el-form-item label="设备网关">
+            <el-form-item :label="$t('deviceDialog.deviceGateway')">
                 <el-select v-model="copyData.networkConfigPo.id" @change="selectChange">
                     <el-option v-for="item in gatewayData" :key="item.gatewayPo.id" :label="item.gatewayPo.name" :value="item.gatewayPo.id">
                     </el-option>

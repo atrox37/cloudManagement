@@ -8,13 +8,10 @@
       class="tab-container"
       @tab-click="handleClick"
     >
-      <el-tab-pane label="信息" name="first">
+      <el-tab-pane :label="$t('productInstance.tabInfo')" name="first">
         <TabProductDetail :productData="productData" :btnload="detailData" @submit="updateCopyApi" @edgeAsyn="edgeAsynApi"></TabProductDetail>
       </el-tab-pane>
-      <!--<el-tab-pane label="属性" name="second">
-          <TabProductMeta :productData="productData"></TabProductMeta>
-      </el-tab-pane>-->
-      <el-tab-pane label="模型属性" name="second">
+      <el-tab-pane :label="$t('productInstance.tabModelProps')" name="second">
         <DeviceMeta
           ref="deviceMetaRef"
           :deviceUnit="deviceUnit"
@@ -23,7 +20,7 @@
         ></DeviceMeta>
       </el-tab-pane>
       <el-tab-pane
-        label="网关分路"
+        :label="$t('productInstance.tabGatewayRoute')"
         v-if="productData.productPo.type == 'gateway'"
       >
         <TabProductTree
@@ -32,7 +29,7 @@
           @submit="submitTree"
         ></TabProductTree>
       </el-tab-pane>
-      <el-tab-pane label="告警规则">
+      <el-tab-pane :label="$t('productInstance.tabAlarmRules')">
         <TabProductRule
           :productData="productData.productPo"
           @open="productRuleOpen"
@@ -76,6 +73,7 @@ import {
 } from "vue";
 import { ElMessage } from "element-plus";
 import { edgeProductSync, productSerialize } from "@/util/request";
+import { useI18n } from "vue-i18n";
 
 export default defineComponent({
   name: "ProductInstance",
@@ -91,11 +89,12 @@ export default defineComponent({
     DialogAlarmRule,
   },
   setup() {
+    const { t } = useI18n();
     let productId = null;
     const router = useRouter();
     const route = useRoute();
     const { proxy } = getCurrentInstance();
-    const titleLabel = ref("产品详情");
+    const titleLabel = ref("");
     const activeName = ref("first");
     const productData = ref({});
     const loading = ref(true);
@@ -164,14 +163,14 @@ export default defineComponent({
         () => {
           console.log("updateMetaApi");
           ElMessage({
-            message: "操作成功",
+            message: t('common.operationSuccess'),
             type: "success",
           });
           requestApi();
         },
         () => {
           ElMessage({
-            message: "操作失败",
+            message: t('common.operationFail'),
             type: "fail",
           });
           requestApi();
@@ -194,7 +193,7 @@ export default defineComponent({
       proxy.$http.edgeProductSync({id:productData.value.productPo.id}).then(v=>{
         detailData.load_asyn=false
         ElMessage({
-          message: v.data.change==0?"操作成功,暂无更新内容":"操作成功，模型已更新",
+          message: v.data.change == 0 ? t('productInstance.syncNoUpdate') : t('productInstance.syncUpdated'),
           type: "success",
         });
       },e=>{

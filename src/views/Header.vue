@@ -16,6 +16,7 @@
         </div>
         <div class="account_container">
           <el-space wrap>
+            <LangSwitch />
             <el-text type="info"tag="b">tiny01</el-text>
             <el-icon size="20"><Baseball /></el-icon>
           </el-space>
@@ -27,9 +28,10 @@
 <script>
 import { defineComponent,toRef,onMounted } from 'vue'
 import CenterContain from '@/components/CenterContain.vue'
+import LangSwitch from '@/components/menuContain/LangSwitch.vue'
 export default defineComponent({
   name: "Header",
-  components: {CenterContain},
+  components: {CenterContain, LangSwitch},
   props:{
     routerData:{
       type: Array,

@@ -4,24 +4,24 @@
             <h4>{{title}}</h4>
         </template>
         <template #default>
-            <el-form :inline="false" :model="selectData" :rules="rules" ref="formRef" :label-position="right" label-width="80px">
-                <el-form-item label="名称" prop="name">
-                    <el-input v-model="selectData.name" placeholder="请输入名称" clearable />
+            <el-form :inline="false" :model="selectData" :rules="rules" ref="formRef" :label-position="right" label-width="100px">
+                <el-form-item :label="$t('common.name')" prop="name">
+                    <el-input v-model="selectData.name" :placeholder="$t('protocolAdd.namePlaceholder')" clearable />
                 </el-form-item>
-                <el-form-item label="支持协议" v-if="supports.length>0">
+                <el-form-item :label="$t('protocolAdd.supportProtocol')" v-if="supports.length>0">
                     <el-tag type="success" v-for="(item,index) in supports" :key="index">{{item.name}}</el-tag>
                 </el-form-item>
-                <el-form-item label="存储目标" prop="configuration.type">
+                <el-form-item :label="$t('protocolAdd.storageTarget')" prop="configuration.type">
                   <el-radio-group :disabled="disbale" v-model="selectData.configuration.type">
                     <el-radio-button label="S3" value="s3" />
                     <el-radio-button label="Minio" value="minio" />
                   </el-radio-group>
                 </el-form-item>
-                <el-form-item label="包名" prop="configuration.provider">
+                <el-form-item :label="$t('protocolAdd.packageName')" prop="configuration.provider">
                     <input type="file" id="fileId" ref="fileInput" accept=".jar" style="display: none;"/>
-                    <el-input v-model="selectData.configuration.provider" placeholder="请输入包名" clearable />
+                    <el-input v-model="selectData.configuration.provider" :placeholder="$t('protocolAdd.packagePlaceholder')" clearable />
                 </el-form-item>
-                <el-form-item label="上传" prop="configuration.location">
+                <el-form-item :label="$t('protocolAdd.upload')" prop="configuration.location">
                     <el-input v-model="selectData.configuration.location" disabled>
                         <template #append>
                             <el-button :icon="btnStatus.icon" :loading="btnStatus.loading" @click="uploadClick">
@@ -29,16 +29,16 @@
                         </template>
                     </el-input>
                 </el-form-item>
-                <el-form-item label="描述">
-                    <el-input v-model="selectData.description" placeholder="请输入描述消息" clearable />
+                <el-form-item :label="$t('protocolAdd.description')">
+                    <el-input v-model="selectData.description" :placeholder="$t('protocolAdd.descriptionPlaceholder')" clearable />
                 </el-form-item>
             </el-form>
         </template>
         <template #footer>
             <el-divider/>
             <div style="flex: auto;margin-top: 10px">
-                <el-button @click="closeClick">取消</el-button>
-                <el-button type="primary" @click="submitClick">保存</el-button>
+                <el-button @click="closeClick">{{ $t('common.cancel') }}</el-button>
+                <el-button type="primary" @click="submitClick">{{ $t('common.save') }}</el-button>
             </div>
         </template>
     </el-drawer>
@@ -47,8 +47,9 @@
 <script>
     import {defineComponent,computed,ref,reactive,toRef,getCurrentInstance,onMounted,watch} from "vue"
     import {protocolType} from "@/model/protocol/ProtocolType";
-
     import {useRouter} from "vue-router";
+    import { useI18n } from 'vue-i18n';
+
     export default defineComponent({
         name: "ProtocolAdd",
         props:{
@@ -68,20 +69,21 @@
         },
         emits:['save','upload','close'],
         setup(props,context){
-            const rules = reactive({
+            const { t } = useI18n()
+            const rules = computed(() => ({
                 name: [
-                    { required: true, message: '协议名称不能为空', trigger: 'blur' }
+                    { required: true, message: t('protocolAdd.nameRequired'), trigger: 'blur' }
                 ],
                 'configuration.provider':[
-                    { required: true, message: '包名不能为空', trigger: 'blur' }
+                    { required: true, message: t('protocolAdd.packageRequired'), trigger: 'blur' }
                 ],
                 'configuration.location':[
-                    { required: true, message: '协议包必须上传', trigger: 'blur' }
+                    { required: true, message: t('protocolAdd.locationRequired'), trigger: 'blur' }
                 ],
                 'configuration.type':[
-                  { required: true, message: '存储目标必须选择', trigger: 'blur' }
+                  { required: true, message: t('protocolAdd.storageTarget'), trigger: 'blur' }
                 ]
-            })
+            }))
             const type=ref(protocolType)
             const formRef=ref(null)
             const fileInput=ref(null)
@@ -90,9 +92,9 @@
             const selectData=toRef(props,'data')
             const title=computed(()=>{
                 if(selectData.value.id==null){
-                    return "新增"
+                    return t('common.add')
                 }else{
-                    return "编辑"
+                    return t('common.edit')
                 }
             })
           const disbale=computed(()=>{

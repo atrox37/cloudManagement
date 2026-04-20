@@ -1,17 +1,17 @@
 <template>
   <el-dialog v-model="testData.state" :title="titleP" width="30%">
-    <el-divider content-position="left">基本信息</el-divider>
+    <el-divider content-position="left">{{ $t('testEmail.basicInfo') }}</el-divider>
     <el-form ref="formRef" :rules="rules" :model="testData" label-position="right">
-      <el-form-item label="名称" label-width="80px" prop="name">
+      <el-form-item :label="$t('testEmail.name')" label-width="80px" prop="name">
         <el-input v-model="testData.name" />
       </el-form-item>
-      <el-form-item label="收件人" label-width="80px" prop="to">
+      <el-form-item :label="$t('testEmail.recipient')" label-width="80px" prop="to">
         <el-select v-model="testData.userId" placeholder="Select">
           <el-option v-for="(item,index) in account" :key="index" :label="item.sysUserPo.username" :value="item.sysUserPo.id"></el-option>
         </el-select>
       </el-form-item>
     </el-form>
-    <el-divider content-position="left">模板信息</el-divider>
+    <el-divider content-position="left">{{ $t('testEmail.templateInfo') }}</el-divider>
     <el-form :model="testData" label-position="right">
       <el-form-item v-for="(item,index) in testData.sendData" :key="index" :label="item.name" label-width="80px">
         <el-input v-model="item.value" />
@@ -27,6 +27,7 @@
 
 <script>
 import { defineComponent, watch, ref, getCurrentInstance, onMounted, toRef, computed } from "vue";
+import { useI18n } from "vue-i18n";
 
 export default defineComponent({
   name: "TestEmail",
@@ -60,6 +61,7 @@ export default defineComponent({
   },
   emits: ["click"],
   setup(props, context) {
+    const { t } = useI18n();
     const titleP = toRef(props, "title");
     const submitStr = toRef(props, "submitLabel");
     const testData = toRef(props, "data");
@@ -69,13 +71,13 @@ export default defineComponent({
       console.log("validateSelect");
       if (rule.field == "to") {
         if (testData.value.userId == undefined || testData.value.userId == "") {
-          callback(("用户不能为空"));
+          callback(t('testEmail.userRequired'));
         } else {
           callback();
         }
       } else if (rule.field == "name") {
         if (testData.value.name == undefined || testData.value.name == "") {
-          callback(("名称不能为空"));
+          callback(t('testEmail.nameRequired'));
         } else {
           callback();
         }

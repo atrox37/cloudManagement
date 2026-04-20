@@ -13,7 +13,7 @@
               check-strictly
               :render-after-expand="false">
               <template #empty>
-                <el-empty description="暂无数据" />
+                <el-empty :description="$t('common.noData')" />
               </template>
             </el-tree-select>
             <el-select v-if="item.type == 'select'" v-model="item.value" style="width:200px">
@@ -22,17 +22,17 @@
             </el-select>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="queryClick">查询</el-button>
-            <el-button type="info" @click="resetClick">重置</el-button>
+            <el-button type="primary" @click="queryClick">{{ $t('common.search') }}</el-button>
+            <el-button type="info" @click="resetClick">{{ $t('common.reset') }}</el-button>
           </el-form-item>
         </el-form>
       </div>
 
     </el-header>
     <el-main>
-      <el-table height="100%" :data="tableData" v-loading="loading" stripe border @row-click="editClick">
-        <el-table-column prop="gatewayPo.name" label="名称" header-align="center" align="center" />
-        <el-table-column label="网络组件（类型）" header-align="center" align="center">
+      <el-table height="100%" :data="tableData" v-loading="loading" stripe border @row-click="editClick" :row-key="row => row.gatewayPo.id">
+        <el-table-column prop="gatewayPo.name" :label="$t('gateway.name')" header-align="center" align="center" />
+        <el-table-column :label="$t('gateway.networkComponent')" header-align="center" align="center">
           <template #default="scope">
             <el-space wrap>
               <el-text>{{ scope.row.networkConfigPo.name }}</el-text>
@@ -40,17 +40,17 @@
             </el-space>
           </template>
         </el-table-column>
-        <el-table-column prop="protocolPo.name" label="协议库" header-align="center" align="center" />
-        <el-table-column prop="sysDimensionPo.name" label="机构" header-align="center" align="center" />
-        <el-table-column label="状态" header-align="center" align="center">
+        <el-table-column prop="protocolPo.name" :label="$t('gateway.protocol')" header-align="center" align="center" />
+        <el-table-column prop="sysDimensionPo.name" :label="$t('gateway.org')" header-align="center" align="center" />
+        <el-table-column :label="$t('gateway.status')" header-align="center" align="center">
           <template #default="scope">
             <el-space wrap>
-              <el-tag v-if="scope.row.gatewayPo.formatState" type="success">是</el-tag>
-              <el-tag v-else type="warning">否</el-tag>
+              <el-tag v-if="scope.row.gatewayPo.formatState" type="success" :key="`state-${scope.row.gatewayPo.id}`">{{ $t('gateway.yes') }}</el-tag>
+              <el-tag v-else type="warning" :key="`state-${scope.row.gatewayPo.id}`">{{ $t('gateway.no') }}</el-tag>
             </el-space>
           </template>
         </el-table-column>
-        <el-table-column prop="gatewayPo.updateTime" label="更新日期" header-align="center" align="center"
+        <el-table-column prop="gatewayPo.updateTime" :label="$t('gateway.updateTime')" header-align="center" align="center"
                          width="200" />
         <el-table-column width="200">
           <template #header>
@@ -68,9 +68,6 @@
                 <el-button @click.native.stop="deleteClick(scope.row,scope.$index)">
                   <font-awesome-icon :icon="['fasr', 'trash']" />
                 </el-button>
-                <!--                                <el-button @click.native.stop="shareClick(scope.row,scope.$index)">
-                                                    <font-awesome-icon :icon="['fas', 'share-nodes']"/>
-                                                </el-button>-->
                 <el-button @click.native.stop="boardClick(scope.row,scope.$index)">
                   <font-awesome-icon :icon="['fa-solid', 'fa-tower-broadcast']" />
                 </el-button>
@@ -109,6 +106,7 @@ import GatewayAdd from "@/views/gateway/components/GatewayAdd.vue";
 import DialogShare from "@/components/gateway/DialogShare.vue";
 import DialogPushBoard from "@/views/gateway/components/DialogPushBoard.vue";
 import { ElMessage, ElMessageBox } from "element-plus";
+import { useI18n } from 'vue-i18n'
 
 export default defineComponent({
   name: "GatewayPage",
@@ -116,6 +114,7 @@ export default defineComponent({
   setup() {
     const router = useRouter();
     const { proxy } = getCurrentInstance();
+    const { t } = useI18n()
     const loading = ref(true);
     const searchParams = reactive([]);
     const page = reactive({ current: 0, size: 10, terms: [], sorts: [{ column: "t.update_time", order: "desc" }] });
@@ -124,11 +123,11 @@ export default defineComponent({
     const boardParam=reactive({current:1,size:10,terms:[],sorts:[{column: "ts",order: "desc"}]})
 
     const gatewaySelectRef = ref(null);
-    const gatewaySelect = reactive({ title: "编辑", status: false, loading: false, data: {} });
+    const gatewaySelect = reactive({ title: t('gateway.edit'), status: false, loading: false, data: {} });
     const boardSelect = reactive({ status: false, loading: false, data: {} });
     const dimensionTree = ref([]);
     const dimensionAllTree = computed(() => {
-      const rootTree = { value: -1, label: "全部", children: [] };
+      const rootTree = { value: -1, label: t('common.all'), children: [] };
       rootTree.children.push(...dimensionTree.value);
       return [rootTree];
     });
@@ -142,13 +141,13 @@ export default defineComponent({
     const resetParam = () => {
       const p = toRef(protocolType);
       searchParams.length = 0;
-      searchParams.push({ column: "t.name", value: "", termType: "like", label: "名称", type: "input" });
-      searchParams.push({ column: "t.org_id", value: -1, termType: "eq", label: "机构", type: "tree" });
+      searchParams.push({ column: "t.name", value: "", termType: "like", label: t('gateway.nameLabel'), type: "input" });
+      searchParams.push({ column: "t.org_id", value: -1, termType: "eq", label: t('gateway.orgLabel'), type: "tree" });
       searchParams.push({
         column: "t1.type",
         value: "",
         termType: "eq",
-        label: "网络组件类型",
+        label: t('gateway.networkTypeLabel'),
         type: "select",
         select: p.value
       });
@@ -210,25 +209,25 @@ export default defineComponent({
     const addClick = function() {
       console.log("addclick");
       gatewaySelect.status = true;
-      gatewaySelect.title = "添加";
+      gatewaySelect.title = t('gateway.add');
       gatewaySelect.data = { gatewayPo: { state: 0 } };
       gatewaySelectRef.value.networkApi();
     };
     const editClick = (row) => {
       console.log("editClick");
       gatewaySelect.status = true;
-      gatewaySelect.title = "编辑";
+      gatewaySelect.title = t('gateway.edit');
       gatewaySelect.data = JSON.parse(JSON.stringify(row));
       gatewaySelectRef.value.networkApi();
     };
     const deleteClick = (row) => {
       console.log("deleteClick");
       ElMessageBox.confirm(
-        "确定是否需要删除?",
-        "提示",
+        t('common.confirmDelete'),
+        t('common.tip'),
         {
-          confirmButtonText: "删除",
-          cancelButtonText: "取消",
+          confirmButtonText: t('common.delete'),
+          cancelButtonText: t('common.cancel'),
           type: "warning"
         }
       )
@@ -262,9 +261,6 @@ export default defineComponent({
       proxy.$http.saveUpdateGateway(flag).then(value => {
         console.log(JSON.stringify(value));
       });
-      /*proxy.$http.saveUpdateNetwork(flag).then(value => {
-          console.log(JSON.stringify(value))
-      })*/
     };
     const deleteApi = (id) => {
       gatewaySelect.loading = true;

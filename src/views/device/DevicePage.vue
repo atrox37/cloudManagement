@@ -13,7 +13,7 @@
               check-strictly
               :render-after-expand="false">
               <template #empty>
-                <el-empty description="暂无数据" />
+                <el-empty :description="$t('common.noData')" />
               </template>
             </el-tree-select>
             <el-select v-if="item.type == 'select'" v-model="item.value" style="width:200px">
@@ -22,8 +22,8 @@
             </el-select>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="queryClick">查询</el-button>
-            <el-button type="info" @click="resetClick">重置</el-button>
+            <el-button type="primary" @click="queryClick">{{ $t('common.search') }}</el-button>
+            <el-button type="info" @click="resetClick">{{ $t('common.reset') }}</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -31,36 +31,33 @@
     </el-header>
     <el-main>
       <el-table height="100%" border :data="tableData" v-loading="loading" stripe @row-click="rowClick" @sort-change="sortChange" :default-sort="tableSort"
-                style="width: 100%">
-        <el-table-column prop="deviceInstancePo.name" label="设备名称" min-width="150" header-align="center"
+                style="width: 100%" :row-key="row => row.deviceInstancePo.id">
+        <el-table-column prop="deviceInstancePo.name" :label="$t('device.deviceName')" min-width="150" header-align="center"
                          align="center" />
-        <el-table-column prop="productPo.name" label="产品名称" min-width="150" header-align="center"
+        <el-table-column prop="productPo.name" :label="$t('device.productName')" min-width="150" header-align="center"
                          align="center" />
-        <el-table-column label="产品类型" header-align="center" align="center" width="100">
+        <el-table-column :label="$t('device.productType')" header-align="center" align="center" width="100">
           <template #default="scope">
-            <el-tag v-if="scope.row.productPo.type == 'gateway'">网关</el-tag>
-            <el-tag v-if="scope.row.productPo.type == 'device'">直连设备</el-tag>
-            <el-tag v-if="scope.row.productPo.type == 'children'">子设备</el-tag>
+            <el-tag v-if="scope.row.productPo.type == 'gateway'" :key="`tag-${scope.row.deviceInstancePo.id}`">{{ $t('device.gateway') }}</el-tag>
+            <el-tag v-if="scope.row.productPo.type == 'device'" :key="`tag-${scope.row.deviceInstancePo.id}`">{{ $t('device.directDevice') }}</el-tag>
+            <el-tag v-if="scope.row.productPo.type == 'children'" :key="`tag-${scope.row.deviceInstancePo.id}`">{{ $t('device.childDevice') }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="gatewayPo.name" label="关联网关" width="200" header-align="center" align="center" />
-        <el-table-column prop="sysDimensionPo.name" label="所属机构" min-width="100" header-align="center"
+        <el-table-column prop="gatewayPo.name" :label="$t('device.relatedGateway')" width="200" header-align="center" align="center" />
+        <el-table-column prop="sysDimensionPo.name" :label="$t('device.org')" min-width="100" header-align="center"
                          align="center" />
-        <el-table-column prop="sysUserPo.username" label="创建人" width="150" header-align="center"
+        <el-table-column prop="sysUserPo.username" :label="$t('device.creator')" width="150" header-align="center"
                          align="center" />
-        <el-table-column prop="deviceInstancePo.createTime" label="创建时间" width="180" header-align="center" sortable
+        <el-table-column prop="deviceInstancePo.createTime" :label="$t('device.createTime')" width="180" header-align="center" sortable
                          align="center" />
-        <el-table-column label="状态" header-align="center" align="center" width="100">
+        <el-table-column :label="$t('device.status')" header-align="center" align="center" width="100">
           <template #default="scope">
             <el-tag style="margin-left: 5px"
                     :type="scope.row.deviceInstancePo.status=='offline'?'info':'success'">
-              {{ scope.row.deviceInstancePo.status == "offline" ? "离线" : "在线" }}
+              {{ scope.row.deviceInstancePo.status == "offline" ? $t('device.offline') : $t('device.online') }}
             </el-tag>
           </template>
         </el-table-column>
-        <!--<el-table-column label="操作" header-align="center" align="center">
-
-        </el-table-column>-->
         <el-table-column>
           <template #header>
             <div class="center-flex-contain">
@@ -112,6 +109,7 @@ import { productType } from "@/model/product/ProductType";
 import { onMounted, defineComponent, getCurrentInstance, reactive, ref, watch, toRef, computed } from "vue";
 import { deleteDeviceInstanceApi } from "@/util/request";
 import { ElMessage } from "element-plus";
+import { useI18n } from 'vue-i18n'
 
 export default defineComponent({
   name: "DevicePage",
@@ -119,6 +117,7 @@ export default defineComponent({
   setup() {
     const router = useRouter();
     const { proxy } = getCurrentInstance();
+    const { t } = useI18n()
     let pageInfo = reactive({ size: 10, current: 1, total: 0, terms: [],sorts:[] });
     const tableSort=reactive({ prop: 'deviceInstancePo.createTime', order: 'descending' })
     const loading = ref(true);
@@ -128,43 +127,37 @@ export default defineComponent({
     const deviceDeleteData = reactive({ status: false, loading: false, device: {} });
     const dimensionTree = ref([]);
     const dimensionAllTree = computed(() => {
-      const rootTree = { value: -1, label: "全部", children: [] };
+      const rootTree = { value: -1, label: t('common.all'), children: [] };
       rootTree.children.push(...dimensionTree.value);
       return [rootTree];
     });
     const selectList = reactive({
       data: [
-        {
-          name: "zhangsa",
-          value: 1
-        },
-        {
-          name: "221212",
-          value: 2
-        }]
+        { name: "zhangsa", value: 1 },
+        { name: "221212", value: 2 }
+      ]
     });
 
     const tableData = reactive([]);
     watch(selectData, (newData, oldData) => {
-      console.log(inputData.value + "<-->" + JSON.stringify(newData));
+      console.log(JSON.stringify(newData));
     });
 
     const resetParam = () => {
       const p = toRef(productType);
       searchParams.length = 0;
-      searchParams.push({ column: "t.name", value: "", termType: "like", label: "设备名称", type: "input" });
-      searchParams.push({ column: "t.org_id", value: -1, termType: "eq", label: "机构", type: "tree" });
+      searchParams.push({ column: "t.name", value: "", termType: "like", label: t('device.nameLabel'), type: "input" });
+      searchParams.push({ column: "t.org_id", value: -1, termType: "eq", label: t('device.orgLabel'), type: "tree" });
       searchParams.push({
         column: "t2.type",
         value: "",
         termType: "eq",
-        label: "产品类型",
+        label: t('device.typeLabel'),
         type: "select",
         select: p.value
       });
       console.log("resetParam");
     };
-
 
     const createDeviceClick = (tags) => {
       deviceCreateData.loading = true;
@@ -173,33 +166,25 @@ export default defineComponent({
         console.log('updateDeviceInstanceApi:'+JSON.stringify(value))
         deviceCreateData.loading = false
         deviceCreateData.status = false
-        ElMessage.success("创建成功")
+        ElMessage.success(t('common.createSuccess'))
       }, error => {
         deviceCreateData.loading = false;
         deviceCreateData.status = false;
-        ElMessage.error("创建失败")
+        ElMessage.error(t('common.createFail'))
       });
     };
 
     const sortChange=(data)=>{
       console.log('sortChange', data);
-      // 只处理创建时间列的排序
       if(data.prop=='deviceInstancePo.createTime'){
-        // 清空之前的排序
         pageInfo.sorts.length = 0;
-        
-        // 根据排序状态设置
         if(data.order === 'ascending'){
-          // 升序
           pageInfo.sorts.push({column:'t.create_time',order:'asc'});
           tableSort.order = 'ascending';
         } else if(data.order === 'descending'){
-          // 降序
           pageInfo.sorts.push({column:'t.create_time',order:'desc'});
           tableSort.order = 'descending';
-        } 
-        
-        // 重新加载数据
+        }
         devicePageApi();
       }
     }
@@ -255,7 +240,6 @@ export default defineComponent({
     };
     const rowClick = (row, column, event) => {
       console.log("click->" + row.deviceInstancePo.id);
-      //router.push('/test')
       router.push({
         path: "/deviceInstance",
         query: {
@@ -271,7 +255,7 @@ export default defineComponent({
         resetClick();
         ElMessage({
           showClose: true,
-          message: "操作成功",
+          message: t('common.operationSuccess'),
           type: "success"
         });
       }, error => {
@@ -295,7 +279,6 @@ export default defineComponent({
 
     onMounted(() => {
       resetParam();
-      // 初始化排序设置，确保前端显示和后端数据一致
       pageInfo.sorts.length = 0;
       pageInfo.sorts.push({column:'t.create_time',order:'desc'});
       requestDimensionApi();

@@ -1,7 +1,6 @@
 import { createApp } from "vue";
 import App from "./App.vue";
 import ElementPlus from 'element-plus';
-import zhCn from "element-plus/es/locale/lang/zh-cn";
 import 'element-plus/dist/index.css'
 import 'element-plus/theme-chalk/index.css'
 import router from "@/router/index.js";
@@ -16,8 +15,9 @@ import { library } from "@fortawesome/fontawesome-svg-core"
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome"
 import { fas,faUserSecret   } from "@fortawesome/free-solid-svg-icons"
 
-import { createPinia } from "pinia" //引入pinia
-import piniaPluginPersistedstate from 'pinia-plugin-persistedstate' //引入持久化插件
+import { createPinia } from "pinia"
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
+import i18n from '@/locales/index'
 
 
 
@@ -51,11 +51,8 @@ ace.config.setModuleUrl('ace/snippets/text', snippetsTextUrl)
 
 library.add(fas,faUserSecret)
 
-const pinia = createPinia() //创建pinia实例
-pinia.use(piniaPluginPersistedstate) //将插件添加到 pinia 实例上
-
-zhCn.el.pagination.total = "总共：" + `{total}` + "条"
-zhCn.el.pagination.goto = "跳转至"
+const pinia = createPinia()
+pinia.use(piniaPluginPersistedstate)
 
 const app=createApp(App)
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
@@ -65,4 +62,4 @@ app.component('font-awesome-icon', FontAwesomeIcon)
 app.component('v-ace-editor',VAceEditor)
 app.config.globalProperties.$echarts = echarts
 app.config.globalProperties.$http = request
-app.use(pinia).use(AMapLoader).use(router).use(ElementPlus, { locale: zhCn }).mount("#app")
+app.use(pinia).use(i18n).use(AMapLoader).use(router).use(ElementPlus).mount("#app")

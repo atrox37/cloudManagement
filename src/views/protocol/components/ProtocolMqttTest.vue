@@ -1,97 +1,93 @@
 <template>
     <el-drawer v-model="protocolData.drawable">
         <template #header>
-            <h4>MQTT协议测试</h4>
+            <h4>{{ $t('protocolTest.mqttTitle') }}</h4>
         </template>
         <template #default>
-            <el-form :model="protocolData.mqtt" label-width="80">
-                <el-form-item label="主题">
+            <el-form :model="protocolData.mqtt" label-width="120">
+                <el-form-item :label="$t('protocolTest.topic')">
                     <el-input v-model="protocolData.mqtt.topic"/>
                 </el-form-item>
                 <el-form-item label="clientId">
                     <el-input v-model="protocolData.mqtt.clientId"/>
                 </el-form-item>
-                <el-form-item label="发送报文">
+                <el-form-item :label="$t('protocolTest.sendData')">
                     <el-input v-model="protocolData.mqtt.data" type="textarea"/>
                 </el-form-item>
-                <el-form-item label="结果" v-if="protocolData.result.type != undefined">
+                <el-form-item :label="$t('protocolTest.result')" v-if="protocolData.result.type != undefined">
                     <div>
-                        <el-form-item label="消息类型">
+                        <el-form-item :label="$t('protocolTest.msgType')">
                             <el-tag>{{protocolData.result.name}}</el-tag>
                         </el-form-item>
                         <div v-if="protocolData.result.type == 'report-property'">
-                            <el-form-item label="设备ID">
+                            <el-form-item :label="$t('protocolTest.deviceId')">
                                 <el-input v-model="protocolData.result.deviceId" disabled/>
                             </el-form-item>
-                            <el-form-item label="设备SN">
+                            <el-form-item :label="$t('protocolTest.deviceSn')">
                                 <el-input v-model="protocolData.result.deviceSn" disabled/>
                             </el-form-item>
-                            <el-form-item label="属性值">
+                            <el-form-item :label="$t('protocolTest.propValue')">
                                 <template #default>
                                     <div v-for="(item,index) in protocolData.result.properties" :key="index">
                                         <el-space wrap>
-                                            <el-text>属性ID:{{index}}</el-text>
-                                            <el-text>值:{{item}}</el-text>
+                                            <el-text>{{ $t('protocolTest.propId') }}{{index}}</el-text>
+                                            <el-text>{{ $t('protocolTest.valueLabel') }}{{item}}</el-text>
                                         </el-space>
                                     </div>
                                 </template>
                             </el-form-item>
                         </div>
                         <div v-if="protocolData.result.type == 'online'">
-                            <el-form-item label="设备ID">
+                            <el-form-item :label="$t('protocolTest.deviceId')">
                                 <el-input v-model="protocolData.result.deviceId" disabled/>
                             </el-form-item>
-                            <el-form-item label="设备SN">
+                            <el-form-item :label="$t('protocolTest.deviceSn')">
                                 <el-input v-model="protocolData.result.deviceSn" disabled/>
                             </el-form-item>
                         </div>
                         <div v-if="protocolData.result.type == 'offline'">
-                            <el-form-item label="设备ID">
+                            <el-form-item :label="$t('protocolTest.deviceId')">
                                 <el-input v-model="protocolData.result.deviceId" disabled/>
                             </el-form-item>
-                            <el-form-item label="设备SN">
+                            <el-form-item :label="$t('protocolTest.deviceSn')">
                                 <el-input v-model="protocolData.result.deviceSn" disabled/>
                             </el-form-item>
                         </div>
                         <div v-if="protocolData.result.type == 'request-reply'">
-                            <el-form-item label="设备ID">
+                            <el-form-item :label="$t('protocolTest.deviceId')">
                                 <el-input v-model="protocolData.result.deviceId" disabled/>
                             </el-form-item>
-                            <el-form-item label="设备SN">
+                            <el-form-item :label="$t('protocolTest.deviceSn')">
                                 <el-input v-model="protocolData.result.deviceSn" disabled/>
                             </el-form-item>
-                            <el-form-item label="消息ID">
+                            <el-form-item :label="$t('protocolTest.msgId')">
                                 <el-input v-model="protocolData.result.messageId" disabled/>
                             </el-form-item>
-                            <el-form-item label="回复属性">
+                            <el-form-item :label="$t('protocolTest.replyProp')">
                                 <template #default>
                                     <div v-for="(item,index) in protocolData.result.resultData" :key="index">
                                         <el-space wrap>
-                                            <el-text>属性ID:{{index}}</el-text>
-                                            <el-text>值:{{item}}</el-text>
+                                            <el-text>{{ $t('protocolTest.propId') }}{{index}}</el-text>
+                                            <el-text>{{ $t('protocolTest.valueLabel') }}{{item}}</el-text>
                                         </el-space>
                                     </div>
                                 </template>
                             </el-form-item>
                         </div>
                         <div v-if="protocolData.result.type == 'board-reply'">
-                          <el-form-item label="消息ID">
+                          <el-form-item :label="$t('protocolTest.msgId')">
                             <el-input v-model="protocolData.result.messageId" disabled/>
                           </el-form-item>
-                          <el-form-item label="消息结果">
+                          <el-form-item :label="$t('protocolTest.msgResult')">
                             <el-input v-model="protocolData.result.replyType" disabled/>
                           </el-form-item>
                         </div>
                     </div>
-
-
                 </el-form-item>
-
             </el-form>
-
         </template>
         <template #footer>
-            <el-button @click="testClick">测试</el-button>
+            <el-button @click="testClick">{{ $t('protocolTest.testBtn') }}</el-button>
         </template>
     </el-drawer>
 </template>
@@ -99,6 +95,7 @@
     import {defineComponent, toRef, ref, getCurrentInstance, watch} from "vue"
     import {messageTypes} from '@/model/device/DeviceMessage'
     import {useRouter} from "vue-router";
+    import { useI18n } from 'vue-i18n';
 
     export default defineComponent({
         name: "ProtocolMqttTest",
@@ -111,6 +108,7 @@
         },
         emits:['test'],
         setup(props, context) {
+            const { t } = useI18n()
             const protocolData = toRef(props, 'data')
             const resultData=ref(null)
             const msgTypes=ref(messageTypes)
@@ -135,4 +133,4 @@
             return {protocolData, testClick,handlerResult}
         }
     })
-</script>   
+</script>

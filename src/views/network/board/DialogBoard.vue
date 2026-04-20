@@ -1,35 +1,35 @@
 <template>
   <el-dialog v-model="data.status" :title="title">
-    <el-form :model="data.data" label-width="50" :rules="rules" ref="formRef">
-      <el-form-item label="名称" prop="name">
+    <el-form :model="data.data" label-width="80" :rules="rules" ref="formRef">
+      <el-form-item :label="$t('common.name')" prop="name">
         <el-input v-model="data.data.name" placeholder="Please input" />
       </el-form-item>
-      <el-form-item label="主题" prop="topic">
+      <el-form-item :label="$t('dialogBoard.topic')" prop="topic">
         <el-input v-model="data.data.topic" placeholder="Please input" />
       </el-form-item>
-      <el-form-item label="报文" prop="data">
+      <el-form-item :label="$t('dialogBoard.message')" prop="data">
         <el-input v-model="data.data.data" placeholder="Please input" />
       </el-form-item>
-      <el-form-item label="目标">
+      <el-form-item :label="$t('dialogBoard.target')">
         <template #default="scope">
           <el-checkbox-group v-model="data.data.cluster">
-            <el-checkbox label="网关" value="gateway" />
-            <el-checkbox label="直连设备" value="device" />
+            <el-checkbox :label="$t('dialogBoard.gateway')" value="gateway" />
+            <el-checkbox :label="$t('dialogBoard.device')" value="device" />
           </el-checkbox-group>
-
         </template>
       </el-form-item>
     </el-form>
 
     <template #footer>
       <div class="right-flex-contain">
-        <el-button type="primary" @click="save">确定</el-button>
+        <el-button type="primary" @click="save">{{ $t('dialogBoard.confirmBtn') }}</el-button>
       </div>
     </template>
   </el-dialog>
 </template>
 <script>
 import { onMounted, defineComponent, getCurrentInstance, reactive, ref, watch, toRef, computed } from "vue";
+import { useI18n } from 'vue-i18n';
 
 export default defineComponent({
   name: "DialogBoard",
@@ -42,9 +42,10 @@ export default defineComponent({
   },
   emits:['submit'],
   setup(props, context) {
+    const { t } = useI18n()
     const data=toRef(props,'board')
     const formRef=ref(null)
-    const title=computed(()=>data.value.index<0?'新增':'修改')
+    const title=computed(()=>data.value.index<0 ? t('dialogBoard.addTitle') : t('dialogBoard.editTitle'))
 
     const validateSelect = (rule, value, callback) => {
       if (rule.field == "name") {
@@ -52,7 +53,7 @@ export default defineComponent({
           data.value.data.name == undefined ||
           data.value.data.name == ""
         ) {
-          callback("名称不能为空");
+          callback(t('dialogBoard.nameRequired'));
         } else {
           callback();
         }
@@ -61,7 +62,7 @@ export default defineComponent({
           data.value.data.topic == undefined ||
           data.value.data.topic == ""
         ) {
-          callback("主题不能为空");
+          callback(t('dialogBoard.topicRequired'));
         } else {
           callback();
         }
@@ -70,7 +71,7 @@ export default defineComponent({
           data.value.data.data == undefined ||
           data.value.data.data == ""
         ) {
-          callback("报文不能为空");
+          callback(t('dialogBoard.messageRequired'));
         } else {
           callback();
         }

@@ -1,16 +1,16 @@
 <template>
   <el-table :data="notifyD" border>
-    <el-table-column label="类型">
+    <el-table-column :label="$t('alarmHandler.type')">
       <template #default="scope">
         <el-radio-group v-model="scope.row.handlerType">
-          <el-radio-button label="通知" value="notify" />
+          <el-radio-button :label="$t('alarmHandler.notifyType')" value="notify" />
         </el-radio-group>
       </template>
     </el-table-column>
-    <el-table-column label="通知用户(通知)">
+    <el-table-column :label="$t('alarmHandler.notifyUser')">
       <template #default="scope">
         <el-select
-          placeholder="请选择用户"
+          :placeholder="$t('alarmHandler.selectUser')"
           v-model="scope.row.userId"
         >
           <el-option
@@ -22,7 +22,7 @@
         </el-select>
       </template>
     </el-table-column>
-    <el-table-column label="通知模板">
+    <el-table-column :label="$t('alarmHandler.notifyTemplate')">
       <template #default="scope">
         <el-select
           v-model="scope.row.templateId"
@@ -37,7 +37,7 @@
         </el-select>
       </template>
     </el-table-column>
-    <el-table-column label="通知配置" width="100">
+    <el-table-column :label="$t('alarmHandler.notifyConfig')" width="100">
       <template #default="scope">
         <el-popover
           v-model:visible="popoverVisibleMap[scope.$index]"
@@ -52,11 +52,11 @@
               size="small"
               :disabled="!scope.row.templateId"
             >
-              修改
+              {{ $t('alarmHandler.edit') }}
             </el-button>
           </template>
           <div class="variables-popover-content">
-            <div class="popover-title">编辑模板变量</div>
+            <div class="popover-title">{{ $t('alarmHandler.editTemplateVars') }}</div>
             <el-form label-width="120px" size="small">
               <el-form-item
                 v-for="variable in getTemplateVariablesList(scope.$index)"
@@ -65,12 +65,12 @@
               >
                 <el-input
                   v-model="getCurrentVariables(scope.$index)[variable]"
-                  :placeholder="`请输入${variable}`"
+                  :placeholder="$t('alarmHandler.enterVar') + variable"
                   size="small"
                 />
               </el-form-item>
             </el-form>
-            <div class="popover-title">涉及点位</div>
+            <div class="popover-title">{{ $t('alarmHandler.relatedPoints') }}</div>
             <el-space wrap>
               <el-tag
                 v-for="propertyId in getMatchedPropertyIds(scope.$index)"
@@ -81,7 +81,7 @@
                 {{ getPropertyName(propertyId) }}
               </el-tag>
             </el-space>
-            <div class="popover-title">未涉及点位</div>
+            <div class="popover-title">{{ $t('alarmHandler.unrelatedPoints') }}</div>
             <el-space wrap>
               <el-tag
                 v-for="propertyId in getUnmatchedPropertyIds(scope.$index)"
@@ -93,8 +93,8 @@
               </el-tag>
             </el-space>
             <div class="popover-footer">
-              <el-button size="small" @click="closeVariablesPopover(scope.$index)">取消</el-button>
-              <el-button type="primary" size="small" @click="saveVariables(scope.$index)">确定</el-button>
+              <el-button size="small" @click="closeVariablesPopover(scope.$index)">{{ $t('common.cancel') }}</el-button>
+              <el-button type="primary" size="small" @click="saveVariables(scope.$index)">{{ $t('common.confirm') }}</el-button>
             </div>
           </div>
         </el-popover>
@@ -124,6 +124,7 @@
 
 <script>
 import { ref, watch, onMounted, getCurrentInstance, toRef } from "vue";
+import { useI18n } from 'vue-i18n';
 
 export default {
   name: "AlarmHandler",
@@ -145,6 +146,7 @@ export default {
     },
   },
   setup(props) {
+    const { t } = useI18n()
     const device = toRef(props,'deviceData')
     const notifyD = ref([]);
     const userList = ref([]);

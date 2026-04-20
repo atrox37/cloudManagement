@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="data.status" title="总招" width="40%">
+  <el-dialog v-model="data.status" :title="$t('pushBoard.title')" width="40%">
     <div>
       <el-checkbox-group v-model="checkList">
         <el-checkbox v-for="(item,index) in boardList" :key="index" :value="item.id" border>
@@ -31,7 +31,7 @@
     </div>
 
     <br />
-    <el-text size="large">记录</el-text>
+    <el-text size="large">{{ $t('pushBoard.records') }}</el-text>
     <div>
       <el-table :data="record.records" border v-loading="record.loading">
         <el-table-column prop="ts" width="250" >
@@ -40,9 +40,9 @@
               <el-date-picker
                 v-model="pickTime"
                 type="daterange"
-                range-separator="至"
-                start-placeholder="开始"
-                end-placeholder="结束"
+                :range-separator="$t('common.to')"
+                :start-placeholder="$t('common.start')"
+                :end-placeholder="$t('common.end')"
                 size="small" />
             </div>
           </template>
@@ -50,20 +50,18 @@
             {{scope.row.ts}}
           </template>
         </el-table-column>
-        <el-table-column prop="boardName" label="总招名称" />
-        <el-table-column prop="deviceName" label="设备名称" />
-        <el-table-column prop="deviceSn" label="设备Sn" />
-        <el-table-column label="状态" width="100" >
+        <el-table-column prop="boardName" :label="$t('pushBoard.boardName')" />
+        <el-table-column prop="deviceName" :label="$t('pushBoard.deviceName')" />
+        <el-table-column prop="deviceSn" :label="$t('pushBoard.deviceSn')" />
+        <el-table-column :label="$t('common.status')" width="100" >
           <template #default="scope">
-            <el-tag v-if="scope.row.state=='success'" type="success">成功</el-tag>
-            <el-tag v-else-if="scope.row.state=='timeout'" type="info">超时</el-tag>
-            <el-tag type="warning" v-else>失败</el-tag>
+            <el-tag v-if="scope.row.state=='success'" type="success">{{ $t('pushBoard.success') }}</el-tag>
+            <el-tag v-else-if="scope.row.state=='timeout'" type="info">{{ $t('pushBoard.timeout') }}</el-tag>
+            <el-tag type="warning" v-else>{{ $t('pushBoard.fail') }}</el-tag>
           </template>
         </el-table-column>
-        <template slot="empty">
-          <div class="no-data">
-            <span>暂无数据</span>
-          </div>
+        <template #empty>
+          <el-empty :description="$t('pushBoard.noData')" />
         </template>
       </el-table>
     </div>
@@ -73,7 +71,7 @@
     </div>
     <template #footer>
       <div class="right-flex-contain">
-        <el-button :disabled="buttonState" type="primary" @click="send">发送</el-button>
+        <el-button :disabled="buttonState" type="primary" @click="send">{{ $t('pushBoard.sendBtn') }}</el-button>
       </div>
     </template>
 
@@ -86,6 +84,7 @@ import { onMounted, defineComponent, getCurrentInstance, reactive, ref, watch, t
 import { ElMessage } from "element-plus";
 import {initPickTime,formatTs} from "@/util/common/pickTime";
 import { boardData } from "@/util/request";
+import { useI18n } from 'vue-i18n';
 
 export default defineComponent({
   name: "DialogPushBoard",
@@ -97,6 +96,7 @@ export default defineComponent({
     }
   },
   setup(props, context) {
+    const { t } = useI18n()
     const data = toRef(props, "row");
     const boardList = reactive([]);
     const checkList = ref([]);
@@ -162,19 +162,19 @@ export default defineComponent({
             console.log("收到消息" + m.body);
             var boardId = undefined, state = undefined;
             if (JSON.parse(m.body).replyType == "TIMEOUT") {
-              ElMessage.error("请求超时，请检查网络及设备");
+              ElMessage.error(t('pushBoard.requestTimeout'));
               boardId = JSON.parse(m.body).requestWsData.boardId;
               state = -2;
             } else if (JSON.parse(m.body).replyType == "LOADING") {
-              ElMessage.info("正在请求,总招");
+              ElMessage.info(t('pushBoard.loading'));
               boardId = JSON.parse(m.body).targetMsg.data.id;
               state = 1;
             } else if (JSON.parse(m.body).replyType == "SUCCESS") {
-              ElMessage.success("下发总招成功");
+              ElMessage.success(t('pushBoard.sendSuccess'));
               boardId = JSON.parse(m.body).requestWsData.boardId;
               state = 2;
             } else if (JSON.parse(m.body).replyType == "FAIL") {
-              ElMessage.error("下发总招失败");
+              ElMessage.error(t('pushBoard.sendFail'));
               boardId = JSON.parse(m.body).requestWsData.boardId;
               state = -1;
             }
