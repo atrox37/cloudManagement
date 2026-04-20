@@ -1,28 +1,28 @@
 
 const deviceRouter ={
     path: "/device",
-    name: "设备",
+    name: "device",
     component: ()=>import('@/views/Index.vue'),
     redirect: {path: '/devicePage'},
     children:[
         {
             path: "/devicePage",
-            name: "设备列表",
+            name: "deviceList",
             component: () => import("@/views/device/DevicePage.vue")
         },
         {
             path: "/deviceInstance",
-            name: "设备详情",
+            name: "deviceDetail",
             component: () => import("@/views/device/DeviceInstance.vue")
         },
         {
             path: "/productPage",
-            name: "产品列表",
+            name: "productList",
             component: () => import("@/views/product/ProductPage.vue")
         },
         {
             path: "/productInstance",
-            name: "产品详情",
+            name: "productDetail",
             component: () => import("@/views/product/ProductInstance.vue")
         }
     ]

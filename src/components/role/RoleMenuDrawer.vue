@@ -1,7 +1,7 @@
 <template>
     <el-drawer ref="drawerView" v-model="drawer" direction="rtl" :before-close="drawCloseListener" :size="permitterDrawer?'40%':'30%'">
         <template #header>
-            <h4>页面菜单</h4>
+            <h4>{{ $t('role.pageMenu') }}</h4>
         </template>
         <template #default>
             <div>
@@ -17,14 +17,14 @@
                         :default-checked-keys="[]"
                         :props="defaultProps">
                     <template #empty>
-                        <el-empty description="暂无数据" />
+                        <el-empty :description="$t('common.noData')" />
                     </template>
                 </el-tree>
             </div>
         </template>
         <template #footer>
             <div class="right-flex-contain">
-                <el-button type="primary" @click="submitClick">保存提交</el-button>
+                <el-button type="primary" @click="submitClick">{{ $t('common.submit') }}</el-button>
             </div>
         </template>
     </el-drawer>

@@ -1,51 +1,51 @@
 <template>
     <el-drawer v-model="dataInfo.status" :size="'25%'" >
         <el-form :model="dataInfo" label-width="80">
-            <el-form-item label="名称">
+            <el-form-item :label="$t('common.name')">
                 <el-input v-model="dataInfo.data.networkConfigPo.name" />
             </el-form-item>
-            <el-form-item v-if="!dataInfo.add" label="ip地址">
+            <el-form-item v-if="!dataInfo.add" :label="$t('networkDrawer.ipAddress')">
                 <el-input v-model="dataInfo.data.networkConfigPo.configuration.host"/>
             </el-form-item>
-            <el-form-item label="服务端口">
+            <el-form-item :label="$t('networkDrawer.servicePort')">
                 <el-input-number v-model="dataInfo.data.networkConfigPo.configuration.port"/>
             </el-form-item>
-            <el-form-item label="组别名称">
+            <el-form-item :label="$t('networkDrawer.groupName')">
                 <el-input v-model="dataInfo.data.networkConfigPo.configuration.groupId" />
             </el-form-item>
-            <el-form-item label="组别数量">
+            <el-form-item :label="$t('networkDrawer.groupCount')">
                 <el-input-number v-model="dataInfo.data.networkConfigPo.configuration.partitions" />
             </el-form-item>
-            <el-form-item label="状态">
+            <el-form-item :label="$t('common.status')">
                 <el-switch
                         v-model="state"
                         width="60"
                         :disabled="dataInfo.add"
                         inline-prompt
-                        active-text="开启"
-                        inactive-text="关闭"
+                        :active-text="$t('networkDrawer.statusOn')"
+                        :inactive-text="$t('networkDrawer.statusOff')"
                 />
             </el-form-item>
-            <el-form-item label="主题">
-                <el-input-tag v-model="dataInfo.data.networkConfigPo.configuration.topics" clearable placeholder="请输入订阅的主题，回车确认" />
+            <el-form-item :label="$t('networkDrawer.topics')">
+                <el-input-tag v-model="dataInfo.data.networkConfigPo.configuration.topics" clearable :placeholder="$t('networkDrawer.topicsPlaceholder')" />
             </el-form-item>
         </el-form>
         <template #header>
             <div>
                 <el-space wrap>
-                    <el-text size="large">{{dataInfo.add?'添加':'编辑'}}</el-text><el-tag effect="dark">Kafka</el-tag>
+                    <el-text size="large">{{dataInfo.add ? $t('networkDrawer.addTitle') : $t('networkDrawer.editTitle')}}</el-text><el-tag effect="dark">Kafka</el-tag>
                 </el-space>
-
             </div>
         </template>
         <template #footer>
-            <el-button type="primary" :loading="dataInfo.saveloading" @click="saveClick">保存</el-button>
+            <el-button type="primary" :loading="dataInfo.saveloading" @click="saveClick">{{ $t('common.save') }}</el-button>
         </template>
     </el-drawer>
 </template>
 <script>
     import {defineComponent, reactive, ref,toRef, getCurrentInstance, onMounted,computed} from "vue"
     import {useRouter} from "vue-router";
+    import { useI18n } from 'vue-i18n';
 
     export default defineComponent({
         name: "KafkaBrokerDrawer",
@@ -58,6 +58,7 @@
         },
         emits:['submit'],
         setup(props, context) {
+            const { t } = useI18n()
             const input = ref(['tag1', 'tag2', 'tag3'])
             const dataInfo=toRef(props,'data')
             const state=computed({
@@ -79,4 +80,4 @@
             }
         }
     })
-</script>   
+</script>

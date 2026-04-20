@@ -3,11 +3,11 @@
         <el-header>
             <div class="search-box">
                 <el-form v-model="searchParams" :inline="true">
-                    <el-form-item label="名称">
+                    <el-form-item :label="$t('notifyUser.name')">
                         <el-input v-model="searchParams.name" placeholder="" clearable />
                     </el-form-item>
                     <el-form-item>
-                        <el-button type="primary" @click="queryClick">查询</el-button>
+                        <el-button type="primary" @click="queryClick">{{ $t('common.search') }}</el-button>
                     </el-form-item>
                 </el-form>
             </div>
@@ -16,13 +16,13 @@
         <el-main>
             <el-table height="100%" :data="tableData" v-loading="loading" stripe @cell-click="itemClick">
                 <!-- <el-table-column prop="templateUserPo.id" label="ID" width="60" header-align="center" align="center"/> -->
-                <el-table-column prop="templateUserPo.name" label="名称" width="100" header-align="center" align="center"/>
-                <el-table-column prop="templateUserPo.receiver" label="接收账号" width="200"  header-align="center" align="center"/>
-                <el-table-column prop="configPo.code.msgName" label="接收类型" width="100"  header-align="center" align="center"/>
-                <el-table-column prop="configPo.name" label="通知名称" width="100"  header-align="center" align="center"/>
-                <el-table-column prop="configPo.code.name" label="通知类型" width="100"  header-align="center" align="center"/>
-                <el-table-column prop="templatePo.msgType.name" label="模板类型" width="100"  header-align="center" align="center"/>
-                <el-table-column prop="templatePo.msgType.name" label="模板数据" width="200"  header-align="center" align="center">
+                <el-table-column prop="templateUserPo.name" :label="$t('notifyUser.name')" width="100" header-align="center" align="center"/>
+                <el-table-column prop="templateUserPo.receiver" :label="$t('notifyUser.receiver')" width="200"  header-align="center" align="center"/>
+                <el-table-column prop="configPo.code.msgName" :label="$t('notifyUser.receiveType')" width="100"  header-align="center" align="center"/>
+                <el-table-column prop="configPo.name" :label="$t('notifyUser.notifyName')" width="100"  header-align="center" align="center"/>
+                <el-table-column prop="configPo.code.name" :label="$t('notifyUser.notifyType')" width="100"  header-align="center" align="center"/>
+                <el-table-column prop="templatePo.msgType.name" :label="$t('notifyUser.templateType')" width="100"  header-align="center" align="center"/>
+                <el-table-column prop="templatePo.msgType.name" :label="$t('notifyUser.templateData')" width="200"  header-align="center" align="center">
                     <template #default="scope">
                         <p style="overflow:hidden;text-overflow: ellipsis;white-space: nowrap;">{{handlerNotifyContent(scope.row)}}</p>
                     </template>
@@ -65,9 +65,11 @@
 <script>
     import {defineComponent, reactive, ref, getCurrentInstance, onMounted} from "vue"
     import {useRouter} from "vue-router";
+    import { useI18n } from 'vue-i18n'
     export default defineComponent({
         name: "NotifyUserPage",
         setup() {
+            const { t } = useI18n()
             const {proxy} = getCurrentInstance()
             const router = useRouter()
             const searchParams=ref({})

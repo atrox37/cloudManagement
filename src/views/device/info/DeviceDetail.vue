@@ -5,61 +5,99 @@
         <span>{{ data.deviceInstancePo.name }}</span>
       </template>
       <template #extra>
-        <el-button type="primary" @click="editClick" style="margin-top: 5px" >保存</el-button>
+        <el-button type="primary" style="margin-top: 5px" @click="editClick">
+          {{ $t('common.save') }}
+        </el-button>
       </template>
-      <el-descriptions-item label="设备名称">
-        <el-input v-model="data.deviceInstancePo.name"></el-input>
+      <el-descriptions-item :label="$t('deviceInfo.deviceName')">
+        <el-input v-model="data.deviceInstancePo.name" />
       </el-descriptions-item>
-      <el-descriptions-item label="设备SN">
-        <el-input v-model="data.deviceInstancePo.sn"></el-input>
+      <el-descriptions-item :label="$t('deviceInfo.deviceSN')">
+        <el-input v-model="data.deviceInstancePo.sn" />
       </el-descriptions-item>
-      <el-descriptions-item label="所属机构">
+      <el-descriptions-item :label="$t('deviceInfo.org')">
         <el-tree-select
-          style="width: 220px;"
           v-model="data.deviceInstancePo.orgId"
+          style="width: 220px;"
           :data="dimensionAllTree"
           check-strictly
-          :render-after-expand="false">
+          :render-after-expand="false"
+        >
           <template #empty>
-            <el-empty description="暂无数据"/>
+            <el-empty :description="$t('common.noData')" />
           </template>
         </el-tree-select>
       </el-descriptions-item>
-      <el-descriptions-item label="产品名称">{{ data.productPo.name }}</el-descriptions-item>
-      <el-descriptions-item label="产品类型">
+      <el-descriptions-item :label="$t('deviceInfo.productName')">
+        {{ data.productPo.name }}
+      </el-descriptions-item>
+      <el-descriptions-item :label="$t('deviceInfo.productType')">
         <el-tag>{{ type }}</el-tag>
       </el-descriptions-item>
-      <el-descriptions-item label="所属人">{{ data.sysUserPo.username }}</el-descriptions-item>
-      <el-descriptions-item label="网关设备" v-if="data.productPo.type=='children'">{{ parentName }}</el-descriptions-item>
-      <el-descriptions-item label="采集网关" v-if="data.productPo.type=='children'">{{ data.gatewayPo?.name ?? '' }}</el-descriptions-item>
-      <el-descriptions-item label="采集网关" v-if="data.productPo.type!='children'">
-        <el-select v-model="selectedGatewayId" placeholder="请选择网关设备" style="width: 220px;" clearable>
+      <el-descriptions-item :label="$t('deviceInfo.owner')">
+        {{ data.sysUserPo.username }}
+      </el-descriptions-item>
+      <el-descriptions-item
+        v-if="data.productPo.type === 'children'"
+        :label="$t('deviceInfo.gatewayDevice')"
+      >
+        {{ parentName }}
+      </el-descriptions-item>
+      <el-descriptions-item
+        v-if="data.productPo.type === 'children'"
+        :label="$t('deviceInfo.collectGateway')"
+      >
+        {{ data.gatewayPo?.name ?? '' }}
+      </el-descriptions-item>
+      <el-descriptions-item
+        v-if="data.productPo.type !== 'children'"
+        :label="$t('deviceInfo.collectGateway')"
+      >
+        <el-select
+          v-model="selectedGatewayId"
+          :placeholder="$t('deviceInfo.selectGateway')"
+          style="width: 220px;"
+          clearable
+        >
           <el-option
             v-for="item in gatewayData"
             :key="item.gatewayPo.id"
             :label="item.gatewayPo.name"
-            :value="item.gatewayPo.id">
-          </el-option>
+            :value="item.gatewayPo.id"
+          />
         </el-select>
       </el-descriptions-item>
-      <el-descriptions-item label="采集方式">
+      <el-descriptions-item :label="$t('deviceInfo.collectType')">
         <el-tag size="small">{{ data.networkConfigPo?.type ?? '' }}</el-tag>
       </el-descriptions-item>
-      <el-descriptions-item label="创建时间">{{ data.deviceInstancePo.createTime }}</el-descriptions-item>
-      <el-descriptions-item label="更新时间">{{ data.deviceInstancePo.updateTime }}</el-descriptions-item>
+      <el-descriptions-item :label="$t('common.createTime')">
+        {{ data.deviceInstancePo.createTime }}
+      </el-descriptions-item>
+      <el-descriptions-item :label="$t('common.updateTime')">
+        {{ data.deviceInstancePo.updateTime }}
+      </el-descriptions-item>
     </el-descriptions>
-    <el-descriptions v-if="data.deviceInstancePo.metadata.tags.length>0" border title="设备标签" style="margin-top: 30px">
-      <el-descriptions-item v-for="(item,index) in data.deviceInstancePo.metadata.tags" :key="index" :label="item.tagName">
-        <el-input v-model="item.tagValue"></el-input>
+
+    <el-descriptions
+      v-if="data.deviceInstancePo.metadata.tags.length > 0"
+      border
+      :title="$t('deviceInfo.deviceTags')"
+      style="margin-top: 30px"
+    >
+      <el-descriptions-item
+        v-for="(item, index) in data.deviceInstancePo.metadata.tags"
+        :key="index"
+        :label="item.tagName"
+      >
+        <el-input v-model="item.tagValue" />
       </el-descriptions-item>
     </el-descriptions>
   </div>
-
 </template>
 
 <script>
-import { defineComponent, toRef, ref, watch, onMounted, computed, reactive, getCurrentInstance } from "vue";
-import { productType } from "@/model/product/ProductType";
+import { computed, defineComponent, getCurrentInstance, onMounted, ref, toRef, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import handlerDimensionTree from "@/util/dimension/DimensionTree";
 
 export default defineComponent({
@@ -68,91 +106,93 @@ export default defineComponent({
     gateways: {
       type: Array,
       required: true,
-      default: () => ([])
+      default: () => ([]),
     },
     deviceData: {
       type: Object,
-      required: false
+      required: false,
     },
-    parentData:{
+    parentData: {
       type: Object,
-      required: false
-    }
+      required: false,
+    },
   },
-  emits: ["tagSave","detailSave"],
+  emits: ["tagSave", "detailSave"],
   setup(props, context) {
-    const {proxy} = getCurrentInstance()
-    const pt = toRef(productType);
-    const gatewayData=toRef(props,'gateways')
+    const { proxy } = getCurrentInstance();
+    const { t } = useI18n();
+    const gatewayData = toRef(props, "gateways");
     const data = toRef(props, "deviceData");
-    const parent=toRef(props,'parentData');
-    const networkConfiguration = ref(data.value.networkConfigPo);
+    const parent = toRef(props, "parentData");
     const dimensionTree = ref([]);
+
     const dimensionAllTree = computed(() => {
-      const rootTree=[]
+      const rootTree = [];
       rootTree.push(...dimensionTree.value);
-      return rootTree
+      return rootTree;
     });
-    const parentName = computed(()=>{
-      if(parent.value == null){
-        return "无"
-      }else {
-        return parent.value.deviceInstancePo.name
+
+    const parentName = computed(() => {
+      if (parent.value == null) {
+        return t("deviceInfo.none");
       }
-    })
+
+      return parent.value.deviceInstancePo.name;
+    });
+
     const selectedGatewayId = computed({
       get: () => data.value.deviceInstancePo.gatewayId ?? -1,
-      
       set: (val) => {
-        if (val === null || val === undefined || val === '') {
-          data.value.deviceInstancePo.gatewayId = null
-          return
+        if (val === null || val === undefined || val === "") {
+          data.value.deviceInstancePo.gatewayId = null;
+          return;
         }
-        data.value.deviceInstancePo.gatewayId = val
-      }
-    })
-    watch(data, (o, n) => {
+        data.value.deviceInstancePo.gatewayId = val;
+      },
+    });
+
+    watch(data, () => {
       console.info("detail");
     });
-    const type = computed(() => {
-      var v = "";
-      for (var i of pt.value) {
-        if (i.type == data.value.productPo.type) {
-          v = i.name;
-          break;
-        }
-      }
-      return v;
-    });
+
+    const productTypeLabelMap = computed(() => ({
+      gateway: t("product.gateway"),
+      children: t("product.childDevice"),
+      device: t("product.directDevice"),
+    }));
+
+    const type = computed(() => productTypeLabelMap.value[data.value.productPo.type] || data.value.productPo.type);
+
     const requestDimensionApi = () => {
-      proxy.$http.dimensionTree().then(value => {
-        var tree = {};
+      proxy.$http.dimensionTree().then((value) => {
+        const tree = {};
         dimensionTree.value.length = 0;
         handlerDimensionTree(value.data, tree);
         dimensionTree.value.push(tree);
         console.log("requestDimensionApi");
       });
     };
+
     onMounted(() => {
-      requestDimensionApi()
+      requestDimensionApi();
       console.info("deviceDetail");
     });
+
     const editClick = () => {
-      console.log('editClick:'+JSON.stringify(data.value.deviceInstancePo.metadata.tags))
-      context.emit("detailSave",data.value.deviceInstancePo);
+      console.log("editClick:" + JSON.stringify(data.value.deviceInstancePo.metadata.tags));
+      context.emit("detailSave", data.value.deviceInstancePo);
     };
+
     return {
       selectedGatewayId,
       gatewayData,
       dimensionAllTree,
       type,
       data,
-      networkConfiguration,
       editClick,
-      parent,
-      parentName
+      parentName,
     };
-  }
+  },
 });
 </script>
 
@@ -164,6 +204,6 @@ export default defineComponent({
 }
 
 .el-descriptions {
-  background: #FFFFFF;
+  background: #ffffff;
 }
 </style>

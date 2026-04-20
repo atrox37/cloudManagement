@@ -1,21 +1,21 @@
 <template>
-    <el-drawer v-model="drawable" title="邮箱配置" >
+    <el-drawer v-model="drawable" :title="$t('emailConfig.title')" >
         <template #default>
-            <el-form :inline="false" :model="emailData.data" ref="formRef" :rules="rules" label-position="left" label-width="80px">
-                <el-form-item label="名称" prop="name">
-                    <el-input v-model="emailData.data.name" placeholder="请输入名称" clearable/>
+            <el-form :inline="false" :model="emailData.data" ref="formRef" :rules="rules" label-position="left" label-width="100px">
+                <el-form-item :label="$t('common.name')" prop="name">
+                    <el-input v-model="emailData.data.name" clearable/>
                 </el-form-item>
-                <el-form-item label="smtp地址" prop="host">
-                    <el-input v-model="emailData.data.config.host" placeholder="请输入名称" clearable />
+                <el-form-item :label="$t('emailConfig.smtpAddress')" prop="host">
+                    <el-input v-model="emailData.data.config.host" clearable />
                 </el-form-item>
-                <el-form-item label="smtp端口" prop="port">
-                    <el-input-number v-model="emailData.data.config.port" placeholder="请输入名称" clearable />
+                <el-form-item :label="$t('emailConfig.smtpPort')" prop="port">
+                    <el-input-number v-model="emailData.data.config.port" clearable />
                 </el-form-item>
-                <el-form-item label="发送邮箱" prop="from">
-                    <el-input v-model="emailData.data.config.from" placeholder="请输入名称" clearable />
+                <el-form-item :label="$t('emailConfig.fromEmail')" prop="from">
+                    <el-input v-model="emailData.data.config.from" clearable />
                 </el-form-item>
-                <el-form-item label="密码" prop="pass">
-                    <el-input v-model="emailData.data.config.pass" placeholder="请输入名称" clearable />
+                <el-form-item :label="$t('emailConfig.password')" prop="pass">
+                    <el-input v-model="emailData.data.config.pass" clearable />
                 </el-form-item>
             </el-form>
 
@@ -23,8 +23,8 @@
         <template #footer>
             <el-divider/>
             <div style="flex: auto;margin-top: 10px">
-                <el-button @click="closeClick">取消</el-button>
-                <el-button type="primary" :loading="emailData.loading" @click="submitClick">保存</el-button>
+                <el-button @click="closeClick">{{ $t('common.cancel') }}</el-button>
+                <el-button type="primary" :loading="emailData.loading" @click="submitClick">{{ $t('common.save') }}</el-button>
             </div>
         </template>
 
@@ -35,6 +35,7 @@
 <script>
     import {defineComponent, reactive, ref, getCurrentInstance, onMounted, toRef,computed} from "vue"
     import {useRouter} from "vue-router";
+    import { useI18n } from 'vue-i18n'
     export default defineComponent({
         name: "NotifyEmailConfig",
         props:{
@@ -46,6 +47,7 @@
         },
         emits:['save','close'],
         setup(props,context){
+            const { t } = useI18n()
             const emailData=toRef(props,'data')
             const drawable=computed({
               get:()=>{
@@ -75,31 +77,31 @@
             const validateSelect=(rule, value, callback)=>{
                 if(rule.field == 'name'){
                     if(emailData.value.data.name == undefined || emailData.value.data.name==''){
-                        callback(('用户名不能为空'))
+                        callback(t('emailConfig.nameRequired'))
                     }else{
                         callback()
                     }
                 }else if(rule.field == 'host'){
                     if(emailData.value.data.config.host == undefined || emailData.value.data.config.host==''){
-                        callback(('地址不能为空'))
+                        callback(t('emailConfig.hostRequired'))
                     }else{
                         callback()
                     }
                 }else if(rule.field == 'port'){
                     if(emailData.value.data.config.port == undefined || emailData.value.data.config.port==0){
-                        callback(('端口不能为0'))
+                        callback(t('emailConfig.portRequired'))
                     }else{
                         callback()
                     }
                 }else if(rule.field == 'from'){
                     if(emailData.value.data.config.from == undefined || emailData.value.data.config.from==''){
-                        callback(('发送邮箱不能为空'))
+                        callback(t('emailConfig.fromRequired'))
                     }else{
                         callback()
                     }
                 }else if(rule.field == 'pass'){
                     if(emailData.value.data.config.pass == undefined || emailData.value.data.config.pass==''){
-                        callback(('邮箱密码不能为空'))
+                        callback(t('emailConfig.passRequired'))
                     }else{
                         callback()
                     }

@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="sourcestatus"
-    title="编辑"
+    :title="$t('alarmDialog.edit')"
     :show-close="false"
     @close="closeHandler"
     class="gload-dialog"
@@ -12,22 +12,22 @@
       v-model="sourceAlarm"
       label-
     >
-      <el-form-item label="名称">
+      <el-form-item :label="$t('common.name')">
         <el-input v-model="sourceAlarm.rulePo.name"></el-input>
       </el-form-item>
-      <el-form-item label="状态">
+      <el-form-item :label="$t('common.status')">
         <el-radio-group v-model="sourceAlarm.rulePo.state">
-          <el-radio :value="0">关闭</el-radio>
-          <el-radio :value="1">打开</el-radio>
+          <el-radio :value="0">{{ $t('alarmDialog.closeState') }}</el-radio>
+          <el-radio :value="1">{{ $t('alarmDialog.open') }}</el-radio>
         </el-radio-group>
       </el-form-item>
-      <el-form-item label="触发方式">
+      <el-form-item :label="$t('alarmDialog.triggerMethod')">
         <el-radio-group size="small" v-model="sourceAlarm.rulePo.ruleData.type">
           <el-radio-button label="time" value="time" />
           <!-- <el-radio-button label="cron" value="cron" /> -->
         </el-radio-group>
       </el-form-item>
-      <el-form-item label="轮询周期">
+      <el-form-item :label="$t('tabProductRule.pollInterval')">
         <el-select
           v-model="sourceAlarm.rulePo.ruleData.cronNum"
           size="small"
@@ -40,16 +40,16 @@
             :value="item.value"
           />
         </el-select>
-        <span style="margin-left: 10px">秒</span>
+        <span style="margin-left: 10px">{{ $t('alarmDialog.seconds') }}</span>
       </el-form-item>
-      <el-form-item label="阈值次数">
+      <el-form-item :label="$t('alarmDialog.thresholdCount')">
         <el-input-number
           v-model="sourceAlarm.rulePo.ruleData.count"
           size="small"
           :min="0"
         ></el-input-number>
       </el-form-item>
-      <el-form-item label="触发条件">
+      <el-form-item :label="$t('alarmDialog.triggerCondition')">
         <AlarmItem
           ref="alarmItems"
           :deviceData="sourceDevice"
@@ -76,7 +76,7 @@
           </el-col>
         </el-row>
       </el-form-item>
-      <el-form-item label="处理方式">
+      <el-form-item :label="$t('alarmDialog.handleMethod')">
         <!-- <el-select
           v-model="notifyTemplateUserPo"
           placeholder="请选择下发用户（通知）"
@@ -104,8 +104,8 @@
     </el-form>
     <template #footer>
       <div class="right-flex-contain">
-        <el-button @click="closeHandler">取消</el-button>
-        <el-button type="primary" @click="saveAlarm">保存</el-button>
+        <el-button @click="closeHandler">{{ $t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="saveAlarm">{{ $t('common.save') }}</el-button>
       </div>
     </template>
   </el-dialog>
@@ -133,6 +133,7 @@ import AlarmNotify from "@/components/device/item/AlarmNotify.vue";
 import AlarmHandler from "@/components/device/item/AlarmHandler Copy.vue";
 import { ElMessage } from "element-plus";
 import { quickConvert, cronToDescription } from "@/util/cron/cronConverter";
+import { useI18n } from "vue-i18n";
 
 // 单位换算表
 const intervalToSeconds = (val, unit) => {
@@ -178,6 +179,7 @@ export default defineComponent({
   },
   emits: ["close", "reload"],
   setup(props, context) {
+    const { t } = useI18n();
     const { proxy } = getCurrentInstance();
     const sourceDevice = toRef(props, "deviceData");
     const sourcestatus = toRef(props, "status");
@@ -190,15 +192,15 @@ export default defineComponent({
     const alarmColumn = ref([]);
 
     // 轮询周期选项（秒）
-    const pollIntervalOptions = [
-      { value: 5, label: '5 秒' },
-      { value: 10, label: '10 秒' },
-      { value: 15, label: '15 秒' },
-      { value: 20, label: '20 秒' },
-      { value: 30, label: '30 秒' },
-      { value: 60, label: '60 秒' },
-      { value: 120, label: '120 秒' },
-    ];
+    const pollIntervalOptions = computed(() => [
+      { value: 5, label: t('alarmDialog.pollIntervalSec', { n: 5 }) },
+      { value: 10, label: t('alarmDialog.pollIntervalSec', { n: 10 }) },
+      { value: 15, label: t('alarmDialog.pollIntervalSec', { n: 15 }) },
+      { value: 20, label: t('alarmDialog.pollIntervalSec', { n: 20 }) },
+      { value: 30, label: t('alarmDialog.pollIntervalSec', { n: 30 }) },
+      { value: 60, label: t('alarmDialog.pollIntervalSec', { n: 60 }) },
+      { value: 120, label: t('alarmDialog.pollIntervalSec', { n: 120 }) },
+    ]);
 
 
     // 创建一个响应式的本地数据副本，而不是直接使用props的引用 cronNum cronJg
@@ -351,7 +353,7 @@ export default defineComponent({
         console.log("保存成功");
         ElMessage({
           showClose: true,
-          message: "修改成功",
+          message: t('common.modifySuccess'),
           type: "success",
         });
         context.emit("reload");

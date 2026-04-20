@@ -6,10 +6,10 @@
         <el-card>
           <template #header>
             <div class="card-content">
-              <el-text type="info" tag="b">结构分路</el-text>
+              <el-text type="info" tag="b">{{ $t('treeNode.structurePath') }}</el-text>
               <el-button-group>
-                <el-button @click="newNodeClick">新增</el-button>
-                <el-button @click="saveNodeClick">保存</el-button>
+                <el-button @click="newNodeClick">{{ $t('treeNode.append') }}</el-button>
+                <el-button @click="saveNodeClick">{{ $t('common.save') }}</el-button>
               </el-button-group>
             </div>
           </template>
@@ -21,13 +21,13 @@
                   <div>
                     <el-button-group>
                       <el-button  size="small" @click="nodeRename(data)">
-                        重命名
+                        {{ $t('treeNode.rename') }}
                       </el-button>
                       <el-button  size="small" @click="nodeAppend(data)">
-                        新增
+                        {{ $t('treeNode.append') }}
                       </el-button>
                       <el-button  size="small" @click="nodeRemove(node, data)">
-                        删除
+                        {{ $t('common.delete') }}
                       </el-button>
                     </el-button-group>
 
@@ -43,9 +43,9 @@
         <el-main>
           <el-table height="100%" :data="tableData" v-loading="loading" border stripe @row-click="rowClick"
                     style="width: 100%">
-            <el-table-column prop="deviceInstancePo.name" label="设备名称" width="150" header-align="center"
+            <el-table-column prop="deviceInstancePo.name" :label="$t('device.deviceName')" width="150" header-align="center"
                              align="center"/>
-            <el-table-column prop="deviceInstancePo.name" label="产品名称" width="150" header-align="center"
+            <el-table-column prop="deviceInstancePo.name" :label="$t('device.productName')" width="150" header-align="center"
                              align="center"/>
 <!--            <el-table-column label="产品类型" header-align="center" align="center" width="100">
               <template #default="scope">
@@ -54,18 +54,18 @@
                 <el-tag v-if="scope.row.productPo.type == 'children'">子设备</el-tag>
               </template>
             </el-table-column>-->
-            <el-table-column prop="gatewayPo.name" label="关联网关" width="200" header-align="center" align="center"/>
-            <el-table-column prop="sysDimensionPo.name" label="所属机构" width="150" header-align="center"
+            <el-table-column prop="gatewayPo.name" :label="$t('device.relatedGateway')" width="200" header-align="center" align="center"/>
+            <el-table-column prop="sysDimensionPo.name" :label="$t('device.org')" width="150" header-align="center"
                              align="center"/>
-            <el-table-column prop="sysUserPo.username" label="创建人" width="100" header-align="center"
+            <el-table-column prop="sysUserPo.username" :label="$t('common.creator')" width="100" header-align="center"
                              align="center"/>
-            <el-table-column prop="deviceInstancePo.createTime" label="创建时间" width="200" header-align="center"
+            <el-table-column prop="deviceInstancePo.createTime" :label="$t('common.createTime')" width="200" header-align="center"
                              align="center"/>
-            <el-table-column label="状态" header-align="center" align="center" width="100">
+            <el-table-column :label="$t('common.status')" header-align="center" align="center" width="100">
               <template #default="scope">
                 <el-tag style="margin-left: 5px"
                         :type="scope.row.deviceInstancePo.status=='offline'?'info':'success'">
-                  {{ scope.row.deviceInstancePo.status == 'offline' ? '离线' : '在线' }}
+                  {{ scope.row.deviceInstancePo.status == 'offline' ? $t('common.offline') : $t('common.online') }}
                 </el-tag>
               </template>
             </el-table-column>
@@ -107,15 +107,15 @@
       </el-container>
     </el-container>
   </div>
-  <el-dialog v-model="renameDialog.status" title="修改名称">
+  <el-dialog v-model="renameDialog.status" :title="$t('treeNode.renameTitle')">
     <el-form :model="renameDialog">
-      <el-form-item label="节点名称">
+      <el-form-item :label="$t('treeNode.nodeName')">
         <el-input v-model="renameDialog.node.name" />
       </el-form-item>
     </el-form>
     <template #footer>
       <div class="right-flex-contain">
-        <el-button @click="nodeRenameClick">保存</el-button>
+        <el-button @click="nodeRenameClick">{{ $t('common.save') }}</el-button>
       </div>
     </template>
   </el-dialog>
@@ -124,6 +124,7 @@
 import {defineComponent, reactive, ref, getCurrentInstance, onMounted, toRef} from "vue"
 import {useRouter} from "vue-router";
 import {ElMessageBox,ElMessage} from "element-plus";
+import { useI18n } from "vue-i18n";
 
 export default defineComponent({
   name: "DeviceChildren",
@@ -135,6 +136,7 @@ export default defineComponent({
   },
   emits: ['delChildrenClick', 'addChildrenClick','updateMeta'],
   setup(props, context) {
+    const { t } = useI18n()
     const {proxy} = getCurrentInstance()
     const data = toRef(props, 'deviceData')
     const tableData = reactive([])
@@ -184,18 +186,18 @@ export default defineComponent({
       if(selectTree.size==1){
         context.emit('addChildrenClick',Array.from(selectTree)[0])
       }else{
-        ElMessage.error('请先选择一个节点')
+        ElMessage.error(t('treeNode.noNodeSelected'))
       }
 
     }
     const deleteClick = (row, index) => {
       console.log('deleteClick')
       ElMessageBox.confirm(
-          '确定是否需要删除?',
-          '提示',
+          t('common.confirmDelete'),
+          t('common.tip'),
           {
-            confirmButtonText: '删除',
-            cancelButtonText: '取消',
+            confirmButtonText: t('common.delete'),
+            cancelButtonText: t('common.cancel'),
             type: 'warning',
           }
       )

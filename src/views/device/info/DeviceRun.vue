@@ -20,6 +20,7 @@
 <script>
     import { toRef,ref,reactive,defineComponent,getCurrentInstance,onMounted,watch,computed } from "vue";
     import DeviceCard from '@/components/device/DeviceCard.vue'
+    import { useI18n } from "vue-i18n"
     export default defineComponent({
         name: "DeviceRun",
         components:{
@@ -38,6 +39,7 @@
         },
         emits:['readProperty','writeProperty','propertyClick'],
         setup(props,context){
+            const { t } = useI18n()
             const deviceMeta=toRef(props,'deviceMeta')
             const propertyTags=reactive([])
             const hD=toRef(props,'historyData')
@@ -49,7 +51,7 @@
                 metas.length=0
                 metas.push(...deviceMeta.value.metadata.properties)
                 propertyTags.length=0
-                propertyTags.push({name:'全部',selected:true})
+                propertyTags.push({name:t('common.all'),selected:true})
                 propertyTags.push(...deviceMeta.value.metadata.propertyTags)
             }
             const showMeas=computed(()=>{

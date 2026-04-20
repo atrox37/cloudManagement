@@ -4,7 +4,7 @@
             <el-main>
                 <el-table :data="tableData.records" stripe border >
                     <el-table-column prop="ts"
-                                     label="时间"
+                                     :label="$t('deviceLog.time')"
                                      header-align="center"
                                      align="center"
                                      width="320">
@@ -13,15 +13,15 @@
                           <el-date-picker
                             v-model="pickTime"
                             type="daterange"
-                            range-separator="至"
-                            start-placeholder="开始"
-                            end-placeholder="结束"
+                            :range-separator="$t('common.to')"
+                            :start-placeholder="$t('common.start')"
+                            :end-placeholder="$t('common.end')"
                             size="small" />
                         </div>
                       </template>
                     </el-table-column>
                     <el-table-column prop="messageType"
-                                     label="类型"
+                                     :label="$t('deviceLog.type')"
                                      width="100"
                                      align="center"
                                      header-align="center">
@@ -32,12 +32,12 @@
                         </template>
                     </el-table-column>
                     <el-table-column prop="messageId"
-                                     label="消息ID"
+                                     :label="$t('deviceLog.messageId')"
                                      width="200"
                                      align="center"
                                      header-align="center"/>
                     <el-table-column prop="log"
-                                     label="日志"
+                                     :label="$t('deviceLog.log')"
                                      align="center"
                                      header-align="center"/>
                 </el-table>
@@ -64,6 +64,7 @@
     import {defineComponent, toRef, ref, watch, onMounted, reactive} from "vue"
     import {messageTypes} from '@/model/device/DeviceMessage';
     import {initPickTime,formatTs} from "@/util/common/pickTime";
+    import { useI18n } from "vue-i18n";
 
     export default defineComponent({
         name: "DeviceLog",
@@ -76,6 +77,7 @@
         },
         emits:['pageRequest'],
         setup(props,context){
+            const { t } = useI18n()
             const msgType=ref(messageTypes)
             const tableData=toRef(props,'data')
             const terms=reactive([])

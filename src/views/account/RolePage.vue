@@ -2,9 +2,9 @@
   <el-container>
     <el-main>
       <el-table ref="elTable" :data="records" border highlight-current-row @current-change="handleCurrentChange">
-        <el-table-column prop="sysRolePo.roleName" label="角色名称" align="center" min-width="100"/>
-        <el-table-column prop="sysDimensionPo.name" label="组织机构" align="center" min-width="100"/>
-        <el-table-column prop="sysRolePo.updateTime" label="更新时间" align="center" min-width="100"/>
+        <el-table-column prop="sysRolePo.roleName" :label="$t('role.roleName')" align="center" min-width="100"/>
+        <el-table-column prop="sysDimensionPo.name" :label="$t('role.orgName')" align="center" min-width="100"/>
+        <el-table-column prop="sysRolePo.updateTime" :label="$t('role.updateTime')" align="center" min-width="100"/>
 
         <el-table-column>
           <template #header>
@@ -27,7 +27,7 @@
           </template>
         </el-table-column>
         <template #empty>
-          <el-empty description="暂无数据"/>
+          <el-empty :description="$t('common.noData')"/>
         </template>
       </el-table>
 
@@ -48,12 +48,14 @@ import {defineComponent, ref, reactive, getCurrentInstance, toRef, onMounted} fr
 import RoleDialog from '@/components/role/RoleDialog.vue';
 import RoleMenuDrawer from "@/components/role/RoleMenuDrawer.vue";
 import {ElMessage} from "element-plus";
+import { useI18n } from 'vue-i18n'
 
 export default defineComponent({
   name: "RolePage",
   components: {RoleDialog, RoleMenuDrawer},
   setup(props, context) {
     const {proxy} = getCurrentInstance()
+    const { t } = useI18n()
     const roleDialogStatus = ref(false)
     let currentRow = ref({})
     let drawer = ref(false);
@@ -79,7 +81,7 @@ export default defineComponent({
       proxy.$http.roleDelete({id: row.sysRolePo.id}).then(value => {
         ElMessage({
           showClose: true,
-          message: '修改成功',
+          message: t('common.modifySuccess'),
           type: 'success',
         })
         refreshListener()
@@ -97,7 +99,6 @@ export default defineComponent({
       drawer.value = false
       console.log('close')
       pageApi()
-      //resetApi()
     }
     const deleteClick = (row, index) => {
       console.log('deleteClick')
@@ -113,10 +114,6 @@ export default defineComponent({
       pageApi()
     }
     const handleCurrentChange = (data) => {
-      /*apiMenuAll(data!=null?{roleId: data.id}:{})
-      if(data!=null){
-          apiUserPermission({roleId: data.id})
-      }*/
       if(data!=null){
         currentRow.value = data
         drawer.value = true;

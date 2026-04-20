@@ -13,7 +13,7 @@
               check-strictly
               :render-after-expand="false">
               <template #empty>
-                <el-empty description="暂无数据" />
+                <el-empty :description="$t('common.noData')" />
               </template>
             </el-tree-select>
             <el-select v-if="item.type == 'select'" v-model="item.value" style="width:200px">
@@ -22,8 +22,8 @@
             </el-select>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="queryClick">查询</el-button>
-            <el-button type="info" @click="resetClick">重置</el-button>
+            <el-button type="primary" @click="queryClick">{{ $t('common.search') }}</el-button>
+            <el-button type="info" @click="resetClick">{{ $t('common.reset') }}</el-button>
           </el-form-item>
         </el-form>
       </div>
@@ -39,20 +39,20 @@
       >
         <el-table-column
           prop="templatePo.name"
-          label="模板名称"
+          :label="$t('notify.templateName')"
           width="200"
           header-align="center"
           align="center"
         />
         <el-table-column
           prop="configPo.name"
-          label="通知配置"
+          :label="$t('notify.notifyConfig')"
           width="150"
           header-align="center"
           align="center"
         />
         <el-table-column
-          label="模板类型"
+          :label="$t('notify.templateType')"
           width="100"
           header-align="center"
           align="center"
@@ -63,27 +63,27 @@
         </el-table-column>
         <el-table-column
           prop="sysUserPo.username"
-          label="创建人"
+          :label="$t('notify.creator')"
           width="100"
           header-align="center"
           align="center"
         />
         <el-table-column
           prop="sysDimensionPo.name"
-          label="所属机构"
+          :label="$t('notify.org')"
           width="180"
           header-align="center"
           align="center"
         />
         <el-table-column
           prop="templatePo.createTime"
-          label="创建时间"
+          :label="$t('notify.createTime')"
           header-align="center"
           align="center"
         />
         <el-table-column
           prop="templatePo.updateTime"
-          label="更新时间"
+          :label="$t('notify.updateTime')"
           header-align="center"
           align="center"
         />
@@ -135,12 +135,12 @@
     @save="handleTemplateSave"
   ></NotifyTemplateDetailDialog>
 
-  <el-dialog v-model="deleteDialg.state" title="删除">
-    <span>是否删除 '{{ deleteDialg.template?.name }}' 模板</span>
+  <el-dialog v-model="deleteDialg.state" :title="$t('notify.deleteTitle')">
+    <span>{{ $t('notify.deleteConfirmMsg', { name: deleteDialg.template?.name }) }}</span>
     <template #footer>
       <div class="dialog-footer">
-        <el-button @click="deleteDialg.state = false">取消</el-button>
-        <el-button type="primary" @click="deleteApi">确定</el-button>
+        <el-button @click="deleteDialg.state = false">{{ $t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="deleteApi">{{ $t('common.confirm') }}</el-button>
       </div>
     </template>
   </el-dialog>
@@ -162,12 +162,14 @@ import NotifyTemplateDialog from "@/components/notify/NotifyTemplateDialog.vue";
 import NotifyTemplateDetailDialog from "@/components/notify/NotifyTemplateDetailDialog.vue";
 import { useRouter } from "vue-router";
 import { notifyPage, notifyTemplateUpdate } from "@/util/request";
+import { useI18n } from 'vue-i18n'
 export default defineComponent({
   name: "NotifyTemplatePage",
   components: { NotifyTemplateDialog, NotifyTemplateDetailDialog },
   setup() {
     const { proxy } = getCurrentInstance();
     const router = useRouter();
+    const { t } = useI18n()
     const searchParams = reactive([]);
     const tableData = reactive([]);
     const loading = ref(true);
@@ -182,11 +184,9 @@ export default defineComponent({
     const notifyConfigAll = reactive([]);
     const templateDetailDialogRef = ref(null);
     const deleteDialg=reactive({state:false,template:{}})
-    // const templateDetailData=reactive({state:false,loading:false,name:'',content:'',id:null})
-    // const selectTemplateId = ref(null);
     const resetParam = () => {
       searchParams.length = 0;
-      searchParams.push({ column: "t.name", value: "", termType: "like", label: "名称", type: "input" });
+      searchParams.push({ column: "t.name", value: "", termType: "like", label: t('notify.nameLabel'), type: "input" });
       console.log("resetParam");
     };
 
@@ -233,7 +233,7 @@ export default defineComponent({
     };
     const deleteApi=()=>{
       proxy.$http.notifyTemplateDelete({id:deleteDialg.template.id}).then(value=>{
-        ElMessage.success('操作成功');
+        ElMessage.success(t('common.operationSuccess'));
         reload()
       },error=>{
         reload()
@@ -256,14 +256,7 @@ export default defineComponent({
     };
     const editClick = (row) => {
       console.log("rowclick-->" + JSON.stringify(row));
-      // 弹出模板详情对话框
       templateDetailDialogRef.value.handleOpen(row.templatePo.id);
-
-      // templateDetailData.id = row.templatePo.id
-      // templateDetailData.name = row.templatePo.name || ''
-      // templateDetailData.content = row.templatePo.content || ''
-      // templateDetailData.loading = false
-      // selectTemplateId.value = row.templatePo.id;
     };
     const deleteClick = (row, index) => {
       console.log("deleteClick1111");
@@ -299,7 +292,6 @@ export default defineComponent({
     };
 
     const handleTemplateSave = () => {
-      // 保存模板成功后，重新获取表格数据
       console.log("handleTemplateSave");
       pageApi();
     };
@@ -313,7 +305,6 @@ export default defineComponent({
       newNotifyTempate,
       notifyConfigAll,
       templateDetailDialogRef,
-      // templateDetailData,
       loading,
       tableData,
       pageTotal,
@@ -326,13 +317,10 @@ export default defineComponent({
       editClick,
       deleteClick,
       createClick,
-      // updateTemplate,
-      // cancelTemplateDetail,
       pageChange,
       handleSelectionChange,
       handleTemplateSave,
       deleteApi
-      // selectTemplateId,
     };
   },
 });

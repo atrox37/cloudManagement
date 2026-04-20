@@ -1,26 +1,26 @@
-﻿<template>
+<template>
   <div class="tab-pan-content">
     <el-table :data="data.rules">
       <el-table-column
         prop="name"
-        label="规则名称"
+        :label="$t('tabProductRule.ruleName')"
         width="200"
         header-align="center"
         align="center"
       />
-      <el-table-column label="轮询周期" header-align="center" align="center">
+      <el-table-column :label="$t('tabProductRule.pollInterval')" header-align="center" align="center">
         <template #default="scope">
           {{ handlerCroe(scope.row) }}
         </template>
       </el-table-column>
-      <el-table-column label="阈值次数" header-align="center" align="center">
+      <el-table-column :label="$t('tabProductRule.thresholdCount')" header-align="center" align="center">
         <template #default="scope">
           {{ handerCount(scope.row) }}
         </template>
       </el-table-column>
 
       <el-table-column
-        label="条件"
+        :label="$t('tabProductRule.condition')"
         min-width="240"
         header-align="center"
         align="center"
@@ -32,22 +32,22 @@
       <el-table-column header-align="center" align="center" min-width="200">
         <template #header>
           <el-button @click="add()" class="login_btn" type="primary"
-            ><el-icon><Plus /></el-icon>添加
+            ><el-icon><Plus /></el-icon>{{ $t('common.add') }}
           </el-button>
           <el-button @click="saveAll" class="login_btn" type="primary"
-            ><el-icon><Finished /></el-icon>保存
+            ><el-icon><Finished /></el-icon>{{ $t('common.save') }}
           </el-button>
         </template>
         <template #default="scope">
           <el-button-group>
-            <el-button
+              <el-button
               @click="edit(scope.row, scope.$index)"
               class="login_btn"
               type="primary"
             >
-              修改
+              {{ $t('common.edit') }}
             </el-button>
-            <el-button @click="deleteClick(scope.$index)">删除</el-button>
+            <el-button @click="deleteClick(scope.$index)">{{ $t('common.delete') }}</el-button>
           </el-button-group>
         </template>
       </el-table-column>
@@ -69,6 +69,7 @@ import cronstrue from "cronstrue/i18n";
 import { productParse } from "@/util/request";
 import { Finished, Plus } from "@element-plus/icons-vue";
 import { randomIds } from "@/util/common/randomUtil.js";
+import { useI18n } from "vue-i18n";
 
 export default defineComponent({
   name: "TabProductRule",
@@ -81,6 +82,7 @@ export default defineComponent({
   },
   emits: ["open"],
   setup(props, context) {
+    const { t } = useI18n();
     const { proxy } = getCurrentInstance();
     const ruleData = reactive({
       status: false,
@@ -93,7 +95,7 @@ export default defineComponent({
 
     const handlerCroe = (row) =>
       cronstrue.toString(row.ruleData.cron, { locale: "zh_CN" });
-    const handerCount = (row) => "阈值" + row.ruleData.count + "次";
+    const handerCount = (row) => t('tabProductRule.thresholdN', { count: row.ruleData.count });
 
     // 条件列：将 SQL 中的占位符用参数替换，并将属性 id 替换为 name
     const formatSql = (row) => {
@@ -142,8 +144,7 @@ export default defineComponent({
           sql = sql.replace(re, idNameMap[id]);
         });
 
-        // and/or 美化为中文
-        sql = sql.replace(/\band\b/gi, " 且 ").replace(/\bor\b/gi, " 或 ");
+        sql = sql.replace(/\band\b/gi, ` ${t('common.and')} `).replace(/\bor\b/gi, ` ${t('common.or')} `);
         return sql.trim();
       } catch (e) {
         return String(e);

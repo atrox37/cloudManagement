@@ -1,17 +1,17 @@
 <template>
-    <el-dialog v-model="dialogStatus" :title="(dataModel==null||dataModel.id==null) ? '新增':'编辑'" @close="cancelClick" width="30%">
+    <el-dialog v-model="dialogStatus" :title="(dataModel==null||dataModel.id==null) ? $t('organization.addTitle') : $t('organization.editTitle')" @close="cancelClick" width="30%">
         <el-form :model="dataModel" label-width="80px">
-            <el-form-item label="组织ID" v-if="(dataModel!=null&&dataModel.id!=null)">
+            <el-form-item :label="$t('organization.orgId')" v-if="(dataModel!=null&&dataModel.id!=null)">
                 <el-input v-model="dataModel.id" disabled />
             </el-form-item>
-            <el-form-item label="组织名称">
+            <el-form-item :label="$t('organization.orgName')">
                 <el-input v-model="dataModel.name"/>
             </el-form-item>
 
         </el-form>
         <template #footer>
-            <el-button @click="cancelClick">取消</el-button>
-            <el-button type="primary" @click="submitClick" :loading="loadData">保存</el-button>
+            <el-button @click="cancelClick">{{ $t('common.cancel') }}</el-button>
+            <el-button type="primary" @click="submitClick" :loading="loadData">{{ $t('common.save') }}</el-button>
         </template>
     </el-dialog>
 </template>

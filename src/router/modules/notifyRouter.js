@@ -1,28 +1,28 @@
 
 const notifyRouter={
     path: "/notify",
-    name: "通知组件",
+    name: "notifyGroup",
     component: ()=>import('@/views/Index.vue'),
     redirect: {path: '/notifyConfigPage'},
     children:[
         {
             path: "/notifyConfigPage",
-            name: "通知列表",
+            name: "notifyList",
             component: () => import("@/views/notify/NotifyPage.vue")
         },
         {
             path: "/notifyAdd",
-            name:"通知配置",
+            name:"notifyAdd",
             component: () => import("@/views/notify/add/AddNotifyConfig.vue")
         },
         {
             path: "/notifyTemplatePage",
-            name: "通知模板",
+            name: "notifyTemplateList",
             component: () => import("@/views/notify/NotifyTemplatePage.vue")
         },
         {
             path: "/notifyTemplateInfo",
-            name: "模板详情",
+            name: "notifyTemplateDetail",
             component: () => import("@/views/notify/template/NotifyTemplateInfo.vue")
         }
     ]

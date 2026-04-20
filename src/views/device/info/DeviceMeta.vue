@@ -1,14 +1,13 @@
 <template>
     <el-tabs type="border-card" style="overflow: hidden;height: 100%" addable @tab-add="saveMeta" @tab-change="elTabChange">
         <template #default>
-            <el-tab-pane label="属性">
+            <el-tab-pane :label="$t('deviceMeta.tabProperties')">
 
                 <el-table :data="filterProperty" stripe >
-                    <!-- <el-table-column prop="id" label="Id" width="180" /> -->
-                    <el-table-column prop="name" label="名称" width="180" />
-                    <el-table-column prop="valueType.type" label="类型" width="180" />
-                    <el-table-column prop="valueType.unit" label="单位" width="180" />
-                    <el-table-column label="标签" width="180">
+                    <el-table-column prop="name" :label="$t('deviceMeta.name')" width="180" />
+                    <el-table-column prop="valueType.type" :label="$t('deviceMeta.type')" width="180" />
+                    <el-table-column prop="valueType.unit" :label="$t('deviceMeta.unit')" width="180" />
+                    <el-table-column :label="$t('deviceMeta.tag')" width="180">
                         <template #default="scope">
                             {{getTagName(scope.row.tagId)}}
                         </template>
@@ -41,11 +40,10 @@
                 </el-space>
 
         </el-tab-pane>
-        <el-tab-pane label="功能">
+        <el-tab-pane :label="$t('deviceMeta.tabFunctions')">
             <el-table :data="deviceMeta.metadata.functions" stripe>
-                <!-- <el-table-column prop="id" label="Id" width="180" /> -->
-                <el-table-column prop="name" label="名称" width="180" />
-                <el-table-column prop="async" label="是否异步" width="180" />
+                <el-table-column prop="name" :label="$t('deviceMeta.name')" width="180" />
+                <el-table-column prop="async" :label="$t('deviceMeta.isAsync')" width="180" />
                 <el-table-column>
                     <template #header>
                         <div class="right-flex-contain">
@@ -68,19 +66,19 @@
         </template>
 
         <template #add-icon>
-            <el-icon size="20"><Finished /></el-icon>  <el-text tag="b" size="default">保存</el-text>
+            <el-icon size="20"><Finished /></el-icon>  <el-text tag="b" size="default">{{ $t('common.save') }}</el-text>
         </template>
     </el-tabs>
-    <el-drawer v-if="selectTab=='0'&&selectMetaIndex>=0" v-model="property_draw" :before-close="propertyDrawClose" :size="'25%'" :title="'属性'">
+    <el-drawer v-if="selectTab=='0'&&selectMetaIndex>=0" v-model="property_draw" :before-close="propertyDrawClose" :size="'25%'" :title="$t('deviceMeta.propertyDrawer')">
         <template #default>
             <el-form :data="deviceMeta.metadata.properties[selectMetaIndex]" label-position="top">
-                <el-form-item label="属性ID">
+                <el-form-item :label="$t('deviceMeta.propertyId')">
                     <el-input v-model="deviceMeta.metadata.properties[selectMetaIndex].id" :disabled="!(deviceMeta.metadata.properties[selectMetaIndex].create!=undefined&&deviceMeta.metadata.properties[selectMetaIndex].create)"/>
                 </el-form-item>
-                <el-form-item label="属性名称">
+                <el-form-item :label="$t('deviceMeta.propertyName')">
                     <el-input v-model="deviceMeta.metadata.properties[selectMetaIndex].name"/>
                 </el-form-item>
-                <el-form-item label="数据类型">
+                <el-form-item :label="$t('deviceMeta.dataType')">
                     <el-select v-model="deviceMeta.metadata.properties[selectMetaIndex].valueType.type" placeholder="Select" @change="propertyTypeChange">
                         <el-option
                                 v-for="(item,index) in deviceUnit"
@@ -90,23 +88,21 @@
                         />
                     </el-select>
                 </el-form-item>
-                <el-form-item label="小数位" v-if="deviceMeta.metadata.properties[selectMetaIndex].valueType.type=='number'">
+                <el-form-item :label="$t('deviceMeta.decimals')" v-if="deviceMeta.metadata.properties[selectMetaIndex].valueType.type=='number'">
                     <el-input-number v-model="deviceMeta.metadata.properties[selectMetaIndex].valueType.extra.point"></el-input-number>
                 </el-form-item>
-                <el-form-item label="枚举值" v-if="deviceMeta.metadata.properties[selectMetaIndex].valueType.type=='enum'">
+                <el-form-item :label="$t('deviceMeta.enumValue')" v-if="deviceMeta.metadata.properties[selectMetaIndex].valueType.type=='enum'">
                     <el-table :data="deviceMeta.metadata.properties[selectMetaIndex].valueType.extra.enumData" border>
                         <el-table-column width="140" header-align="center" align="center">
                             <template #header="scope">
-
-
                                 <el-popover
                                         placement="top-start"
                                         :width="150"
                                         trigger="hover"
-                                        content="只能输入数字或英文">
+                                        :content="$t('deviceMeta.numberOnly')">
                                     <template #reference>
                                         <div class="center-flex-contain">
-                                            <span>数据值</span>
+                                            <span>{{ $t('deviceMeta.dataValue') }}</span>
                                             <el-icon size="15"><Warning /></el-icon>
                                         </div>
                                     </template>
@@ -116,7 +112,7 @@
                                 <el-input v-model="scope.row.key" @change="(value)=>propertyEnumTypeValueChange(value,scope.$index)"></el-input>
                             </template>
                         </el-table-column>
-                        <el-table-column label="枚举值" width="180" header-align="center" align="center">
+                        <el-table-column :label="$t('deviceMeta.enumValue')" width="180" header-align="center" align="center">
                             <template #default="scope">
                                 <el-input v-model="scope.row.value"></el-input>
                             </template>
@@ -141,7 +137,7 @@
                         </el-table-column>
                     </el-table>
                 </el-form-item>
-                <el-form-item label="数据单位">
+                <el-form-item :label="$t('deviceMeta.dataUnit')">
                     <el-select v-model="deviceMeta.metadata.properties[selectMetaIndex].valueType.unit" placeholder="Select">
                         <el-option
                                 v-for="(item,index) in deviceType"
@@ -151,7 +147,7 @@
                         />
                     </el-select>
                 </el-form-item>
-                <el-form-item label="读写">
+                <el-form-item :label="$t('deviceMeta.readWrite')">
                   <el-segmented
                       v-model="deviceMeta.metadata.properties[selectMetaIndex].rw"
                       :options="propertyRW"
@@ -161,19 +157,19 @@
             </el-form>
         </template>
     </el-drawer>
-    <el-drawer v-if="selectTab=='1'&&selectMetaIndex>=0" v-model="func_draw" :before-close="funcDrawClose" :size="func_args_draw?'30%':'26%'" :title="'功能'">
+    <el-drawer v-if="selectTab=='1'&&selectMetaIndex>=0" v-model="func_draw" :before-close="funcDrawClose" :size="func_args_draw?'30%':'26%'" :title="$t('deviceMeta.functionDrawer')">
         <template #default>
             <el-form :data="deviceMeta.metadata.functions[selectMetaIndex]" label-position="top">
-                <el-form-item label="功能ID">
+                <el-form-item :label="$t('deviceMeta.functionId')">
                     <el-input v-model="deviceMeta.metadata.functions[selectMetaIndex].id" :disabled="!(deviceMeta.metadata.functions[selectMetaIndex].create!=undefined&&deviceMeta.metadata.functions[selectMetaIndex].create)"/>
                 </el-form-item>
-                <el-form-item label="名称">
+                <el-form-item :label="$t('deviceMeta.name')">
                     <el-input v-model="deviceMeta.metadata.functions[selectMetaIndex].name"/>
                 </el-form-item>
-                <el-form-item label="参数">
+                <el-form-item :label="$t('deviceMeta.functionParam')">
                     <el-table :data="deviceMeta.metadata.functions[selectMetaIndex].inputs" border>
-                        <el-table-column prop="id" label="标识" width="80" header-align="center" align="center"/>
-                        <el-table-column prop="name" label="名称" width="140" header-align="center" align="center"/>
+                        <el-table-column prop="id" :label="$t('deviceMeta.identifier')" width="80" header-align="center" align="center"/>
+                        <el-table-column prop="name" :label="$t('deviceMeta.name')" width="140" header-align="center" align="center"/>
                         <el-table-column>
                             <template #header>
                                 <div class="center-flex-contain">
@@ -195,10 +191,10 @@
                         </el-table-column>
                     </el-table>
                 </el-form-item>
-                <el-form-item label="结果">
+                <el-form-item :label="$t('deviceMeta.result')">
                     <el-table :data="deviceMeta.metadata.functions[selectMetaIndex].outputs" border>
-                        <el-table-column prop="id" label="标识" width="80" header-align="center" align="center"/>
-                        <el-table-column prop="name" label="名称" width="140" header-align="center" align="center"/>
+                        <el-table-column prop="id" :label="$t('deviceMeta.identifier')" width="80" header-align="center" align="center"/>
+                        <el-table-column prop="name" :label="$t('deviceMeta.name')" width="140" header-align="center" align="center"/>
                         <el-table-column>
                             <template #header>
                                 <div class="center-flex-contain">
@@ -223,17 +219,17 @@
         </template>
     </el-drawer>
 
-    <el-drawer v-if="selectMetaIndex>=0&&selectArgIndex>=0" :before-close="funcDrawArgClose" v-model="func_args_draw" :title="'参数信息'"  :size="'20%'">
+    <el-drawer v-if="selectMetaIndex>=0&&selectArgIndex>=0" :before-close="funcDrawArgClose" v-model="func_args_draw" :title="$t('deviceMeta.paramInfo')"  :size="'20%'">
         <template #default>
             <el-form :model="selectFunArg" label-position="top">
-                <el-form-item label="参数ID">
+                <el-form-item :label="$t('deviceMeta.paramId')">
                     <el-input v-model="selectFunArg.id"/>
                 </el-form-item>
-                <el-form-item label="参数名">
+                <el-form-item :label="$t('deviceMeta.paramName')">
                     <el-input v-model="selectFunArg.name"/>
                 </el-form-item>
                 <el-form :inline="false" :model="selectFunArg">
-                    <el-form-item label="类型">
+                    <el-form-item :label="$t('deviceMeta.type')">
                         <el-select v-model="selectFunArg.valueType.type" placeholder="Select" size="default">
                             <el-option
                                     v-for="(item,index) in deviceUnit"
@@ -243,14 +239,14 @@
                             />
                         </el-select>
                     </el-form-item>
-                    <el-form-item v-if="selectArgIndex>=0&&selectFunArg.valueType.type == 'enum'" label="枚举值">
+                    <el-form-item v-if="selectArgIndex>=0&&selectFunArg.valueType.type == 'enum'" :label="$t('deviceMeta.enumValue')">
                         <el-table :data="selectFunArg.valueType.extra.enumData" border>
-                            <el-table-column prop="key" label="参数值" width="80" header-align="center" align="center">
+                            <el-table-column prop="key" :label="$t('deviceMeta.paramValue')" width="80" header-align="center" align="center">
                                 <template #default="scope">
                                     <el-input v-model="scope.row.key"></el-input>
                                 </template>
                             </el-table-column>
-                            <el-table-column prop="value" label="枚举值" width="140" header-align="center" align="center">
+                            <el-table-column prop="value" :label="$t('deviceMeta.enumValue')" width="140" header-align="center" align="center">
                                 <template #default="scope">
                                     <el-input v-model="scope.row.value"></el-input>
                                 </template>
@@ -275,7 +271,7 @@
                             </el-table-column>
                         </el-table>
                     </el-form-item>
-                    <el-form-item label="单位">
+                    <el-form-item :label="$t('deviceMeta.unit')">
                         <el-select v-model="selectFunArg.valueType.unit" placeholder="Select" size="default">
                             <el-option
                                     v-for="item in deviceType"
@@ -289,19 +285,20 @@
             </el-form>
         </template>
     </el-drawer>
-    <el-dialog v-model="renameTag" title="修改属性标签" width="30%">
+    <el-dialog v-model="renameTag" :title="$t('deviceMeta.modifyTagTitle')" width="30%">
         <el-input v-model="renameName"></el-input>
         <template #footer>
-            <el-button @click="renameTag = false" type="warning">删除</el-button>
-            <el-button @click="renameTag = false">取消</el-button>
-            <el-button @click="()=>{deviceMeta.metadata.propertyTags[selectTagId.index].name=renameName;renameTag=false;}">确定</el-button>
+            <el-button @click="renameTag = false" type="warning">{{ $t('common.delete') }}</el-button>
+            <el-button @click="renameTag = false">{{ $t('common.cancel') }}</el-button>
+            <el-button @click="()=>{deviceMeta.metadata.propertyTags[selectTagId.index].name=renameName;renameTag=false;}">{{ $t('common.confirm') }}</el-button>
         </template>
     </el-dialog>
 </template>
 
 <script>
-    import {deviceTypes,devicePropertyRW} from "@/model/device/DeviceUnit";
+    import {deviceTypes} from "@/model/device/DeviceUnit";
     import { toRef,ref,reactive,defineComponent,computed,onMounted,watch } from "vue";
+    import { useI18n } from "vue-i18n";
     export default defineComponent({
         name: "DeviceMeta",
         props:{
@@ -317,8 +314,14 @@
         },
         emits:["updateClick"],
         setup(props,context) {
+            const { t } = useI18n()
             const deviceType=ref(deviceTypes)
-            const propertyRW=ref(devicePropertyRW)
+            const propertyRW = computed(() => [
+              { label: t('deviceMeta.rwRead'),      value: 'read'      },
+              { label: t('deviceMeta.rwWrite'),     value: 'write'     },
+              { label: t('deviceMeta.rwReadWrite'), value: 'readwrite' },
+              { label: t('deviceMeta.rwNone'),      value: 'none'      },
+            ])
 
             const property_draw=ref(false)
             const func_draw=ref(false)

@@ -9,82 +9,76 @@
       >
         <el-table-column
           prop="name"
-          label="规则名称"
+          :label="$t('deviceAlarm.ruleName')"
           width="200"
           header-align="center"
           align="center"
         />
         <el-table-column
-          label="触发方式"
+          :label="$t('deviceAlarm.triggerType')"
           width="200"
           header-align="center"
           align="center"
         >
           <template #default="scope">
-            {{ scope.row.ruleData.type == "time" ? "周期" : "定时" }}
+            {{ scope.row.ruleData.type === "time" ? $t('deviceAlarm.periodic') : $t('deviceAlarm.scheduled') }}
           </template>
         </el-table-column>
-        <el-table-column label="轮询周期" header-align="center" align="center">
+        <el-table-column :label="$t('deviceAlarm.pollingPeriod')" header-align="center" align="center">
           <template #default="scope">
             {{ handlerCroe(scope.row) }}
           </template>
         </el-table-column>
-        <el-table-column label="阈值次数" header-align="center" align="center">
+        <el-table-column :label="$t('deviceAlarm.thresholdCount')" header-align="center" align="center">
           <template #default="scope">
             {{ handerCount(scope.row) }}
           </template>
         </el-table-column>
         <el-table-column
-          label="状态"
+          :label="$t('common.status')"
           width="80"
           header-align="center"
           align="center"
         >
           <template #default="scope">
-            <el-tag style="margin-left: 5px" type="warning">{{
-              scope.row.state == 1 ? "启动" : "关闭"
-            }}</el-tag>
+            <el-tag style="margin-left: 5px" type="warning">
+              {{ scope.row.state === 1 ? $t('deviceAlarm.started') : $t('deviceAlarm.stopped') }}
+            </el-tag>
           </template>
         </el-table-column>
         <el-table-column header-align="center" align="center">
           <template #header>
-            <el-button @click="add()" class="login_btn" type="primary"
-              ><el-icon><Plus /></el-icon>添加
+            <el-button class="login_btn" type="primary" @click="add()">
+              <el-icon><Plus /></el-icon>{{ $t('deviceAlarm.addRule') }}
             </el-button>
           </template>
           <template #default="scope">
             <el-button-group>
-              <el-button @click="rowClick(scope.row)" type="primary">
-                修改
+              <el-button type="primary" @click="rowClick(scope.row)">
+                {{ $t('common.edit') }}
               </el-button>
-              <el-button @click="deleteClick(scope.row)">删除</el-button>
+              <el-button @click="deleteClick(scope.row)">{{ $t('common.delete') }}</el-button>
             </el-button-group>
           </template>
         </el-table-column>
       </el-table>
     </el-main>
   </div>
-  <el-dialog v-model="deleteDialogVisible" title="提示" width="400px">
-    <span>确认删除该告警规则吗？</span>
+
+  <el-dialog v-model="deleteDialogVisible" :title="$t('common.tip')" width="400px">
+    <span>{{ $t('deviceAlarm.deleteConfirm') }}</span>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="deleteDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="confirmDelete">确认</el-button>
+        <el-button @click="deleteDialogVisible = false">{{ $t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="confirmDelete">{{ $t('common.confirm') }}</el-button>
       </span>
     </template>
   </el-dialog>
 </template>
+
 <script>
-import {
-  defineComponent,
-  watch,
-  reactive,
-  ref,
-  getCurrentInstance,
-  onMounted,
-  toRef,
-  defineExpose,
-} from "vue";
+import { defineComponent, getCurrentInstance, onMounted, reactive, ref, toRef } from "vue";
+import { useI18n } from "vue-i18n";
 import cronstrue from "cronstrue/i18n";
 import { randomIds } from "@/util/common/randomUtil.js";
 
@@ -99,6 +93,7 @@ export default defineComponent({
   emits: ["open", "updateMeta"],
   setup(props, context) {
     const { proxy } = getCurrentInstance();
+    const { t, locale } = useI18n();
     const pageData = reactive([]);
     const loading = ref(true);
     const data = toRef(props, "deviceData");
@@ -106,10 +101,11 @@ export default defineComponent({
     const deleteDialogVisible = ref(false);
     const selectedRow = ref(null);
 
-    const rowClick = (row, column, event) => {
+    const rowClick = (row) => {
       console.log("click->" + row.id);
       apiInfo(row.id);
     };
+
     const deleteClick = (row) => {
       console.log("deleteClick->" + row.id);
       selectedRow.value = row;
@@ -118,9 +114,7 @@ export default defineComponent({
 
     const confirmDelete = () => {
       const metadata = JSON.parse(JSON.stringify(deviceInfo.value.metadata));
-      metadata.rules = metadata.rules.filter(
-        (item) => item.id !== selectedRow.value.id
-      );
+      metadata.rules = metadata.rules.filter((item) => item.id !== selectedRow.value.id);
       context.emit("updateMeta", metadata);
       deleteDialogVisible.value = false;
     };
@@ -133,9 +127,12 @@ export default defineComponent({
           context.emit("open", response.data);
         });
     };
+
     const handlerCroe = (row) =>
-      cronstrue.toString(row.ruleData.cron, { locale: "zh_CN" });
-    const handerCount = (row) => "阈值" + row.ruleData.count + "次";
+      cronstrue.toString(row.ruleData.cron, { locale: locale.value === "zh-CN" ? "zh_CN" : "en" });
+
+    const handerCount = (row) => t("deviceAlarm.thresholdCountValue", { count: row.ruleData.count });
+
     const add = () => {
       console.log("add");
       const idList = (deviceInfo.value?.metadata?.rules || [])
@@ -153,14 +150,16 @@ export default defineComponent({
           ruleMeta: {
             sql: "select *",
             param: {},
-          }
+          },
         },
-        notifyDtos:[]
+        notifyDtos: [],
       });
     };
+
     onMounted(() => {
       console.log("device alarm");
     });
+
     return {
       loading,
       data,
@@ -177,6 +176,7 @@ export default defineComponent({
   },
 });
 </script>
+
 <style scoped>
 @import url("../style/tab-content.css");
 

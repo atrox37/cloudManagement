@@ -1,28 +1,27 @@
 <template>
   <el-dialog
     v-model="sourcestatus"
-    title="编辑"
+    :title="$t('alarmRule.editTitle')"
     :show-close="false"
     @close="closeHandler"
     class="gload-dialog"
   >
     <el-form label-position="left" label-width="auto" v-model="sourceAlarm">
-      <el-form-item label="名称">
+      <el-form-item :label="$t('common.name')">
         <el-input v-model="sourceAlarm.rulePo.name"></el-input>
       </el-form-item>
-      <el-form-item label="工作状态">
+      <el-form-item :label="$t('alarmRule.workState')">
         <el-radio-group size="small" v-model="sourceAlarm.rulePo.state">
-          <el-radio-button label="启动" :value="1" />
-          <el-radio-button label="关闭" :value="0" />
+          <el-radio-button :label="$t('alarmRule.stateStart')" :value="1" />
+          <el-radio-button :label="$t('alarmRule.stateClose')" :value="0" />
         </el-radio-group>
       </el-form-item>
-      <el-form-item label="触发方式">
+      <el-form-item :label="$t('alarmRule.triggerMethod')">
         <el-radio-group size="small" v-model="sourceAlarm.rulePo.ruleData.type">
           <el-radio-button label="time" value="time" />
-          <!-- <el-radio-button label="cron" value="cron" /> -->
         </el-radio-group>
       </el-form-item>
-      <el-form-item label="轮询周期">
+      <el-form-item :label="$t('alarmRule.pollInterval')">
         <el-input-number
           v-model="sourceAlarm.rulePo.ruleData.cronNum"
           size="small"
@@ -31,22 +30,22 @@
         <el-select
           size="small"
           v-model="sourceAlarm.rulePo.ruleData.cronJg"
-          style="margin-left: 10px; width: 100px"
+          style="margin-left: 10px; width: 120px"
         >
-          <el-option label="秒" value="秒"></el-option>
-          <el-option label="分" value="分"></el-option>
-          <el-option label="时" value="时"></el-option>
-          <el-option label="天" value="天"></el-option>
+          <el-option :label="$t('alarmRule.second')" value="秒"></el-option>
+          <el-option :label="$t('alarmRule.minute')" value="分"></el-option>
+          <el-option :label="$t('alarmRule.hour')" value="时"></el-option>
+          <el-option :label="$t('alarmRule.day')" value="天"></el-option>
         </el-select>
       </el-form-item>
-      <el-form-item label="阈值次数">
+      <el-form-item :label="$t('alarmRule.thresholdCount')">
         <el-input-number
           v-model="sourceAlarm.rulePo.ruleData.count"
           size="small"
           :min="0"
         ></el-input-number>
       </el-form-item>
-      <el-form-item label="触发条件">
+      <el-form-item :label="$t('alarmRule.triggerCondition')">
         <ProductAlarmItem
           ref="alarmItems"
           :productData="sourceproduct"
@@ -76,8 +75,8 @@
     </el-form>
     <template #footer>
       <div class="right-flex-contain">
-        <el-button @click="closeHandler">取消</el-button>
-        <el-button type="primary" @click="saveAlarm">保存</el-button>
+        <el-button @click="closeHandler">{{ $t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="saveAlarm">{{ $t('common.save') }}</el-button>
       </div>
     </template>
   </el-dialog>
@@ -100,6 +99,8 @@ import {
 import { Plus, Delete } from "@element-plus/icons-vue";
 import ProductAlarmItem from "@/components/product/item/ProductAlarmItem.vue";
 import { quickConvert, cronToDescription } from "@/util/cron/cronConverter";
+import { useI18n } from 'vue-i18n';
+
 export default defineComponent({
   name: "DialogAlarmRule",
   components: { ProductAlarmItem },
@@ -134,6 +135,7 @@ export default defineComponent({
   },
   emits: ["close", "reload", "save"],
   setup(props, context) {
+    const { t } = useI18n()
     const { proxy } = getCurrentInstance();
     const sourceproduct = toRef(props, "productData");
     const sourceAlarm = ref({
@@ -144,14 +146,11 @@ export default defineComponent({
     const alarmItems = ref([]);
     const notifyConfig = reactive([]);
     const alarmNotifys = ref(null);
-    // 采集时间不能大于轮询周期（采集时间单位为秒）
     const collectTimeMax = computed(() => {
       const { cronNum = 0, cronJg = "秒" } =
         sourceAlarm.value.rulePo?.ruleData || {};
-      // 转为秒
       return isNaN(Number(cronNum)) ? 0 : intervalToSeconds(cronNum, cronJg);
     });
-    // 单位换算表
     const intervalToSeconds = (val, unit) => {
       let unitFactor = 1;
       switch (unit) {
@@ -172,7 +171,7 @@ export default defineComponent({
       }
       return (parseFloat(val) || 0) * unitFactor;
     };
-        watch(
+    watch(
       () => [
         sourceAlarm.value.rulePo?.ruleData?.cronNum,
         sourceAlarm.value.rulePo?.ruleData?.cronJg,
@@ -185,7 +184,6 @@ export default defineComponent({
         }
         const cNum = parseFloat(cronNum);
         if (isNaN(cNum)) return;
-        // 采集时间单位为秒，轮询周期要转换为秒
         const cycleSec = intervalToSeconds(cNum, cronJg || "秒");
       },
       { immediate: false }
@@ -195,7 +193,6 @@ export default defineComponent({
       (value) => {
         console.log("alarmData changed:", value);
         if (value) {
-          // 深拷贝数据
           const processedData = JSON.parse(JSON.stringify(value));
           processedData.rulePo = processedData.rulePo || {};
           processedData.rulePo.ruleData = processedData.rulePo.ruleData || {};
@@ -206,12 +203,10 @@ export default defineComponent({
             processedData.rulePo.state = 0;
           }
 
-          // 如果有 cron 值，通过 handlerCroe 方法处理
           if (processedData.rulePo?.ruleData?.cron) {
             const cronDescription = cronToDescription(
               processedData.rulePo?.ruleData?.cron
             );
-            // 将处理后的描述保存到新的字段中，保留原始cron值
             const arr = cronDescription.split(" ");
             processedData.rulePo.ruleData.cronNum = parseFloat(arr[0]);
             processedData.rulePo.ruleData.cronJg = arr[1];
@@ -256,21 +251,12 @@ export default defineComponent({
     watch(sourceAlarm, (value) => {
       alarmColumn.value.length = 0;
       alarmColumn.value.push(...value.columns);
-      // ruleNotifyData.length = 0;
-      // ruleNotifyData.push(...value.ruleDtos);
       console.log("change alarmColumn");
       if (alarmNotifys.value != null) {
         console.log("sourcestatus change:");
         alarmNotifys.value.initFun();
       }
     });
-
-    /*watch(sourcestatus,value=>{
-                if(value&&alarmNotifys.value!=null){
-                    console.log("sourcestatus change:")
-                    //alarmNotifys.value.initFun()
-                }
-            })*/
 
     const apiNotifyConfig = () => {
       proxy.$http.notifyPage({ size: -1 }).then((value) => {
@@ -317,7 +303,6 @@ export default defineComponent({
       notifyConfig,
       alarmNotifys,
       alarmItems,
-      // ruleNotifyData,
       alarmColumn,
       sourceproduct,
       sourcestatus,
@@ -335,7 +320,6 @@ export default defineComponent({
 .dialog-alarm .el-dialog {
   border-radius: 20px;
   --el-dialog-width: 80%;
-  // height: 30%;
   background-color: #42b983;
 }
 .text-style {
@@ -343,7 +327,6 @@ export default defineComponent({
   font-size: 20ex;
 }
 ::v-deep .el-dialog {
-  // height: 30%;
   background-color: #42b983;
 }
 :deep(.el-dialog.gload-dialog .el-dialog__body) {

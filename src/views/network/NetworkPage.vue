@@ -13,7 +13,7 @@
               check-strictly
               :render-after-expand="false">
               <template #empty>
-                <el-empty description="暂无数据" />
+                <el-empty :description="$t('common.noData')" />
               </template>
             </el-tree-select>
             <el-select v-if="item.type == 'select'" v-model="item.value" style="width:200px">
@@ -22,30 +22,30 @@
             </el-select>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="queryClick">查询</el-button>
-            <el-button type="info" @click="resetClick">重置</el-button>
+            <el-button type="primary" @click="queryClick">{{ $t('common.search') }}</el-button>
+            <el-button type="info" @click="resetClick">{{ $t('common.reset') }}</el-button>
           </el-form-item>
         </el-form>
       </div>
 
     </el-header>
     <el-main>
-      <el-table height="100%" :data="tableData" v-loading="page.loading" @row-click="rowClick" stripe border>
-        <el-table-column prop="t1.networkConfigPo.name" label="名称" header-align="center" align="center" />
-        <el-table-column prop="t1.networkConfigPo.type" label="类型" header-align="center" align="center" />
-        <el-table-column prop="t1.sysDimensionPo.name" label="所属机构" header-align="center" align="center" />
-        <el-table-column prop="t1.networkConfigPo.updateTime" label="更新日期" header-align="center" align="center" />
-        <el-table-column label="开关状态" header-align="center" align="center">
+      <el-table height="100%" :data="tableData" v-loading="page.loading" @row-click="rowClick" stripe border :row-key="row => row.t1.networkConfigPo.id">
+        <el-table-column prop="t1.networkConfigPo.name" :label="$t('network.name')" header-align="center" align="center" />
+        <el-table-column prop="t1.networkConfigPo.type" :label="$t('network.type')" header-align="center" align="center" />
+        <el-table-column prop="t1.sysDimensionPo.name" :label="$t('network.org')" header-align="center" align="center" />
+        <el-table-column prop="t1.networkConfigPo.updateTime" :label="$t('network.updateTime')" header-align="center" align="center" />
+        <el-table-column :label="$t('network.switchStatus')" header-align="center" align="center">
           <template #default="scope">
-            <el-tag v-if="scope.row.t1.networkConfigPo.state==1" effect="success">启动</el-tag>
-            <el-tag v-if="scope.row.t1.networkConfigPo.state==0" effect="info">关闭</el-tag>
+            <el-tag v-if="scope.row.t1.networkConfigPo.state==1" effect="success" :key="`sw-${scope.row.t1.networkConfigPo.id}`">{{ $t('network.started') }}</el-tag>
+            <el-tag v-if="scope.row.t1.networkConfigPo.state==0" effect="info" :key="`sw-${scope.row.t1.networkConfigPo.id}`">{{ $t('network.stopped') }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="连接状态" header-align="center" align="center">
+        <el-table-column :label="$t('network.connectStatus')" header-align="center" align="center">
           <template #default="scope">
-            <el-tag v-if="scope.row.t2 == 'SUCCESS'" effect="success">已连接</el-tag>
-            <el-tag v-if="scope.row.t2 == 'FAIL'" effect="info" type="warning">未连接</el-tag>
-            <el-tag v-if="scope.row.t2 == 'LOADING'" effect="error" type="warning">正在连接</el-tag>
+            <el-tag v-if="scope.row.t2 == 'SUCCESS'" effect="success" :key="`conn-${scope.row.t1.networkConfigPo.id}`">{{ $t('network.connected') }}</el-tag>
+            <el-tag v-if="scope.row.t2 == 'FAIL'" effect="info" type="warning" :key="`conn-${scope.row.t1.networkConfigPo.id}`">{{ $t('network.notConnected') }}</el-tag>
+            <el-tag v-if="scope.row.t2 == 'LOADING'" effect="error" type="warning" :key="`conn-${scope.row.t1.networkConfigPo.id}`">{{ $t('network.connecting') }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column width="200">
@@ -57,10 +57,7 @@
                 </el-button>
                 <template #dropdown>
                   <el-dropdown-menu>
-<!--                    <el-dropdown-item command="MQTT_SERVER">MQTT服务组件</el-dropdown-item>
-                    <el-dropdown-item command="KAFKA">Kafka客户端</el-dropdown-item>-->
-                    <el-dropdown-item command="MQTT_CLIENT">MQTT客户端</el-dropdown-item>
-
+                    <el-dropdown-item command="MQTT_CLIENT">{{ $t('network.mqttClient') }}</el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
               </el-dropdown>
@@ -107,6 +104,7 @@ import { protocolType } from "@/model/protocol/ProtocolType";
 import handlerDimensionTree from "@/util/dimension/DimensionTree";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { uploadSSL } from "@/util/request";
+import { useI18n } from 'vue-i18n'
 
 export default defineComponent({
   name: "NetworkPage",
@@ -114,6 +112,7 @@ export default defineComponent({
   setup() {
     const router = useRouter();
     const { proxy } = getCurrentInstance();
+    const { t } = useI18n()
     const tableData = reactive([]);
     const searchParams = reactive([]);
     const page = reactive({ current: 1, size: 10, total: 0, loading: false, terms: [], sorts: [{ column: "t.update_time", order: "desc" }] });
@@ -129,7 +128,7 @@ export default defineComponent({
     });
     const dimensionTree = ref([]);
     const dimensionAllTree = computed(() => {
-      const rootTree = { value: -1, label: "全部", children: [] };
+      const rootTree = { value: -1, label: t('common.all'), children: [] };
       rootTree.children.push(...dimensionTree.value);
       return [rootTree];
     });
@@ -137,13 +136,13 @@ export default defineComponent({
     const resetParam = () => {
       const p = toRef(protocolType);
       searchParams.length = 0;
-      searchParams.push({ column: "t.name", value: "", termType: "like", label: "名称", type: "input" });
-      searchParams.push({ column: "t.org_id", value: -1, termType: "eq", label: "机构", type: "tree" });
+      searchParams.push({ column: "t.name", value: "", termType: "like", label: t('network.nameLabel'), type: "input" });
+      searchParams.push({ column: "t.org_id", value: -1, termType: "eq", label: t('network.orgLabel'), type: "tree" });
       searchParams.push({
         column: "t.type",
         value: "",
         termType: "eq",
-        label: "组件类型",
+        label: t('network.componentTypeLabel'),
         type: "select",
         select: p.value
       });
@@ -195,7 +194,7 @@ export default defineComponent({
         console.log("networkPage");
       });
     };
-    const isShow = computed(() => (item) => { //计算属性传递参数
+    const isShow = computed(() => (item) => {
       console.log("isShow:" + item + "-->" + (item == 1));
       return item == 1;
     });
@@ -305,8 +304,7 @@ export default defineComponent({
     };
     const beforeChange = () => {
       return new Promise((resolve, reject) => {
-        alert("确认是否操作");
-        // 异步操作
+        alert(t('common.confirmDelete'));
         setTimeout(() => {
           if (Math.random() < 0.5) {
             console.log(true);
@@ -328,7 +326,7 @@ export default defineComponent({
         console.log(JSON.stringify(value));
         ElMessage({
           type: "success",
-          message: "删除成功"
+          message: t('common.operationSuccess')
         });
         initData();
         requestApi();
@@ -341,7 +339,7 @@ export default defineComponent({
       proxy.$http.deleteNetwork({ id: id }).then(value => {
         ElMessage({
           type: "success",
-          message: "删除成功"
+          message: t('common.deleteSuccess')
         });
         initData();
         requestApi();
@@ -357,17 +355,16 @@ export default defineComponent({
       proxy.$http.uploadSSL(param).then(v => {
         ElMessage({
           type: "success",
-          message: "上传成功"
+          message: t('common.uploadSuccess')
         });
-        console.log("上传成功1");
+        console.log("uploadSuccess");
         drawClientServerInfo.upload = false;
         drawClientServerInfo.icon = "Upload";
         drawClientServerInfo.data.networkConfigPo.configuration[tag] = v.data.url;
-        console.log("上传成功2");
       }, e => {
         ElMessage({
           type: "error",
-          message: "上传失败"
+          message: t('common.uploadFail')
         });
         drawClientServerInfo.upload = false;
         drawClientServerInfo.icon = "Upload";
@@ -376,11 +373,11 @@ export default defineComponent({
     const deleteClick = (row, index) => {
       console.log("delectClick");
       ElMessageBox.confirm(
-        "确定是否需要删除?",
-        "提示",
+        t('common.confirmDelete'),
+        t('common.tip'),
         {
-          confirmButtonText: "删除",
-          cancelButtonText: "取消",
+          confirmButtonText: t('common.delete'),
+          cancelButtonText: t('common.cancel'),
           type: "warning"
         }
       )

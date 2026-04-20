@@ -1,32 +1,32 @@
 <template>
   <el-drawer v-model="dataInfo.status" :size="'25%'" >
     <el-form :model="dataInfo" label-width="100">
-      <el-form-item label="名称">
+      <el-form-item :label="$t('common.name')">
         <el-input v-model="dataInfo.data.networkConfigPo.name" />
       </el-form-item>
-      <el-form-item label="ip地址">
+      <el-form-item :label="$t('networkDrawer.ipAddress')">
         <el-input v-model="dataInfo.data.networkConfigPo.configuration.host"/>
       </el-form-item>
-      <el-form-item label="服务端口">
+      <el-form-item :label="$t('networkDrawer.servicePort')">
         <el-input-number v-model="dataInfo.data.networkConfigPo.configuration.port"/>
       </el-form-item>
-      <el-form-item label="用户名">
+      <el-form-item :label="$t('networkDrawer.username')">
         <el-input v-model="dataInfo.data.networkConfigPo.configuration.username" />
       </el-form-item>
-      <el-form-item label="密码">
+      <el-form-item :label="$t('networkDrawer.password')">
         <el-input v-model="dataInfo.data.networkConfigPo.configuration.password" />
       </el-form-item>
-      <el-form-item label="是否SSL">
+      <el-form-item :label="$t('networkDrawer.sslEnabled')">
         <el-switch
           v-model="dataInfo.data.networkConfigPo.configuration.sslEnabled"
           width="60"
           inline-prompt
-          active-text="开启"
-          inactive-text="关闭"
+          :active-text="$t('networkDrawer.sslOn')"
+          :inactive-text="$t('networkDrawer.sslOff')"
         />
       </el-form-item>
 
-      <el-form-item v-if="dataInfo.data.networkConfigPo.configuration.sslEnabled" label="CA证书">
+      <el-form-item v-if="dataInfo.data.networkConfigPo.configuration.sslEnabled" :label="$t('networkDrawer.caCert')">
         <el-input v-model="dataInfo.data.networkConfigPo.configuration.sslCa" disabled>
           <template #append>
             <el-button :icon="dataInfo.icon" :loading="dataInfo.upload" @click="uploadClick('sslCa')">
@@ -34,7 +34,7 @@
           </template>
         </el-input>
       </el-form-item>
-      <el-form-item v-if="dataInfo.data.networkConfigPo.configuration.sslEnabled" label="SSLCert证书">
+      <el-form-item v-if="dataInfo.data.networkConfigPo.configuration.sslEnabled" :label="$t('networkDrawer.sslCert')">
         <el-input v-model="dataInfo.data.networkConfigPo.configuration.sslCert" disabled>
           <template #append>
             <el-button :icon="dataInfo.icon" :loading="dataInfo.upload" @click="uploadClick('sslCert')">
@@ -42,7 +42,7 @@
           </template>
         </el-input>
       </el-form-item>
-      <el-form-item v-if="dataInfo.data.networkConfigPo.configuration.sslEnabled" label="SSLKey证书">
+      <el-form-item v-if="dataInfo.data.networkConfigPo.configuration.sslEnabled" :label="$t('networkDrawer.sslKey')">
         <el-input v-model="dataInfo.data.networkConfigPo.configuration.sslKey" disabled>
           <template #append>
             <el-button :icon="dataInfo.icon" :loading="dataInfo.upload" @click="uploadClick('sslKey')">
@@ -51,24 +51,24 @@
         </el-input>
       </el-form-item>
 
-      <el-form-item label="状态">
+      <el-form-item :label="$t('common.status')">
         <el-switch
           v-model="state"
           width="60"
           :disabled="dataInfo.add"
           inline-prompt
-          active-text="开启"
-          inactive-text="关闭"
+          :active-text="$t('networkDrawer.statusOn')"
+          :inactive-text="$t('networkDrawer.statusOff')"
         />
       </el-form-item>
-      <el-form-item label="主题">
-        <el-input-tag v-model="dataInfo.data.networkConfigPo.configuration.topics" clearable placeholder="请输入订阅的主题，回车确认" />
+      <el-form-item :label="$t('networkDrawer.topics')">
+        <el-input-tag v-model="dataInfo.data.networkConfigPo.configuration.topics" clearable :placeholder="$t('networkDrawer.topicsPlaceholder')" />
       </el-form-item>
-      <el-form-item label="总招">
+      <el-form-item :label="$t('networkDrawer.generalPoll')">
         <el-table :data="dataInfo.data.networkConfigPo.configuration.boards" stripe border @row-click="boardRowClick">
-          <el-table-column label="名称" prop="name"></el-table-column>
-          <el-table-column label="主题" prop="topic"></el-table-column>
-          <el-table-column label="报文" prop="data"></el-table-column>
+          <el-table-column :label="$t('networkDrawer.boardName')" prop="name"></el-table-column>
+          <el-table-column :label="$t('networkDrawer.boardTopic')" prop="topic"></el-table-column>
+          <el-table-column :label="$t('networkDrawer.boardData')" prop="data"></el-table-column>
           <el-table-column width="60">
             <template #header>
               <div class="center-flex-contain">
@@ -93,13 +93,13 @@
     <template #header>
       <div>
         <el-space wrap>
-          <el-text size="large">{{dataInfo.add?'添加':'编辑'}}</el-text><el-tag effect="dark">MQTT CLIENT</el-tag>
+          <el-text size="large">{{dataInfo.add ? $t('networkDrawer.addTitle') : $t('networkDrawer.editTitle')}}</el-text><el-tag effect="dark">MQTT CLIENT</el-tag>
         </el-space>
         <input type="file" id="fileId" ref="fileInput" accept=".jar" style="display: none;"/>
       </div>
     </template>
     <template #footer>
-      <el-button type="primary" :loading="dataInfo.saveloading" @click="saveClick">保存</el-button>
+      <el-button type="primary" :loading="dataInfo.saveloading" @click="saveClick">{{ $t('common.save') }}</el-button>
     </template>
   </el-drawer>
 
@@ -109,6 +109,7 @@
 <script>
 import { onMounted, defineComponent, getCurrentInstance, reactive, ref, watch, toRef, computed } from "vue";
 import DialogBoard from "@/views/network/board/DialogBoard.vue";
+import { useI18n } from 'vue-i18n';
 
 export default defineComponent({
   name: "MqttClientDrawer",
@@ -122,6 +123,7 @@ export default defineComponent({
   components:{DialogBoard},
   emits:['submit','upload'],
   setup(props, context) {
+    const { t } = useI18n()
     const dataInfo=toRef(props,'data')
     const fileInput=ref(null)
 
@@ -133,7 +135,6 @@ export default defineComponent({
         console.log('changeFile')
         if(this.files.length>0){
           context.emit('upload',tag,{file:this.files[0],bucketType:'s3'})
-          //context.emit('upload',selectData.value.id==undefined?{file:this.files[0],provider:selectData.value.configuration.provider,bucketType:selectData.value.configuration.type}:{id:selectData.value.id,file:this.files[0],provider:selectData.value.configuration.provider,bucketType:selectData.value.configuration.type})
         }
 
         fileInput.value.value=null

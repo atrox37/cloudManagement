@@ -1,6 +1,6 @@
 <template>
   <el-table :data="dataCondition" class="border-dash-table" border>
-    <el-table-column label="属性">
+    <el-table-column :label="$t('alarmItem.property')">
       <template #default="scope">
         <el-select
           v-model="scope.row.column"
@@ -22,7 +22,7 @@
         </el-select>
       </template>
     </el-table-column>
-    <el-table-column label="比较">
+    <el-table-column :label="$t('alarmItem.comparison')">
       <template #default="scope">
         <el-select v-model="scope.row.operation" placeholder="">
           <el-option
@@ -34,7 +34,7 @@
         </el-select>
       </template>
     </el-table-column>
-    <el-table-column label="值">
+    <el-table-column :label="$t('alarmItem.value')">
       <template #default="scope">
         <el-input-number
           v-if="scope.row.valueType == 'number' && scope.row.operation != 'IS NOT NULL'"
@@ -58,7 +58,7 @@
         ></el-input>
       </template>
     </el-table-column>
-    <el-table-column label="操作">
+    <el-table-column :label="$t('alarmItem.operation')">
       <template #header>
         <el-button type="primary" icon="Plus" size="small" @click="addFunc" />
         <el-button
@@ -83,7 +83,8 @@
 </template>
 
 <script>
-import { ref, reactive, defineComponent, watch, onMounted, toRef } from "vue";
+import { ref, reactive, defineComponent, watch, onMounted, toRef, computed } from "vue";
+import { useI18n } from 'vue-i18n';
 export default defineComponent({
   name: "AlarmItem",
   props: {
@@ -100,13 +101,21 @@ export default defineComponent({
   },
   emits: ["delGroup"],
   setup(props, context) {
+    const { t } = useI18n()
     const sourceproduct = toRef(props, "productData");
     const sourceAlarmData = toRef(props, "alarmData");
     const property = ref([]);
     const dataCondition = reactive([]);
-    const compareNum = [{value: '>',label: '大于'},{value: '<',label: '小于'},{value: '=',label: '等于'}]
-    const compareEnum = [{value: '=',label: '等于'}]
-    const compareStr = [{value: '=',label: '等于'},{value: 'IS NOT NULL',label: '非空'}]
+    const compareNum = computed(() => [
+      {value: '>',label: t('alarmItem.greaterThan')},
+      {value: '<',label: t('alarmItem.lessThan')},
+      {value: '=',label: t('alarmItem.equalTo')}
+    ])
+    const compareEnum = computed(() => [{value: '=',label: t('alarmItem.equalTo')}])
+    const compareStr = computed(() => [
+      {value: '=',label: t('alarmItem.equalTo')},
+      {value: 'IS NOT NULL',label: t('alarmItem.notNull')}
+    ])
 
     const addFunc = () => {
       if (property.value.length === 0) return;
@@ -143,11 +152,11 @@ export default defineComponent({
 
       // 根据属性类型设置条件选项
       if (selectedProperty.valueType.type == 'number') {
-        selectedProperty.condition = compareNum;
+        selectedProperty.condition = compareNum.value;
       } else if (selectedProperty.valueType.type == 'enum') {
-        selectedProperty.condition = compareEnum;
+        selectedProperty.condition = compareEnum.value;
       } else {
-        selectedProperty.condition = compareStr;
+        selectedProperty.condition = compareStr.value;
       }
 
       // 更新当前行的条件列表和类型

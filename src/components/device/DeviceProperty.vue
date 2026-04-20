@@ -1,5 +1,5 @@
 <template>
-    <el-dialog v-model="dialogStatus" title="查看" :show-close="false" @close="closeHandler" width="60%"
+    <el-dialog v-model="dialogStatus" :title="$t('deviceProperty.title')" :show-close="false" @close="closeHandler" width="60%"
                style="height:80%">
 
         <el-tabs
@@ -8,7 +8,7 @@
                 class="dialog_tab"
                 addable
                 @tab-click="tabChange">
-            <el-tab-pane label="数据" name="dataPane">
+            <el-tab-pane :label="$t('deviceProperty.data')" name="dataPane">
 
                 <el-container>
 
@@ -16,21 +16,21 @@
                         <el-table height="100%" :data="data.records" v-loading="loading" stripe style="width: 100%"
                                   border>
                             <el-table-column prop="ts"
-                                             label="时间"
+                                             :label="$t('deviceProperty.time')"
                                              header-align="center"
                                              width="300"
                                              align="center"/>
                             <el-table-column prop="rawValue"
-                                             label="值"
+                                             :label="$t('deviceProperty.value')"
                                              width="400"
                                              header-align="center"
                                              align="center"/>
                             <el-table-column prop="numberValue"
                                              v-if="meas.valueType.type == 'number'"
-                                             label="数值"
+                                             :label="$t('deviceProperty.numValue')"
                                              header-align="center"
                                              align="center"/>
-                            <el-table-column label="枚举值"
+                            <el-table-column :label="$t('deviceProperty.enumValue')"
                                              header-align="center"
                                              align="center"
                                              v-if="meas.valueType.type == 'enum'">
@@ -56,7 +56,7 @@
                     </el-footer>
                 </el-container>
             </el-tab-pane>
-            <el-tab-pane lazy label="图表" name="dataChart" v-if="meas.valueType.type == 'number'">
+            <el-tab-pane lazy :label="$t('deviceProperty.chart')" name="dataChart" v-if="meas.valueType.type == 'number'">
                 <div ref="chartRef" class="chart_conatiner"></div>
             </el-tab-pane>
 
@@ -64,9 +64,9 @@
                 <el-date-picker
                         v-model="pickTime"
                         type="daterange"
-                        range-separator="至"
-                        start-placeholder="开始"
-                        end-placeholder="结束"
+                        :range-separator="$t('deviceProperty.to')"
+                        :start-placeholder="$t('deviceProperty.start')"
+                        :end-placeholder="$t('deviceProperty.end')"
                         size="small" />
             </template>
         </el-tabs>
@@ -77,6 +77,7 @@
 <script>
     import {ref, reactive, defineComponent, getCurrentInstance, onMounted, toRef, watch} from "vue";
     import {initPickTime,formatTs} from '@/util/common/pickTime'
+    import { useI18n } from 'vue-i18n'
     export default defineComponent({
         name: "DeviceProperty",
         props: {
@@ -98,6 +99,7 @@
         },
         emits: ['close', 'propertyApi'],
         setup(props, context) {
+            const { t } = useI18n()
             const {proxy} = getCurrentInstance()
             const dialogStatus = toRef(props, 'status')
             const data = toRef(props, 'propertyData')
@@ -150,7 +152,7 @@
                 console.log('formatDateChange')
             }
             const getEnumValue=(value)=>{
-                var formatEnum='未知值'
+                var formatEnum=t('deviceProperty.unknownValue')
                 for(const item of meas.value.valueType.extra.enumData){
                     if(item.key == value){
                         formatEnum=item.value

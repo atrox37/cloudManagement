@@ -13,7 +13,7 @@
                                 check-strictly
                                 :render-after-expand="false">
                             <template #empty>
-                                <el-empty description="暂无数据" />
+                                <el-empty :description="$t('common.noData')" />
                             </template>
                         </el-tree-select>
                         <el-select v-if="item.type == 'select'" v-model="item.value" style="width:200px">
@@ -21,27 +21,26 @@
                         </el-select>
                     </el-form-item>
                     <el-form-item>
-                        <el-button type="primary" @click="queryClick">查询</el-button>
-                        <el-button type="info" @click="resetClick">重置</el-button>
+                        <el-button type="primary" @click="queryClick">{{ $t('common.search') }}</el-button>
+                        <el-button type="info" @click="resetClick">{{ $t('common.reset') }}</el-button>
                     </el-form-item>
                 </el-form>
             </div>
 
         </el-header>
         <el-main>
-            <el-table :data="tableData" v-loading="loading" stripe @row-click="editClick" border highlight-current-row>
-                <!-- <el-table-column prop="productPo.id" label="ID" width="60" header-align="center" align="center" /> -->
-                <el-table-column prop="productPo.name" label="名称"  header-align="center" align="center" width="200"/>
-                <el-table-column label="产品类型"  header-align="center" align="center" width="180">
+            <el-table :data="tableData" v-loading="loading" stripe @row-click="editClick" border highlight-current-row :row-key="row => row.productPo.id">
+                <el-table-column prop="productPo.name" :label="$t('product.name')"  header-align="center" align="center" width="200"/>
+                <el-table-column :label="$t('product.productType')"  header-align="center" align="center" width="180">
                     <template #default="scope">
-                        <el-tag v-if="scope.row.productPo.type == 'gateway'">网关</el-tag>
-                        <el-tag v-if="scope.row.productPo.type == 'device'">直连设备</el-tag>
-                        <el-tag v-if="scope.row.productPo.type == 'children'">子设备</el-tag>
+                        <el-tag v-if="scope.row.productPo.type == 'gateway'" :key="`tag-${scope.row.productPo.id}`">{{ $t('product.gateway') }}</el-tag>
+                        <el-tag v-if="scope.row.productPo.type == 'device'" :key="`tag-${scope.row.productPo.id}`">{{ $t('product.directDevice') }}</el-tag>
+                        <el-tag v-if="scope.row.productPo.type == 'children'" :key="`tag-${scope.row.productPo.id}`">{{ $t('product.childDevice') }}</el-tag>
                     </template>
                 </el-table-column>
-                <el-table-column prop="sysUserPo.username" label="创建人" width="250" header-align="center" align="center"/>
-                <el-table-column prop="sysDimensionPo.name" label="机构" width="150" header-align="center" align="center"/>
-                <el-table-column prop="productPo.updateTime" label="更新时间" width="250" header-align="center" align="center"/>
+                <el-table-column prop="sysUserPo.username" :label="$t('product.creator')" width="250" header-align="center" align="center"/>
+                <el-table-column prop="sysDimensionPo.name" :label="$t('product.org')" width="150" header-align="center" align="center"/>
+                <el-table-column prop="productPo.updateTime" :label="$t('product.updateTime')" width="250" header-align="center" align="center"/>
                 <el-table-column>
                     <template #header>
                         <div class="center-flex-contain">
@@ -87,12 +86,14 @@
     import DialogProductOrg from '@/components/product/DialogProductOrg.vue'
     import DialogCreateProduct from '@/components/product/DialogCreateProduct.vue'
     import {useRouter} from "vue-router";
+    import { useI18n } from 'vue-i18n'
     export default defineComponent({
         name: "ProductPage",
         components: {DialogProductOrg,DialogCreateProduct},
         setup(){
             const {proxy} = getCurrentInstance()
             const router = useRouter()
+            const { t } = useI18n()
             const searchParams=reactive([])
             const tableData = reactive([])
             const loading = ref(true)
@@ -103,7 +104,7 @@
           const dialogProductOrgRef=ref(null)
             const dimensionTree = ref([])
             const dimensionAllTree=computed(()=>{
-                const rootTree={value:-1,label:'全部',children:[]}
+                const rootTree={value:-1,label:t('common.all'),children:[]}
                 rootTree.children.push(...dimensionTree.value)
                 return [rootTree]
             })
@@ -123,9 +124,9 @@
             const resetParam=()=>{
                 const p=toRef(productType)
                 searchParams.length=0
-                searchParams.push({column:'t.name',value:'',termType:'like',label:'产品名称',type:'input'})
-                searchParams.push({column:'t.org_id',value:-1,termType:'eq',label:'机构',type:'tree'})
-                searchParams.push({column:'t.type',value:'',termType:'eq',label:'产品类型',type:'select',select:p.value})
+                searchParams.push({column:'t.name',value:'',termType:'like',label:t('product.nameLabel'),type:'input'})
+                searchParams.push({column:'t.org_id',value:-1,termType:'eq',label:t('product.orgLabel'),type:'tree'})
+                searchParams.push({column:'t.type',value:'',termType:'eq',label:t('product.typeLabel'),type:'select',select:p.value})
                 console.log('resetParam')
             }
             const productPageApi=()=>{
@@ -165,7 +166,7 @@
                     reloadApi()
                     ElMessage({
                         type: 'success',
-                        message: '删除成功',
+                        message: t('product.deleteSuccess'),
                     })
                 })
             }
@@ -186,11 +187,11 @@
             const deleteClick=(row,index)=>{
                 console.log('deleteClick')
                 ElMessageBox.confirm(
-                    '确定是否需要删除?',
-                    '提示',
+                    t('product.deleteConfirm'),
+                    t('common.tip'),
                     {
-                        confirmButtonText: '删除',
-                        cancelButtonText: '取消',
+                        confirmButtonText: t('common.delete'),
+                        cancelButtonText: t('common.cancel'),
                         type: 'warning',
                     }
                 )
@@ -230,7 +231,6 @@
                 shareDialog.status=false
             }
             const shareSave=(addData,delData)=>{
-              //shareDialog.loading=true
               var batchInsert=[]
               for(var item of addData){
                 batchInsert.push({productId:selectProductId,orgId:item})
@@ -273,4 +273,3 @@
 <style scoped lang="sass">
 @use '@/scss/container.scss'
 </style>
-

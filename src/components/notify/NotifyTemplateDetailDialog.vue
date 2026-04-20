@@ -1,27 +1,27 @@
 <template>
   <el-dialog
     v-model="dialogVisible"
-    title="模板详情"
+    :title="$t('notifyTemplateDetail.dialogTitle')"
     width="800"
     :close-on-click-modal="false"
   >
     <!-- 主表单 -->
-    <el-form :model="templateData" ref="templateForm" label-width="160px" :rules="rules">
+    <el-form :model="templateData" ref="templateForm" label-width="180px" :rules="rules">
       <!-- 基本信息模块 -->
       <div class="form-section-module">
-        <div class="module-title">基本信息</div>
-        <el-form-item label="模板名称" prop="templatePo.name" required>
+        <div class="module-title">{{ $t('notifyTemplateDetail.basicInfo') }}</div>
+        <el-form-item :label="$t('notifyTemplateDetail.templateName')" prop="templatePo.name" required>
           <el-input
             v-model="templateData.templatePo.name"
-            placeholder="请输入模板名称"
+            :placeholder="$t('notifyTemplateDetail.templateNameRequired')"
             clearable
             class="form-input"
           />
         </el-form-item>
-        <el-form-item label="通知配置" prop="configPo.id" required>
+        <el-form-item :label="$t('notifyTemplateDetail.notifyConfig')" prop="configPo.id" required>
           <template #label>
             <el-space wrap>
-              <el-text>通知配置</el-text>
+              <el-text>{{ $t('notifyTemplateDetail.notifyConfig') }}</el-text>
               <el-tag>{{ templateData.configPo.codeName }}</el-tag>
             </el-space>
           </template>
@@ -43,19 +43,19 @@
         </el-form-item>
 
         <el-form-item
-          label="内容标题"
+          :label="$t('notifyTemplateDetail.contentTitle')"
           prop="templatePo.msgContent.title"
           required
         >
           <el-input
             v-model="templateData.templatePo.msgContent.title"
-            placeholder="请输入标题，支持使用 {$变量名} 格式定义变量"
+            :placeholder="$t('notifyTemplateDetail.titlePlaceholder')"
             @blur="handleContentBlur"
             class="form-input"
           />
         </el-form-item>
         <el-form-item
-          label="内容正文"
+          :label="$t('notifyTemplateDetail.contentBody')"
           prop="templatePo.msgContent.content"
           required
         >
@@ -63,7 +63,7 @@
             v-model="templateData.templatePo.msgContent.content"
             type="textarea"
             :rows="4"
-            placeholder="请输入内容正文，使用 {$变量名} 格式定义变量"
+            :placeholder="$t('notifyTemplateDetail.contentPlaceholder')"
             @blur="handleContentBlur"
             class="form-input"
           />
@@ -75,7 +75,7 @@
         v-if="templateVariablesList.length > 0"
         class="form-section-module"
       >
-        <div class="module-title">模板变量默认值</div>
+        <div class="module-title">{{ $t('notifyTemplateDetail.templateVarDefault') }}</div>
         <div class="template-variables-container" :key="templateVariablesKey">
           <el-form-item
             v-for="variable in templateVariablesList"
@@ -84,7 +84,7 @@
           >
             <el-input
               v-model="templateVariablesData[variable]"
-              :placeholder="`请输入${variable}`"
+              :placeholder="$t('notifyTemplateDetail.enterVar') + variable"
               class="form-input"
             />
           </el-form-item>
@@ -95,7 +95,7 @@
         v-if="templateDeviceList.length > 0"
         class="form-section-module"
       >
-        <div class="module-title">模板点位默认值</div>
+        <div class="module-title">{{ $t('notifyTemplateDetail.templatePosDefault') }}</div>
         <div class="template-variables-container">
           <el-form-item
             v-for="variable in templateDeviceList"
@@ -104,7 +104,7 @@
           >
             <el-input
               v-model="templateVariablesData[variable]"
-              :placeholder="`请输入${variable}`"
+              :placeholder="$t('notifyTemplateDetail.enterVar') + variable"
               class="form-input"
             />
           </el-form-item>
@@ -115,17 +115,17 @@
     <template #footer>
       <div class="dialog-footer">
         <div class="footer-right">
-          <el-button @click="handleCancel">取消</el-button>
+          <el-button @click="handleCancel">{{ $t('common.cancel') }}</el-button>
           <el-button
             @click="handleTest"
-            >测试</el-button
+            >{{ $t('notifyTemplateDetail.test') }}</el-button
           >
           <el-button
             type="primary"
             @click="handleSave"
             :disabled="getTempleteLoading"
             :loading="templateData.loading"
-            >保存模板</el-button
+            >{{ $t('notifyTemplateDetail.saveTemplate') }}</el-button
           >
         </div>
       </div>
@@ -136,7 +136,7 @@
   <el-drawer
     v-model="showContentEditor"
     size="25%"
-    title="模板内容"
+    :title="$t('notifyTemplateDetail.templateContent')"
     @close="closeContentEditor"
   >
     <template #default>
@@ -145,7 +145,7 @@
           v-model="templateData.msgContent"
           type="textarea"
           :rows="15"
-          placeholder="请输入模板内容"
+          :placeholder="$t('notifyTemplateDetail.templateContent')"
         />
       </div>
     </template>
@@ -154,15 +154,15 @@
   <!-- 选择收件人弹框 -->
   <el-dialog
     v-model="showRecipientDialog"
-    title="选择收件人"
+    :title="$t('notifyTemplateDetail.selectRecipient')"
     width="500px"
     :close-on-click-modal="false"
   >
     <el-form label-width="100px">
-      <el-form-item label="收件人" required>
+      <el-form-item :label="$t('notifyTemplateDetail.recipient')" required>
         <el-select
           v-model="testForm.recipient"
-          placeholder="请选择收件人"
+          :placeholder="$t('notifyTemplateDetail.selectRecipientRequired')"
           style="width: 100%"
         >
           <el-option
@@ -175,13 +175,13 @@
       </el-form-item>
     </el-form>
     <template #footer>
-      <el-button @click="showRecipientDialog = false">取消</el-button>
+      <el-button @click="showRecipientDialog = false">{{ $t('common.cancel') }}</el-button>
       <el-button
         type="primary"
         @click="handleTestSubmit"
         :loading="testForm.loading"
         :disabled="!testForm.recipient"
-        >发送测试</el-button
+        >{{ $t('notifyTemplateDetail.sendTest') }}</el-button
       >
     </template>
   </el-dialog>
@@ -202,10 +202,12 @@ import {
 } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { notifyType } from "@/model/notify/NotifyType";
+import { useI18n } from "vue-i18n";
 export default defineComponent({
   name: "NotifyTemplateDetailDialog",
   emits: ["save", "cancel"],
   setup(props, { emit }) {
+    const { t } = useI18n();
     const { proxy } = getCurrentInstance();
     const dialogVisible = ref(false);
     const templateForm = ref();
@@ -251,20 +253,20 @@ export default defineComponent({
     });
 
     // // 表单验证规则
-    const rules = {
+    const rules = computed(() => ({
       "templatePo.name": [
-        { required: true, message: "请输入模板名称", trigger: "blur" }
+        { required: true, message: t('notifyTemplateDetail.templateNameRequired'), trigger: "blur" }
       ],
       "configPo.id": [
-        { required: true, message: "请选择通知配置", trigger: "change" },
+        { required: true, message: t('notifyTemplateDetail.notifyConfigRequired'), trigger: "change" },
       ],
       "templatePo.msgContent.title": [
-        { required: true, message: "请输入标题", trigger: "blur" },
+        { required: true, message: t('notifyTemplateDetail.titleRequired'), trigger: "blur" },
       ],
       "templatePo.msgContent.content": [
-        { required: true, message: "请输入内容", trigger: "blur" },
+        { required: true, message: t('notifyTemplateDetail.contentRequired'), trigger: "blur" },
       ],
-    };
+    }));
     // 解析标题和内容中的变量
     const templateVariables = computed(() => {
       const variables = [];
@@ -382,7 +384,7 @@ export default defineComponent({
         } else {
           // 表单验证失败，显示提示
           ElMessage({
-            message: "请先完善表单信息",
+            message: t('notifyTemplateDetail.formRequired'),
             type: "warning",
           });
         }
@@ -407,7 +409,7 @@ export default defineComponent({
     const handleTestSubmit = () => {
       if (!testForm.recipient) {
         ElMessage({
-          message: "请选择收件人",
+          message: t('notifyTemplateDetail.selectRecipientRequired'),
           type: "warning",
         });
         return;
@@ -450,10 +452,10 @@ export default defineComponent({
           const failItems = list.filter(item => item.state !== 'SUCCESS');
           const successNames = successItems.map(item => item.username).join('、');
           const failNames = failItems.map(item => item.username).join('、');
-          let msg = `发送完成，成功 ${successItems.length} 人`;
+          let msg = t('notifyTemplateDetail.sendComplete', { success: successItems.length });
           if (successNames) msg += `（${successNames}）`;
           if (failItems.length > 0) {
-            msg += `，失败 ${failItems.length} 人`;
+            msg += `，${t('notifyTemplateDetail.sendFail', { fail: failItems.length })}`;
             if (failNames) msg += `（${failNames}）`;
           }
           ElMessage({
@@ -461,10 +463,10 @@ export default defineComponent({
             type: failItems.length === 0 ? "success" : "warning",
           });
         })
-        .catch((error) => {
+          .catch((error) => {
           testForm.loading = false;
           ElMessage({
-            message: "测试发送失败",
+            message: t('notifyTemplateDetail.testSendFail'),
             type: "error",
           });
         });
@@ -584,7 +586,7 @@ export default defineComponent({
                 if (responseCode === 200) {
                   // 显示成功提示
                   ElMessage({
-                    message: "保存成功",
+                    message: t('notifyTemplateDetail.saveSuccess'),
                     type: "success",
                   });
                   // 关闭弹框
@@ -594,7 +596,7 @@ export default defineComponent({
                 } else {
                   // 如果状态码不是200，也显示提示
                   ElMessage({
-                    message: value?.msg || value?.data?.msg || "保存失败",
+                    message: value?.msg || value?.data?.msg || t('notifyTemplateDetail.saveFail'),
                     type: "warning",
                   });
                 }
@@ -606,7 +608,7 @@ export default defineComponent({
                 console.log("saveTemplateApi error", error);
                 templateData.loading = false;
                 ElMessage({
-                  message: "保存失败",
+                  message: t('notifyTemplateDetail.saveFail'),
                   type: "error",
                 });
                 reject();
@@ -695,6 +697,7 @@ export default defineComponent({
       templateVariablesData,
       templateDeviceList,
       accountUser,
+      rules,
       configs,
       templateVariables,
       getTempleteLoading,

@@ -1,14 +1,14 @@
 <template>
-    <el-dialog v-model="childrenData.status" title="添加子设备" :show-close="false" class="pdf-preview">
+    <el-dialog v-model="childrenData.status" :title="$t('deviceDialog.addChildDevice')" :show-close="false" class="pdf-preview">
         <el-container>
             <el-main>
                 <el-table :data="tableData" v-loading="page.loading" stripe borde @selection-change="handleSelectionChange">
                     <el-table-column type="selection"  width="55" />
-                    <el-table-column prop="deviceInstancePo.name" label="设备名称" width="200" header-align="center" align="center"/>
-                    <el-table-column prop="deviceInstancePo.sn" label="设备SN"  header-align="center" align="center"/>
-                    <el-table-column prop="productPo.name" label="产品名称" width="200" header-align="center" align="center"/>
-                    <el-table-column prop="sysUserPo.username" label="创建人" width="80" header-align="center" align="center"/>
-                    <el-table-column prop="deviceInstancePo.updateTime" label="更新时间" width="200" header-align="center" align="center"/>
+                    <el-table-column prop="deviceInstancePo.name" :label="$t('deviceDialog.deviceName')" width="200" header-align="center" align="center"/>
+                    <el-table-column prop="deviceInstancePo.sn" :label="$t('deviceDialog.deviceSN')"  header-align="center" align="center"/>
+                    <el-table-column prop="productPo.name" :label="$t('device.productName')" width="200" header-align="center" align="center"/>
+                    <el-table-column prop="sysUserPo.username" :label="$t('common.creator')" width="80" header-align="center" align="center"/>
+                    <el-table-column prop="deviceInstancePo.updateTime" :label="$t('common.updateTime')" width="200" header-align="center" align="center"/>
                 </el-table>
 
             </el-main>
@@ -24,8 +24,8 @@
             </el-footer>
         </el-container>
         <template #footer>
-          <el-button :loading="page.submitloading" @click="closeClick">关闭</el-button>
-            <el-button type="primary" :loading="page.submitloading" @click="submitClick">保存</el-button>
+          <el-button :loading="page.submitloading" @click="closeClick">{{ $t('common.close') }}</el-button>
+            <el-button type="primary" :loading="page.submitloading" @click="submitClick">{{ $t('common.save') }}</el-button>
         </template>
 
     </el-dialog>

@@ -13,40 +13,40 @@
                                 check-strictly
                                 :render-after-expand="false">
                             <template #empty>
-                                <el-empty description="暂无数据" />
+                                <el-empty :description="$t('common.noData')" />
                             </template>
                         </el-tree-select>
                     </el-form-item>
                     <el-form-item>
-                        <el-button type="primary" @click="queryClick">查询</el-button>
-                        <el-button type="info" @click="resetClick">重置</el-button>
+                        <el-button type="primary" @click="queryClick">{{ $t('common.search') }}</el-button>
+                        <el-button type="info" @click="resetClick">{{ $t('common.reset') }}</el-button>
                     </el-form-item>
                 </el-form>
             </div>
 
         </el-header>
         <el-main>
-            <el-table height="100%" :data="tableData" v-loading="loading" stripe border @row-click="editClick">
-                <el-table-column prop="name" label="协议名称" header-align="center" align="center"/>
-                <el-table-column label="支持类型" header-align="center" align="center">
+            <el-table height="100%" :data="tableData" v-loading="loading" stripe border @row-click="editClick" :row-key="row => row.id">
+                <el-table-column prop="name" :label="$t('protocol.name')" header-align="center" align="center"/>
+                <el-table-column :label="$t('protocol.supportTypes')" header-align="center" align="center">
                     <template #default="scope">
                         <el-space wrap>
                             <el-tag type="success" v-for="(item,index) in handlerSupport(scope.row)" :key="index">{{item.name}}</el-tag>
                         </el-space>
                     </template>
                 </el-table-column>
-                <el-table-column width="250" label="是否关联网关" header-align="center" align="center">
+                <el-table-column width="250" :label="$t('protocol.hasGateway')" header-align="center" align="center">
                     <template #default="scope">
                         <el-space wrap>
-                            <el-tag v-if="scope.row.gatewayTotal==0" type="warning">否</el-tag>
-                            <el-tag v-else type="success">是 </el-tag>
-                            <el-tag v-if="scope.row.gatewayTotal>0" type="success">已绑定{{scope.row.gatewayTotal}}个网关</el-tag>
+                            <el-tag v-if="scope.row.gatewayTotal==0" type="warning" :key="`gw-${scope.row.id}`">{{ $t('protocol.no') }}</el-tag>
+                            <el-tag v-else type="success" :key="`gw-${scope.row.id}`">{{ $t('protocol.yes') }}</el-tag>
+                            <el-tag v-if="scope.row.gatewayTotal>0" type="success" :key="`gwn-${scope.row.id}`">{{ $t('protocol.boundGateway', { count: scope.row.gatewayTotal }) }}</el-tag>
                         </el-space>
                     </template>
                 </el-table-column>
-                <el-table-column prop="sysDimensionName" label="所属机构" header-align="center"
+                <el-table-column prop="sysDimensionName" :label="$t('protocol.org')" header-align="center"
                                  align="center"/>
-                <el-table-column prop="updateTime" label="更新时间" width="250" header-align="center"
+                <el-table-column prop="updateTime" :label="$t('protocol.updateTime')" width="250" header-align="center"
                                  align="center"/>
                 <el-table-column width="250">
                     <template #header>
@@ -108,6 +108,7 @@
     import ProtocolAdd from "@/views/protocol/components/ProtocolAdd.vue";
     import ProtocolMqttTest from "@/views/protocol/components/ProtocolMqttTest.vue";
     import ProtocolKafkaTest from '@/views/protocol/components/ProtocolKafkaTest.vue';
+    import { useI18n } from 'vue-i18n'
 
     export default defineComponent({
         name: "ProtocolPage",
@@ -115,6 +116,7 @@
         setup() {
             const router = useRouter()
             const {proxy} = getCurrentInstance()
+            const { t } = useI18n()
             const type = ref(protocolType)
             const loading = ref(true)
             const searchParams = reactive([])
@@ -131,7 +133,7 @@
             const kafkaTestRef=ref(null)
             const dimensionTree = ref([])
             const dimensionAllTree=computed(()=>{
-                const rootTree={value:-1,label:'全部',children:[]}
+                const rootTree={value:-1,label:t('common.all'),children:[]}
                 rootTree.children.push(...dimensionTree.value)
                 return [rootTree]
             })
@@ -150,8 +152,8 @@
             }
             const resetParam = () => {
                 searchParams.length = 0
-                searchParams.push({column: 't.name', value: '', termType: 'like', label: '名称', type: 'input'})
-                searchParams.push({column: 't.org_id', value: -1, termType: 'eq', label: '机构', type: 'tree'})
+                searchParams.push({column: 't.name', value: '', termType: 'like', label: t('protocol.nameLabel'), type: 'input'})
+                searchParams.push({column: 't.org_id', value: -1, termType: 'eq', label: t('protocol.orgLabel'), type: 'tree'})
             }
             const dimensionApi=()=>{
                 dimensionTree.value.length=0
@@ -277,11 +279,11 @@
             const deleteClick = function (row, column, event) {
                 console.log('deleteClick-->' + row.id)
                 ElMessageBox.confirm(
-                    '确定是否需要删除?',
-                    '提示',
+                    t('common.confirmDelete'),
+                    t('common.tip'),
                     {
-                        confirmButtonText: '删除',
-                        cancelButtonText: '取消',
+                        confirmButtonText: t('common.delete'),
+                        cancelButtonText: t('common.cancel'),
                         type: 'warning',
                     }
                 )

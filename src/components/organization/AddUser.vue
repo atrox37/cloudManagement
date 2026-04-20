@@ -1,7 +1,7 @@
 <template>
     <el-table :data="datas" style="width: 100%" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" />
-        <el-table-column prop="username" label="用户" />
+        <el-table-column prop="username" :label="$t('organization.user')" />
     </el-table>
 </template>
 

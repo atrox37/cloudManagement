@@ -14,7 +14,7 @@
             <template #default="scope">
               <font-awesome-icon :icon="['fas', 'circle']" v-if="item.active"/>
               <font-awesome-icon :icon="['fas', 'circle-dot']" v-else/>
-              {{ item.name }}
+              {{ $t('routeNames.' + item.name, item.name) }}
             </template>
 
           </el-tag>
@@ -34,10 +34,12 @@ import {useRouter} from 'vue-router';
 import tagViewStore from '@/store/tagView.js';
 import { ElTag } from 'element-plus'
 import { defineComponent,ref,reactive,watch,onMounted,onUpdated } from 'vue'
+import { useI18n } from 'vue-i18n'
 export default defineComponent({
   name: "Index",
   components: {Aside,Header},
   setup(){
+    const { t } = useI18n()
     const router = useRouter()
     const data=reactive({name:'asd',meunStat: true})
     const tags=reactive([])
@@ -80,7 +82,7 @@ export default defineComponent({
       if(view==undefined){
         router.push('/userPage')
         routerData.length=0
-        routerData.push({name:'用户管理',path:'/userPage',parent:[{name:"系统管理"}]})
+        routerData.push({name:t('routeNames.userList'),path:'/userPage',parent:[{name:t('routeNames.sys')}]})
       }else{
         routerData.length=0
         router.push(view.path)

@@ -1,12 +1,12 @@
 <template>
-  <el-drawer v-model="shareDialogData.status" title="分配子机构" :show-close="false" @before-close="closeHandler" width="60%">
+  <el-drawer v-model="shareDialogData.status" :title="$t('gateway.assignOrg')" :show-close="false" @before-close="closeHandler" width="60%">
     <el-form :data="data">
-        <el-form-item label="已分配机构" label-position="right" label-width="100px">
+        <el-form-item :label="$t('gateway.assignedOrg')" label-position="right" label-width="120px">
           <div class="left-flex-contain" style="flex-wrap: wrap;">
             <el-tag type="primary" v-for="(item,index) in data.gatewayOrg" :key="index" closable @close="delOrg(item,index)">{{ item.name }}</el-tag>
           </div>
         </el-form-item>
-        <el-form-item label="机构" label-position="right" label-width="90px">
+        <el-form-item :label="$t('common.org')" label-position="right" label-width="90px">
             <el-tree 
                 :props="defaultProps" 
                 :data="data.tree" 
@@ -16,14 +16,15 @@
     </el-form>
 
     <template #footer>
-        <el-button @click="closeClick">取消</el-button>
-        <el-button type="primary" @click="submitClick">保存</el-button>
+        <el-button @click="closeClick">{{ $t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="submitClick">{{ $t('common.save') }}</el-button>
     </template>
   </el-drawer>
 </template>
 
 <script>
 import {ref, reactive, defineComponent, getCurrentInstance, onMounted, toRef,watch} from "vue";
+import { useI18n } from 'vue-i18n'
 export default defineComponent({
   name: "DialogShare",
   props: {
@@ -35,6 +36,7 @@ export default defineComponent({
   },
   emits:['close'],
   setup(props,context){
+    const { t } = useI18n()
     const shareDialogData=props.data
     //const shareDialogData=toRef(props,'data')
     const data=ref(null)

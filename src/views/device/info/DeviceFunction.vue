@@ -3,7 +3,7 @@
     <el-row class="tiny-row">
       <el-col :span="6">
         <el-form label-width="120px">
-          <el-form-item label="设备功能">
+          <el-form-item :label="$t('deviceFunction.deviceFunction')">
             <el-select v-model="sendSelect" placeholder="Select" size="large" @change="selectChange"
                        class="tiny-ex-content">
               <el-option
@@ -14,7 +14,7 @@
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="参数名称">
+          <el-form-item :label="$t('deviceFunction.paramName')">
             <template #default>
               <el-form size="small" style="width: 100%">
                 <el-form-item v-for="(item,index) in sendData" size="large" style="margin-top: 5px;" label-width="120px">
@@ -37,10 +37,10 @@
               </el-form>
             </template>
           </el-form-item>
-          <el-form-item label="操作">
-            <el-button type="primary" @click="runClick" :loading="funcData.loading">发送</el-button>
+          <el-form-item :label="$t('deviceFunction.operation')">
+            <el-button type="primary" @click="runClick" :loading="funcData.loading">{{ $t('deviceFunction.send') }}</el-button>
           </el-form-item>
-          <el-form-item label="格式化结果">
+          <el-form-item :label="$t('deviceFunction.formattedResult')">
             <el-form style="width: 100%">
               <el-form-item v-for="(item,index) in sendResult" size="large" label-width="120px">
                 <template #label>
@@ -58,7 +58,7 @@
             </el-form>
 
           </el-form-item>
-          <el-form-item label="原始数据">
+          <el-form-item :label="$t('deviceFunction.rawData')">
             <el-input
               class="tiny-ex-content"
               v-model="funcData.resultStr"
@@ -75,7 +75,7 @@
           <el-main>
             <el-table :data="query.records" stripe border>
               <el-table-column prop="ts"
-                               label="时间"
+                               :label="$t('deviceFunction.time')"
                                header-align="center"
                                align="center"
                                width="320">
@@ -84,16 +84,16 @@
                     <el-date-picker
                       v-model="pickTime"
                       type="daterange"
-                      range-separator="至"
-                      start-placeholder="开始"
-                      end-placeholder="结束"
+                      :range-separator="$t('common.to')"
+                      :start-placeholder="$t('common.start')"
+                      :end-placeholder="$t('common.end')"
                       size="small" />
                   </div>
                 </template>
               </el-table-column>
 
               <el-table-column
-                label="功能"
+                :label="$t('deviceFunction.function')"
                 width="200"
                 align="center"
                 header-align="center" >
@@ -102,7 +102,7 @@
                 </template>
               </el-table-column>
               <el-table-column
-                label="请求状态"
+                :label="$t('deviceFunction.requestStatus')"
                 align="center"
                 header-align="center">
                 <template #default="scope">
@@ -110,7 +110,7 @@
                 </template>
               </el-table-column>
               <el-table-column
-                label="发送数据"
+                :label="$t('deviceFunction.sendData')"
                 align="center"
                 header-align="center">
                 <template #default="scope">
@@ -118,7 +118,7 @@
                 </template>
               </el-table-column>
               <el-table-column
-                label="请求结果源文件"
+                :label="$t('deviceFunction.requestResult')"
                 align="center"
                 header-align="center">
                 <template #default="scope">
@@ -155,6 +155,7 @@
 <script>
 import { defineComponent, toRef, ref, watch, onMounted, reactive, getCurrentInstance } from "vue";
 import { initPickTime, formatTs } from "@/util/common/pickTime";
+import { useI18n } from "vue-i18n";
 
 export default defineComponent({
   name: "DeviceFunction",
@@ -171,10 +172,11 @@ export default defineComponent({
   },
   emits: ["funcExecution"],
   setup(props, context) {
+    const { t } = useI18n();
     const { proxy } = getCurrentInstance();
     const funcData = toRef(props, 'functionData')
     const meta = toRef(props, 'deviceMeta')
-    const resultData = ref('无')
+    const resultData = ref('')
     const funcMeta = reactive([])
     const sendSelect = ref('')
     const sendData = reactive([])

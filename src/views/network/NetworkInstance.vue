@@ -13,7 +13,7 @@
                     </el-form-item>
                 </el-col>
                 <el-col span="8">
-                    <el-form-item label="谜格">
+                    <el-form-item label="">
                     </el-form-item>
                 </el-col>
             </el-row>

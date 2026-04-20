@@ -1,83 +1,90 @@
 <template>
   <div class="tab-pan-content">
-    <el-descriptions :column="3" border v-if="copyData!=null">
+    <el-descriptions v-if="copyData != null" :column="3" border>
       <template #title>
         <span>{{ copyData.productPo.name }}</span>
       </template>
       <template #extra>
         <el-space wrap>
-          <el-button type="warning" plain @click="edgeProductAsyn" :loading="btnload.load_asyn">边端产品同步</el-button>
-          <el-button type="info" plain @click="editClick" :loading="btnload.load_edit">保存</el-button>
+          <el-button type="warning" plain :loading="btnload.load_asyn" @click="edgeProductAsyn">
+            {{ $t('productDetail.edgeSync') }}
+          </el-button>
+          <el-button type="info" plain :loading="btnload.load_edit" @click="editClick">
+            {{ $t('common.save') }}
+          </el-button>
         </el-space>
       </template>
-      <el-descriptions-item label="名称">
-        <el-input v-model="copyData.productPo.name"></el-input>
+      <el-descriptions-item :label="$t('common.name')">
+        <el-input v-model="copyData.productPo.name" />
       </el-descriptions-item>
-      <el-descriptions-item label="类型">
-        <el-tag v-if="copyData.productPo.type == 'gateway'">网关</el-tag>
-        <el-tag v-if="copyData.productPo.type == 'children'">子设备</el-tag>
-        <el-tag v-if="copyData.productPo.type == 'device'">直联设备</el-tag>
+      <el-descriptions-item :label="$t('productDetail.type')">
+        <el-tag v-if="copyData.productPo.type === 'gateway'">{{ $t('product.gateway') }}</el-tag>
+        <el-tag v-if="copyData.productPo.type === 'children'">{{ $t('product.childDevice') }}</el-tag>
+        <el-tag v-if="copyData.productPo.type === 'device'">{{ $t('product.directDevice') }}</el-tag>
       </el-descriptions-item>
-      <el-descriptions-item label="产品型号">
-        <el-input v-model="copyData.productPo.sn"></el-input>
+      <el-descriptions-item :label="$t('productDetail.productModel')">
+        <el-input v-model="copyData.productPo.sn" />
       </el-descriptions-item>
-      <el-descriptions-item label="创建人">{{ copyData.sysUserPo.username }}</el-descriptions-item>
-      <el-descriptions-item label="所属机构">
+      <el-descriptions-item :label="$t('common.creator')">
+        {{ copyData.sysUserPo.username }}
+      </el-descriptions-item>
+      <el-descriptions-item :label="$t('common.org')">
         <el-tree-select
-          style="width: 220px;"
           v-model="copyData.productPo.orgId"
+          style="width: 220px;"
           :data="dimensionAllTree"
           check-strictly
-          :render-after-expand="false">
+          :render-after-expand="false"
+        >
           <template #empty>
-            <el-empty description="暂无数据"/>
+            <el-empty :description="$t('common.noData')" />
           </template>
         </el-tree-select>
       </el-descriptions-item>
-      <el-descriptions-item label="更新时间">{{ copyData.productPo.updateTime }}</el-descriptions-item>
-      <el-descriptions-item label="标签">
+      <el-descriptions-item :label="$t('common.updateTime')">
+        {{ copyData.productPo.updateTime }}
+      </el-descriptions-item>
+      <el-descriptions-item :label="$t('productDetail.tags')">
         <el-space wrap>
-          <el-tag closable v-for="(item,index) in copyData.productPo.metadata.tags" @close="tagClose(index)"
-                  @click="tagClick(index)">{{ item.tagName }}
+          <el-tag
+            v-for="(item, index) in copyData.productPo.metadata.tags"
+            :key="index"
+            closable
+            @close="tagClose(index)"
+            @click="tagClick(index)"
+          >
+            {{ item.tagName }}
           </el-tag>
           <el-button size="small" @click="addTag">+ New Tag</el-button>
         </el-space>
       </el-descriptions-item>
     </el-descriptions>
   </div>
-  <el-dialog v-model="tagDialog.status" title="标签">
+
+  <el-dialog v-model="tagDialog.status" :title="$t('productDetail.tag')">
     <el-form ref="tagForm" :model="tagDialog.tag" label-width="80px" :rules="rules" status-icon>
-      <el-form-item label="标签key" prop="tagKey">
-        <el-input v-model="tagDialog.tag.tagKey" placeholder="请输入英文key" />
+      <el-form-item :label="$t('productDetail.tagKey')" prop="tagKey">
+        <el-input v-model="tagDialog.tag.tagKey" :placeholder="$t('productDetail.tagKeyPlaceholder')" />
       </el-form-item>
-      <el-form-item label="标签名" prop="tagName">
-        <el-input v-model="tagDialog.tag.tagName" placeholder="请输入标签名" />
+      <el-form-item :label="$t('productDetail.tagName')" prop="tagName">
+        <el-input v-model="tagDialog.tag.tagName" :placeholder="$t('productDetail.tagNamePlaceholder')" />
       </el-form-item>
-      <el-form-item label="是否必填">
+      <el-form-item :label="$t('productDetail.required')">
         <el-radio-group v-model="tagDialog.tag.optional">
-          <el-radio :value="true" size="large">是</el-radio>
-          <el-radio :value="false" size="large">否</el-radio>
+          <el-radio :value="true" size="large">{{ $t('common.yes') }}</el-radio>
+          <el-radio :value="false" size="large">{{ $t('common.no') }}</el-radio>
         </el-radio-group>
       </el-form-item>
     </el-form>
     <template #footer>
-      <el-button type="primary" @click="tagSave">保存</el-button>
+      <el-button type="primary" @click="tagSave">{{ $t('common.save') }}</el-button>
     </template>
   </el-dialog>
 </template>
 
 <script>
-import {
-  computed,
-  defineComponent,
-  ref,
-  nextTick,
-  onMounted,
-  getCurrentInstance,
-  onBeforeUnmount,
-  toRef,
-  watch, reactive
-} from "vue";
+import { computed, defineComponent, getCurrentInstance, onMounted, reactive, ref, toRef } from "vue";
+import { useI18n } from "vue-i18n";
 import handlerDimensionTree from "@/util/dimension/DimensionTree";
 
 export default defineComponent({
@@ -85,62 +92,63 @@ export default defineComponent({
   props: {
     productData: {
       type: Object,
-      required: false
+      required: false,
     },
-    btnload:{
+    btnload: {
       type: Object,
       required: true,
-      default: () => ({load_edit:false,load_asyn:false})
-    }
+      default: () => ({ load_edit: false, load_asyn: false }),
+    },
   },
-  emits: ["dialogClick","submit","edgeAsyn"],
+  emits: ["dialogClick", "submit", "edgeAsyn"],
   setup(props, context) {
-    const {proxy} = getCurrentInstance()
-    const btnloadData=toRef(props,'btnload')
-    const tagDialog = reactive({ status: false, index: -1, tag: { tagKey: "", tagName: "", tagValue: "", optional: false } });
+    const { proxy } = getCurrentInstance();
+    const { t } = useI18n();
+    const btnloadData = toRef(props, "btnload");
+    const tagDialog = reactive({
+      status: false,
+      index: -1,
+      tag: { tagKey: "", tagName: "", tagValue: "", optional: false },
+    });
     const dimensionTree = ref([]);
-    const dimensionAllTree = computed(() => {
-      const rootTree=[]
-      rootTree.push(...dimensionTree.value);
-      return rootTree
-    });
     const tagForm = ref(null);
-
     const data = toRef(props, "productData");
-    let copyData = ref(null);
-    computed(data.value, (value) => {
-      initData();
+    const copyData = ref(null);
+
+    const dimensionAllTree = computed(() => {
+      const rootTree = [];
+      rootTree.push(...dimensionTree.value);
+      return rootTree;
     });
+
     const validateSelect = (rule, value, callback) => {
       console.log("validateSelect:" + rule.field);
-      if (rule.field == "tagKey") {
-        if (tagDialog.tag.tagKey == undefined || tagDialog.tag.tagKey == "") {
-          callback(("标签key不能为空"));
-        } else {
-          var exit = false;
-          for (var item of copyData.value.productPo.metadata.tags) {
-            if (item.tagKey == tagDialog.tag.tagKey) {
-              exit = true;
-              break;
-            }
-          }
-          if (exit) {
-            callback(("标签key存在重复，请重新输入"));
-          } else {
-            callback();
-          }
+      if (rule.field === "tagKey") {
+        if (!tagDialog.tag.tagKey) {
+          callback(t("productDetail.tagKeyRequired"));
+          return;
         }
-      } else if (rule.field == "tagName") {
-        if (tagDialog.tag.tagName == undefined || tagDialog.tag.tagName == "") {
-          callback(("标签名不能为空"));
-        } else {
-          callback();
+
+        const exists = copyData.value.productPo.metadata.tags.some(
+          (item) => item !== copyData.value.productPo.metadata.tags[tagDialog.index] && item.tagKey === tagDialog.tag.tagKey
+        );
+        if (exists) {
+          callback(t("productDetail.tagKeyDuplicate"));
+          return;
         }
       }
+
+      if (rule.field === "tagName" && !tagDialog.tag.tagName) {
+        callback(t("productDetail.tagNameRequired"));
+        return;
+      }
+
+      callback();
     };
+
     const requestDimensionApi = () => {
-      proxy.$http.dimensionTree().then(value => {
-        var tree = {};
+      proxy.$http.dimensionTree().then((value) => {
+        const tree = {};
         dimensionTree.value.length = 0;
         handlerDimensionTree(value.data, tree);
         dimensionTree.value.push(tree);
@@ -150,34 +158,39 @@ export default defineComponent({
 
     const rules = ref({
       tagKey: [{ validator: validateSelect, trigger: "blur" }],
-      tagName: [{ validator: validateSelect, trigger: "blur" }]
+      tagName: [{ validator: validateSelect, trigger: "blur" }],
     });
+
     const initData = () => {
       copyData.value = JSON.parse(JSON.stringify(data.value));
     };
+
     const editClick = () => {
-      context.emit("submit",copyData.value.productPo);
+      context.emit("submit", copyData.value.productPo);
     };
-    const edgeProductAsyn=()=>{
-      context.emit("edgeAsyn")
-    }
+
+    const edgeProductAsyn = () => {
+      context.emit("edgeAsyn");
+    };
+
     const addTag = () => {
       console.log("addTag");
       tagDialog.index = -1;
       tagDialog.tag = { tagKey: "", tagName: "", tagValue: "", optional: false };
       tagDialog.status = true;
     };
+
     const tagClose = (index) => {
       console.log(index);
       copyData.value.productPo.metadata.tags.splice(index, 1);
     };
+
     const tagClick = (index) => {
       console.log(index);
       tagDialog.index = index;
-      tagDialog.tag = copyData.value.productPo.metadata.tags[index];
+      tagDialog.tag = { ...copyData.value.productPo.metadata.tags[index] };
       tagDialog.status = true;
     };
-
 
     const tagSave = () => {
       console.log("tagSave");
@@ -185,8 +198,11 @@ export default defineComponent({
         if (valid) {
           console.log("submit!:");
           tagDialog.status = false;
-          if (tagDialog.index < 0) copyData.value.productPo.metadata.tags.push(tagDialog.tag);
-          if (tagDialog.index >= 0) copyData.value.productPo.metadata.tags[index] = tagDialog.tag;
+          if (tagDialog.index < 0) {
+            copyData.value.productPo.metadata.tags.push(tagDialog.tag);
+          } else {
+            copyData.value.productPo.metadata.tags[tagDialog.index] = tagDialog.tag;
+          }
         } else {
           console.log("error submit!", fields);
         }
@@ -195,10 +211,24 @@ export default defineComponent({
 
     onMounted(() => {
       initData();
-      requestDimensionApi()
+      requestDimensionApi();
     });
-    return { btnloadData,dimensionAllTree, tagForm, rules, tagDialog, copyData, editClick, tagSave, tagClick, addTag, tagClose,edgeProductAsyn };
-  }
+
+    return {
+      btnloadData,
+      dimensionAllTree,
+      tagForm,
+      rules,
+      tagDialog,
+      copyData,
+      editClick,
+      tagSave,
+      tagClick,
+      addTag,
+      tagClose,
+      edgeProductAsyn,
+    };
+  },
 });
 </script>
 

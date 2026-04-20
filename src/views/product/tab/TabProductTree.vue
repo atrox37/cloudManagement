@@ -5,10 +5,10 @@
         <el-card style="height:calc(100% - 10px)">
           <template #header>
             <div class="card-content">
-              <el-text type="info"tag="b">结构分路</el-text>
+              <el-text type="info"tag="b">{{ $t('treeNode.structurePath') }}</el-text>
               <el-button-group>
-                <el-button @click="newClick">新增</el-button>
-                <el-button @click="saveClick" :loading="load">保存</el-button>
+                <el-button @click="newClick">{{ $t('treeNode.append') }}</el-button>
+                <el-button @click="saveClick" :loading="load">{{ $t('common.save') }}</el-button>
               </el-button-group>
 
             </div>
@@ -22,13 +22,13 @@
                   <div>
                     <el-button-group>
                       <el-button  size="small" @click="rename(data)">
-                        重命名
+                        {{ $t('treeNode.rename') }}
                       </el-button>
                       <el-button  size="small" @click="append(data)">
-                        新增
+                        {{ $t('treeNode.append') }}
                       </el-button>
                       <el-button  size="small" @click="remove(node, data)">
-                        删除
+                        {{ $t('common.delete') }}
                       </el-button>
                     </el-button-group>
 
@@ -45,15 +45,15 @@
     </el-row>
 
   </div>
-  <el-dialog v-model="renameDialog.status" title="修改名称">
+  <el-dialog v-model="renameDialog.status" :title="$t('treeNode.renameTitle')">
     <el-form :model="renameDialog">
-      <el-form-item label="节点名称">
+      <el-form-item :label="$t('treeNode.nodeName')">
         <el-input v-model="renameDialog.node.name" />
       </el-form-item>
     </el-form>
     <template #footer>
       <div class="right-flex-contain">
-        <el-button @click="renameSubmit">保存</el-button>
+        <el-button @click="renameSubmit">{{ $t('common.save') }}</el-button>
       </div>
     </template>
   </el-dialog>
@@ -61,6 +61,7 @@
 <script>
 import {onMounted, defineComponent, getCurrentInstance, reactive, ref, watch, toRef, computed} from "vue"
 import { ElButton } from 'element-plus'
+import { useI18n } from "vue-i18n"
 
 export default defineComponent({
   name: "TabProductTree",
@@ -77,6 +78,7 @@ export default defineComponent({
   },
   emits: ['submit'],
   setup(props, context) {
+    const { t } = useI18n()
     const meta = toRef(props, 'productData')
     const load = toRef(props,'loading')
     const direction = ref("horizontal")

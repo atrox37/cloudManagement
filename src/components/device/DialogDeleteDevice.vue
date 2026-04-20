@@ -1,11 +1,11 @@
 <template>
-  <el-dialog v-model="data.status" title="警告" :close-on-click-modal="false" :close-on-press-escape="false">
-    <el-text size="large">确定是否需要删除该设备</el-text>
+  <el-dialog v-model="data.status" :title="$t('deviceDialog.deleteWarning')" :close-on-click-modal="false" :close-on-press-escape="false">
+    <el-text size="large">{{ $t('deviceDialog.deleteConfirm') }}</el-text>
     <template #footer>
       <div class="right-flex-contain">
         <el-space wrap>
-          <el-button @click="cancelClick">取消</el-button>
-          <el-button type="primary" @click="submitClick" :loading="data.loading">提交</el-button>
+          <el-button @click="cancelClick">{{ $t('common.cancel') }}</el-button>
+          <el-button type="primary" @click="submitClick" :loading="data.loading">{{ $t('deviceDialog.submitBtn') }}</el-button>
         </el-space>
       </div>
     </template>
