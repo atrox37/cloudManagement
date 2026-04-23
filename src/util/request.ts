@@ -1,10 +1,13 @@
 import {post, get, postHeader} from './http'
 
 export const captchaApi=function (){
-    return get('/api/sys-app/common/captcha64')
+    return get('/api/sys-app/common/captcha64',{})
 }
 export const loginApi = function (p: any) {
     return post('/api/sys-app/login',p)
+}
+export const logoutApi = function (p: any) {
+    return post('/api/sys-app/logout',p)
 }
 export const menuApi = function (){
     return post('/api/sys-app/sys_menu/menu',{});

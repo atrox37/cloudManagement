@@ -101,7 +101,8 @@ export default defineComponent({
           if (v && v.code == 200) {
             tagViewStore().cleanView();
             tagViewStore().setPosition(-1);
-            window.sessionStorage.setItem("token", v.data);
+            window.sessionStorage.setItem("token", v.data.token);
+            window.sessionStorage.setItem("userinfo", JSON.stringify(v.data.user));
             router.push("/sys");
           } else {
             ElMessage({

@@ -515,6 +515,11 @@ export default {
     zhCN: 'Chinese',
     enUS: 'English',
   },
+  header: {
+    logout: 'Logout',
+    logoutConfirm: 'Are you sure you want to logout?',
+    logoutConfirmTitle: 'Confirm',
+  },
   deviceInfo: {
     syncModel: 'Sync Model',
     basicInfo: 'Basic Information',

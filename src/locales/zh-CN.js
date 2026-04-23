@@ -515,6 +515,11 @@ export default {
     zhCN: '中文',
     enUS: 'English',
   },
+  header: {
+    logout: '退出登录',
+    logoutConfirm: '确认退出登录？',
+    logoutConfirmTitle: '提示',
+  },
   deviceInfo: {
     syncModel: '模型同步',
     basicInfo: '基本信息',
