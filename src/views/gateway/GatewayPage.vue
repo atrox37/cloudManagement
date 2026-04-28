@@ -190,14 +190,6 @@ export default defineComponent({
       page.current = 1;
       requestApi();
     };
-    const requestSharOrgApi = (id) => {
-      proxy.$http.gatewayShareOrg({ gatewayId: id }).then(value => {
-        shareDialog.gatewayOrg.length = 0;
-        shareDialog.gatewayOrg.push(...value.data);
-        shareDialog.status = true;
-        console.log("requestSharOrgApi");
-      });
-    };
     const queryClick = () => {
       console.log("queryClick");
       requestApi();
@@ -237,10 +229,6 @@ export default defineComponent({
         .catch(() => {
         });
 
-    };
-    const shareClick = (row, column, event) => {
-      console.log("shareClick");
-      requestSharOrgApi(row.gatewayPo.id);
     };
     const shareClose = () => {
       console.log("shareClose");
@@ -306,7 +294,6 @@ export default defineComponent({
       editClick,
       deleteClick,
       changeNetwork,
-      shareClick,
       shareClose,
       saveApi,
       boardClick

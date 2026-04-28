@@ -120,9 +120,6 @@ export const uploadSSL=function(p: any){
 export const gatewayPage=function (p: any) {
     return post('/api/iot-app/gateway/_page',p)
 }
-export const gatewayShareOrg=(p: any)=>{
-    return get('/api/iot-app/gateway/org',p)
-}
 export const saveUpdateGateway=function (p: any) {
     return post('/api/iot-app/gateway/_save_or_update',p)
 }
