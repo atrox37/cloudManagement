@@ -330,9 +330,9 @@ export default defineComponent({
 
     const connectFunc = function() {
       disConnectFunc();
-      //const socketUrl = "http://" + import.meta.env.VITE_APP_URL + "/register-app/socket";
+      const socketUrl = "http://" + import.meta.env.VITE_APP_URL + "/register-app/socket";
       //TODO 打包
-      const socketUrl ="/api/register-app/socket";
+      //const socketUrl ="/api/register-app/socket";
       console.log("socketUrl:" + socketUrl);
       socket = new SockJS(socketUrl);
       stomp = Stomp.over(socket);
@@ -497,7 +497,7 @@ export default defineComponent({
         if (JSON.parse(m.body).replyType == "SUCCESS" && JSON.parse(m.body).type == "function-reply") {
           tabFunctionData.loading = false;
           tabFunctionData.result = JSON.parse(m.body).resultData;
-          tabFunctionData.resultStr = JSON.stringify(JSON.parse(m.body).resultData);//JSON.parse(m.body).resultStrData;
+          tabFunctionData.resultStr = JSON.parse(m.body).source;//JSON.parse(m.body).resultStrData;
           console.log("function success");
           ElMessage({
             message: t('common.operationSuccess'),
@@ -511,7 +511,7 @@ export default defineComponent({
             JSON.parse(m.body).resultData == undefined
               ? {}
               : JSON.parse(m.body).resultData;
-          tabFunctionData.resultStr = JSON.stringify(JSON.parse(m.body).resultData);
+          tabFunctionData.resultStr = JSON.parse(m.body).source;
           ElMessage({
             message: t('deviceInstance.funcFail'),
             type: "error",

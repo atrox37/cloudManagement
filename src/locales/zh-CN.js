@@ -246,6 +246,7 @@ export default {
     createTime: '创建时间',
     updateTime: '更新时间',
     emailType: '邮箱',
+    awsEmailType: 'AWS邮箱',
     nameLabel: '名称',
     confirmDeleteMsg: '确认删除通知配置「{name}」吗？',
     confirmDeleteTitle: '删除确认',

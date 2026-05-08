@@ -271,7 +271,14 @@ export default defineComponent({
       }
     };
     const saveClick = (data) => {
-      drawMqttServerInfo.saveloading = true;
+      const type = data.data.networkConfigPo.configuration?.type;
+      if (type === 'MQTT_SERVER') {
+        drawMqttServerInfo.saveloading = true;
+      } else if (type === 'MQTT_CLIENT') {
+        drawClientServerInfo.saveloading = true;
+      } else if (type === 'KAFKA') {
+        drawKafkaServerInfo.saveloading = true;
+      }
       console.log("saveApi:" + JSON.stringify(data.data.networkConfigPo));
       saveApi(data.data.networkConfigPo);
     };

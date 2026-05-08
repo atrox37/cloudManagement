@@ -37,9 +37,14 @@
                     </el-col>
                 </el-row>
             </div>
-            <div class="text_value">
-                {{formatData}}
-            </div>
+            <el-tooltip :content="String(formatData)" placement="top" :show-after="300" :disabled="!formatData || formatData === '/'">
+                <template #content>
+                    <div style="max-width: 300px; word-break: break-all;">{{formatData}}</div>
+                </template>
+                <div class="text_value">
+                    {{formatData}}<span v-if="formatData !== '/' && cartItem.valueType && cartItem.valueType.unit" class="text_unit">{{cartItem.valueType.unit}}</span>
+                </div>
+            </el-tooltip>
             <div class="right-flex-contain" style="height: 20px !important;">
                 <el-text>{{formatTs}}</el-text>
             </div>
@@ -153,6 +158,15 @@ export default defineComponent({
     .text_value{
         font-size: 2.5em;
         font-family: sans-serif;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 100%;
+    }
+    .text_unit{
+        font-size: 0.5em;
+        color: #909399;
+        margin-left: 4px;
     }
     .text_title{
         font-size: 1.0em;

@@ -34,7 +34,7 @@
             </el-form>
         </template>
         <template #footer>
-            <el-button type="primary" @click="submitClick" v-loading="selectData.loading">{{ $t('common.save') }}</el-button>
+            <el-button type="primary" @click="submitClick" :loading="selectData.loading">{{ $t('common.save') }}</el-button>
         </template>
     </el-drawer>
 </template>

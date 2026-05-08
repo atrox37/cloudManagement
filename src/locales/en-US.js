@@ -246,6 +246,7 @@ export default {
     createTime: 'Create Time',
     updateTime: 'Update Time',
     emailType: 'Email',
+    awsEmailType: 'AWS Email',
     nameLabel: 'Name',
     confirmDeleteMsg: 'Are you sure to delete notification "{name}"?',
     confirmDeleteTitle: 'Delete Confirmation',

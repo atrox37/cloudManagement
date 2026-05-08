@@ -104,9 +104,16 @@
               <el-table-column
                 :label="$t('deviceFunction.requestStatus')"
                 align="center"
+                width="120"
                 header-align="center">
                 <template #default="scope">
-                  {{ scope.row.funcStatus }}
+                  <el-tag
+                    :type="scope.row.funcStatus === 'success' ? 'success' : scope.row.funcStatus === 'fail' ? 'danger' : 'warning'"
+                    effect="light"
+                    round
+                    size="small">
+                    {{ scope.row.funcStatus }}
+                  </el-tag>
                 </template>
               </el-table-column>
               <el-table-column
@@ -122,7 +129,12 @@
                 align="center"
                 header-align="center">
                 <template #default="scope">
-                  {{ scope.row.resultData }}
+                  <el-tooltip :content="scope.row.resultData" placement="top" :show-after="300" :disabled="!scope.row.resultData" :popper-options="{modifiers:[{name:'computeStyles',options:{adaptive:false}}]}" effect="dark">
+                    <template #content>
+                      <div style="max-width: 300px; word-break: break-all;">{{ scope.row.resultData }}</div>
+                    </template>
+                    <div class="cell-ellipsis">{{ scope.row.resultData }}</div>
+                  </el-tooltip>
                 </template>
               </el-table-column>
 
@@ -321,6 +333,13 @@ export default defineComponent({
   display: flex;
   align-items: center;
   justify-content: flex-start;
+}
+
+.cell-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 </style>

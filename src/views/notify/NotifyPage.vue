@@ -51,6 +51,7 @@
                                 <template #dropdown>
                                     <el-dropdown-menu>
                                         <el-dropdown-item command="email">{{ $t('notify.emailType') }}</el-dropdown-item>
+                                        <el-dropdown-item command="aws-email">{{ $t('notify.awsEmailType') }}</el-dropdown-item>
                                     </el-dropdown-menu>
                                 </template>
                             </el-dropdown>
@@ -163,7 +164,7 @@
                 if(type=='email'){
                     configData.data={name:'',code:'email',config:{type:'email',host:'',port:0,pass:'',from:''}}
                 }else if(type=='aws-email'){
-                    configData.data={name:'',code:'aws-email',config:{type:'type',from:'',host:'',smtpUsername:0,smtpPassword:''}}
+                    configData.data={name:'',code:'aws-email',config:{type:'aws-email',from:'',host:'',smtpUsername:'',smtpPassword:''}}
                 }
                 configData.state=true
             }

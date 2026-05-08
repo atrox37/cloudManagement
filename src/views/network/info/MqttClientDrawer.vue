@@ -1,6 +1,6 @@
 <template>
   <el-drawer v-model="dataInfo.status" :size="'25%'" >
-    <el-form :model="dataInfo" label-width="100">
+    <el-form :model="dataInfo" label-width="100" :disabled="!dataInfo.add && initialState">
       <el-form-item :label="$t('common.name')">
         <el-input v-model="dataInfo.data.networkConfigPo.name" />
       </el-form-item>
@@ -51,16 +51,6 @@
         </el-input>
       </el-form-item>
 
-      <el-form-item :label="$t('common.status')">
-        <el-switch
-          v-model="state"
-          width="60"
-          :disabled="dataInfo.add"
-          inline-prompt
-          :active-text="$t('networkDrawer.statusOn')"
-          :inactive-text="$t('networkDrawer.statusOff')"
-        />
-      </el-form-item>
       <el-form-item :label="$t('networkDrawer.topics')">
         <el-input-tag v-model="dataInfo.data.networkConfigPo.configuration.topics" clearable :placeholder="$t('networkDrawer.topicsPlaceholder')" />
       </el-form-item>
@@ -99,7 +89,23 @@
       </div>
     </template>
     <template #footer>
-      <el-button type="primary" :loading="dataInfo.saveloading" @click="saveClick">{{ $t('common.save') }}</el-button>
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <el-text>{{ $t('common.status') }}</el-text>
+          <el-switch
+            v-model="state"
+            width="60"
+            :disabled="dataInfo.add"
+            inline-prompt
+            :active-text="$t('networkDrawer.statusOn')"
+            :inactive-text="$t('networkDrawer.statusOff')"
+          />
+          <el-tag :type="state ? 'success' : 'info'" effect="light" size="small">
+            {{ state ? $t('networkDrawer.statusOn') : $t('networkDrawer.statusOff') }}
+          </el-tag>
+        </div>
+        <el-button type="primary" :loading="dataInfo.saveloading" @click="saveClick">{{ $t('common.save') }}</el-button>
+      </div>
     </template>
   </el-drawer>
 
@@ -126,10 +132,16 @@ export default defineComponent({
     const { t } = useI18n()
     const dataInfo=toRef(props,'data')
     const fileInput=ref(null)
+    const initialState=ref(false)
 
     const boardItem=reactive({status:false,index:-1,data:{name:'',topic:'',data:'',cluster:[]}})
 
     var tag=''
+    watch(()=>dataInfo.value.status,(v)=>{
+      if(v){
+        initialState.value = dataInfo.value.data?.networkConfigPo?.state == 1
+      }
+    })
     watch(fileInput,(value => {
       value.addEventListener('change',function(){
         console.log('changeFile')
@@ -142,10 +154,12 @@ export default defineComponent({
     }))
     const state=computed({
       get(){
-        return dataInfo.value.data.networkConfigPo.state == 1;
+        return dataInfo.value.data?.networkConfigPo?.state == 1;
       },
       set(v){
-        dataInfo.value.data.networkConfigPo.state = v?1:0;
+        if(dataInfo.value.data?.networkConfigPo){
+          dataInfo.value.data.networkConfigPo.state = v?1:0;
+        }
       }
     })
 
@@ -158,6 +172,7 @@ export default defineComponent({
       context.emit("submit",dataInfo.value)
     }
     const boardDeleteClick=(index,row)=>{
+      if(initialState.value) return
       dataInfo.value.data.networkConfigPo.configuration.boards.splice(index,1)
     }
     const createTagId=()=>{
@@ -165,12 +180,14 @@ export default defineComponent({
       return id
     }
     const boardAddClick=()=>{
+      if(initialState.value) return
       boardItem.status=true
       boardItem.index=-1
       boardItem.data= { id:createTagId(),name:'',topic:'',data:'',cluster:[] }
       console.log('addClick')
     }
     const boardRowClick=(row)=>{
+      if(initialState.value) return
       console.log('boardClick')
       boardItem.status=true
       boardItem.data=JSON.parse(JSON.stringify(row))
@@ -191,6 +208,7 @@ export default defineComponent({
       boardItem,
       fileInput,
       state,
+      initialState,
       dataInfo,
       boardDeleteClick,
       boardAddClick,

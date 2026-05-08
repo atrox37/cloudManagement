@@ -42,7 +42,12 @@
             align="center"
             header-align="center">
             <template #default="scope">
-              {{ JSON.stringify(scope.row.ruleData) }}
+              <el-tooltip placement="top" :show-after="300" :disabled="!scope.row.ruleData">
+                <template #content>
+                  <div style="max-width: 300px; word-break: break-all;">{{ JSON.stringify(scope.row.ruleData) }}</div>
+                </template>
+                <div class="cell-ellipsis">{{ JSON.stringify(scope.row.ruleData) }}</div>
+              </el-tooltip>
             </template>
           </el-table-column>
           <el-table-column
@@ -286,6 +291,13 @@ export default defineComponent({
 
 :deep(.el-date-editor.el-input__wrapper) {
   width: 220px
+}
+
+.cell-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 </style>

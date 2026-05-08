@@ -131,8 +131,6 @@
             }
             const resetPickTime=()=>{
               pickTime.value=initPickTime()
-              pickTime.value[0]=new Date(new Date().getTime() - 7 * 24 * 60 * 60 * 1000);
-              pickTime.value[1]=new Date()
             }
             const closeHandler = () => {
                 context.emit("close")

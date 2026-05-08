@@ -6,7 +6,11 @@
                 <el-table :data="filterProperty" stripe >
                     <el-table-column prop="name" :label="$t('deviceMeta.name')" width="180" />
                     <el-table-column prop="valueType.type" :label="$t('deviceMeta.type')" width="180" />
-                    <el-table-column prop="valueType.unit" :label="$t('deviceMeta.unit')" width="180" />
+                    <el-table-column :label="$t('deviceMeta.unit')" width="180">
+                        <template #default="scope">
+                            {{getUnitLabel(scope.row.valueType.unit)}}
+                        </template>
+                    </el-table-column>
                     <el-table-column :label="$t('deviceMeta.tag')" width="180">
                         <template #default="scope">
                             {{getTagName(scope.row.tagId)}}
@@ -142,8 +146,8 @@
                         <el-option
                                 v-for="(item,index) in deviceType"
                                 :key="index"
-                                :label="item.label"
-                                :value="item.value"
+                                :label="`${item.en} (${item.unit})`"
+                                :value="item.unit"
                         />
                     </el-select>
                 </el-form-item>
@@ -219,7 +223,7 @@
         </template>
     </el-drawer>
 
-    <el-drawer v-if="selectMetaIndex>=0&&selectArgIndex>=0" :before-close="funcDrawArgClose" v-model="func_args_draw" :title="$t('deviceMeta.paramInfo')"  :size="'20%'">
+    <el-drawer v-if="selectMetaIndex>=0&&selectArgIndex>=0" :before-close="funcDrawArgClose" v-model="func_args_draw" :title="$t('deviceMeta.paramInfo')"  :size="'20%'" :body-style="{overflow: 'auto'}">
         <template #default>
             <el-form :model="selectFunArg" label-position="top">
                 <el-form-item :label="$t('deviceMeta.paramId')">
@@ -228,60 +232,58 @@
                 <el-form-item :label="$t('deviceMeta.paramName')">
                     <el-input v-model="selectFunArg.name"/>
                 </el-form-item>
-                <el-form :inline="false" :model="selectFunArg">
-                    <el-form-item :label="$t('deviceMeta.type')">
-                        <el-select v-model="selectFunArg.valueType.type" placeholder="Select" size="default">
-                            <el-option
-                                    v-for="(item,index) in deviceUnit"
-                                    :key="index"
-                                    :label="item.name"
-                                    :value="item.id"
-                            />
-                        </el-select>
-                    </el-form-item>
-                    <el-form-item v-if="selectArgIndex>=0&&selectFunArg.valueType.type == 'enum'" :label="$t('deviceMeta.enumValue')">
-                        <el-table :data="selectFunArg.valueType.extra.enumData" border>
-                            <el-table-column prop="key" :label="$t('deviceMeta.paramValue')" width="80" header-align="center" align="center">
-                                <template #default="scope">
-                                    <el-input v-model="scope.row.key"></el-input>
-                                </template>
-                            </el-table-column>
-                            <el-table-column prop="value" :label="$t('deviceMeta.enumValue')" width="140" header-align="center" align="center">
-                                <template #default="scope">
-                                    <el-input v-model="scope.row.value"></el-input>
-                                </template>
-                            </el-table-column>
-                            <el-table-column>
-                                <template #header>
-                                    <div class="center-flex-contain">
-                                        <el-button-group>
-                                            <el-button size="small" round @click="addSelectFuncArgsEnumClick"><font-awesome-icon size="1x" :icon="['fasr', 'square-plus']" /></el-button>
-                                        </el-button-group>
-                                    </div>
+                <el-form-item :label="$t('deviceMeta.type')">
+                    <el-select v-model="selectFunArg.valueType.type" placeholder="Select" size="default" @change="funcArgTypeChange">
+                        <el-option
+                                v-for="(item,index) in deviceUnit"
+                                :key="index"
+                                :label="item.name"
+                                :value="item.id"
+                        />
+                    </el-select>
+                </el-form-item>
+                <el-form-item v-if="selectArgIndex>=0&&selectFunArg.valueType.type == 'enum'" :label="$t('deviceMeta.enumValue')">
+                    <el-table :data="selectFunArg.valueType.extra.enumData" border>
+                        <el-table-column prop="key" :label="$t('deviceMeta.paramValue')" width="80" header-align="center" align="center">
+                            <template #default="scope">
+                                <el-input v-model="scope.row.key"></el-input>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="value" :label="$t('deviceMeta.enumValue')" width="140" header-align="center" align="center">
+                            <template #default="scope">
+                                <el-input v-model="scope.row.value"></el-input>
+                            </template>
+                        </el-table-column>
+                        <el-table-column>
+                            <template #header>
+                                <div class="center-flex-contain">
+                                    <el-button-group>
+                                        <el-button size="small" round @click="addSelectFuncArgsEnumClick"><font-awesome-icon size="1x" :icon="['fasr', 'square-plus']" /></el-button>
+                                    </el-button-group>
+                                </div>
 
-                                </template>
-                                <template #default="scope">
-                                    <div class="center-flex-contain">
-                                        <el-button-group>
-                                            <el-button round size="small" @click="delSelectFuncArgsEnumClick(scope.row,scope.$index)"><font-awesome-icon size="1x" :icon="['fasr', 'trash']" /></el-button>
-                                        </el-button-group>
-                                    </div>
-                                </template>
+                            </template>
+                            <template #default="scope">
+                                <div class="center-flex-contain">
+                                    <el-button-group>
+                                        <el-button round size="small" @click="delSelectFuncArgsEnumClick(scope.row,scope.$index)"><font-awesome-icon size="1x" :icon="['fasr', 'trash']" /></el-button>
+                                    </el-button-group>
+                                </div>
+                            </template>
 
-                            </el-table-column>
-                        </el-table>
-                    </el-form-item>
-                    <el-form-item :label="$t('deviceMeta.unit')">
-                        <el-select v-model="selectFunArg.valueType.unit" placeholder="Select" size="default">
-                            <el-option
-                                    v-for="item in deviceType"
-                                    :key="item.value"
-                                    :label="item.label"
-                                    :value="item.value"
-                            />
-                        </el-select>
-                    </el-form-item>
-                </el-form>
+                        </el-table-column>
+                    </el-table>
+                </el-form-item>
+                <el-form-item :label="$t('deviceMeta.unit')">
+                    <el-select v-model="selectFunArg.valueType.unit" placeholder="Select" size="default">
+                        <el-option
+                                v-for="item in deviceType"
+                                :key="item.unit"
+                                :label="`${item.en} (${item.unit})`"
+                                :value="item.unit"
+                        />
+                    </el-select>
+                </el-form-item>
             </el-form>
         </template>
     </el-drawer>
@@ -399,6 +401,11 @@
                     }
                 }
                 return name
+            }
+            const getUnitLabel=(unit)=>{
+                if(!unit) return ''
+                const found = deviceType.value.find(item => item.unit.toLowerCase() === unit.toLowerCase())
+                return found ? `${found.en} (${found.unit})` : unit
             }
             const propertyTagClick=(index)=>{
                 if(selectTagId.id==deviceMeta.value.metadata.propertyTags[index].id){
@@ -535,14 +542,34 @@
                 func_draw.value=true
                 func_args_draw.value=false
             }
-            const addSelectFuncArgsEnumClick=()=>{
-                if(deviceMeta.value.metadata.functions[selectMetaIndex.value].inputs[selectArgIndex.value].valueType.extra.enumData==undefined){
-                    deviceMeta.value.metadata.functions[selectMetaIndex.value].inputs[selectArgIndex.value].valueType.extra.enumData=[]
+            const funcArgTypeChange=(val)=>{
+                const args = saveFuncArgs.value==0
+                    ? deviceMeta.value.metadata.functions[selectMetaIndex.value].inputs
+                    : deviceMeta.value.metadata.functions[selectMetaIndex.value].outputs
+                const arg = args[selectArgIndex.value]
+                if(val=='enum'){
+                    if(!arg.valueType.extra.enumData || arg.valueType.extra.enumData.length==0){
+                        arg.valueType.extra.enumData=[{key:'',value:''}]
+                    }
                 }
-                deviceMeta.value.metadata.functions[selectMetaIndex.value].inputs[selectArgIndex.value].valueType.extra.enumData.push({key:'',value:''})
+            }
+            const addSelectFuncArgsEnumClick=()=>{
+                const args = saveFuncArgs.value==0
+                    ? deviceMeta.value.metadata.functions[selectMetaIndex.value].inputs
+                    : deviceMeta.value.metadata.functions[selectMetaIndex.value].outputs
+                const arg = args[selectArgIndex.value]
+                if(!arg.valueType.extra.enumData){
+                    arg.valueType.extra.enumData=[{key:'',value:''}]
+                }else{
+                    arg.valueType.extra.enumData.push({key:'',value:''})
+                }
+                console.log('addSelectFuncArgsEnumClick')
             }
             const delSelectFuncArgsEnumClick=(row,index)=>{
-                deviceMeta.value.metadata.functions[selectMetaIndex.value].valueType.extra.enumData.splice(index,1)
+                const args = saveFuncArgs.value==0
+                    ? deviceMeta.value.metadata.functions[selectMetaIndex.value].inputs
+                    : deviceMeta.value.metadata.functions[selectMetaIndex.value].outputs
+                args[selectArgIndex.value].valueType.extra.enumData.splice(index,1)
             }
             const selectFuncArg=(index)=>{
                 selectArgIndex.value=index
@@ -617,6 +644,7 @@
                 selectTab,
                 elTabChange,
                 getTagName,
+                getUnitLabel,
                 addPropertyTag,
                 propertyTagClick,
                 addPropertyClick,
@@ -635,6 +663,7 @@
                 addFuncOutputArgsClick,
                 selectFuncInputArgsClick,
                 selectFuncOutputArgsClick,
+                funcArgTypeChange,
                 addSelectFuncArgsEnumClick,
                 delSelectFuncArgsEnumClick,
                 deleteFuncInputArgsClick,
@@ -651,4 +680,7 @@
 
 <style scoped lang="scss">
     @import "@/views/device/style/DeviceMeta.scss";
+    :deep(.el-drawer__body) {
+        overflow-y: auto;
+    }
 </style>
