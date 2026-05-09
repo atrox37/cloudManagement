@@ -18,7 +18,7 @@
         <el-menu-item
           v-if="subItem.children==undefined||subItem.children.length==0"
           :index="subItem.path"
-          @click="itemclick(subItem.path,[getMenuName(item.name, item.path),getMenuName(subItem.name, subItem.path)])"
+          @click="itemclick(subItem.path)"
         >
           <font-awesome-icon size="1x" :title="subItem.title" :fixedWidth=true :icon="subItem.icon" />
           <span style="margin-left: 8px;color:#C0C4CC">{{ getMenuName(subItem.name, subItem.path) }}</span>
@@ -35,7 +35,7 @@
             v-for="scItem in subItem.children"
             :key="String(scItem.id)"
             :index="scItem.path"
-            @click="itemclick(scItem.path,[getMenuName(subItem.name, subItem.path),getMenuName(scItem.name, scItem.path)])"
+            @click="itemclick(scItem.path)"
           >
             <font-awesome-icon size="1x" :title="scItem.title" :fixedWidth=true :icon="scItem.icon" />
             <span style="margin-left: 8px;color:#C0C4CC">{{ getMenuName(scItem.name, scItem.path) }}</span>
@@ -144,8 +144,8 @@ export default defineComponent({
     const handleMenu = function () {
       console.log('handleMenu')
     }
-    const itemclick = (path, routerNames) => {
-      context.emit('push', path, routerNames)
+    const itemclick = (path) => {
+      context.emit('push', path)
     }
     watch(mm, (o1, o2) => {
       viewModel.menuState = o2

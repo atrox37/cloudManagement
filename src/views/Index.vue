@@ -9,14 +9,22 @@
       </el-header>
       <el-main class="index-main-container">
         <div class="tag-container">
-          <el-tag v-for="(item,index) in tags" style="margin-right: 2px;" :key="index" closable :type="item.active?'primary':'info'" size="large" @close="(event)=>{closeTag(event,item)}" @click="(event)=>{clickTag(item,index)}" effect="plain">
-
+          <el-tag
+            v-for="(item,index) in tags"
+            :key="index"
+            style="margin-right: 2px;"
+            closable
+            :type="item.active ? 'primary' : 'info'"
+            size="large"
+            effect="plain"
+            @close="(event)=>{closeTag(event,item)}"
+            @click="(event)=>{clickTag(item,index)}"
+          >
             <template #default="scope">
               <font-awesome-icon :icon="['fas', 'circle']" v-if="item.active"/>
               <font-awesome-icon :icon="['fas', 'circle-dot']" v-else/>
               {{ $t('routeNames.' + item.name, item.name) }}
             </template>
-
           </el-tag>
         </div>
         <div class="content-container">
@@ -30,78 +38,101 @@
 <script>
 import Aside from '@/views/Aside.vue'
 import Header from '@/views/Header.vue'
-import {useRouter} from 'vue-router';
-import tagViewStore from '@/store/tagView.js';
-import { ElTag } from 'element-plus'
-import { defineComponent,ref,reactive,watch,onMounted,onUpdated } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+import tagViewStore from '@/store/tagView.js'
+import { defineComponent, reactive, watch, onMounted, onUpdated } from 'vue'
+
 export default defineComponent({
-  name: "Index",
-  components: {Aside,Header},
-  setup(){
-    const { t } = useI18n()
+  name: 'Index',
+  components: { Aside, Header },
+  setup() {
     const router = useRouter()
-    const data=reactive({name:'asd',meunStat: true})
-    const tags=reactive([])
-    const changeMenu = function () {
-      console.log('修改状态')
+    const tagStore = tagViewStore()
+    const data = reactive({ name: 'asd', meunStat: true })
+    const tags = reactive([])
+    const routerData = reactive([])
+
+    const buildRouteData = (path) => {
+      return router.resolve(path).matched
+        .filter((record) => record.name && record.name !== 'Index')
+        .map((record) => ({
+          name: String(record.name),
+          path: record.path
+        }))
+    }
+
+    const syncRouterData = (path) => {
+      routerData.length = 0
+      routerData.push(...buildRouteData(path))
+    }
+
+    const normalizeStoredViews = () => {
+      const views = tagStore.getView()
+      for (const view of views) {
+        const matched = buildRouteData(view.path)
+        if (matched.length > 0) {
+          view.parent = matched
+          view.name = matched[matched.length - 1].name
+        }
+      }
+    }
+
+    const changeMenu = () => {
       data.meunStat = !data.meunStat
     }
-    const routerData=reactive([])
-    const pushView=function(path,routeNames){
+
+    const pushView = (path) => {
       router.push(path)
-      routerData.length=0
-      for(var i of routeNames){
-        routerData.push({name:i})
-      }
-      console.log(`跳转 ${path}`)
+      syncRouterData(path)
     }
-    const resetTag=()=>{
-      var views=tagViewStore().getView()
-      tags.length=0
+
+    const resetTag = () => {
+      const views = tagStore.getView()
+      tags.length = 0
       tags.push(...views)
     }
-    const clickTag=(item,index)=>{
-      console.log('clickTag')
-      if(!item.active){
-        tagViewStore().resetActive(index)
+
+    const clickTag = (item, index) => {
+      if (!item.active) {
+        tagStore.resetActive(index)
         resetTag()
         refreshPush()
       }
     }
-    const closeTag=(event,item)=>{
-      console.log('closeTag')
-      tagViewStore().removeView(item)
-      if(tagViewStore().autoActive()){
+
+    const closeTag = (event, item) => {
+      tagStore.removeView(item)
+      if (tagStore.autoActive()) {
         refreshPush()
       }
       resetTag()
     }
-    const refreshPush=()=>{
-      var view=tagViewStore().getCurrentView()
-      if(view==undefined){
+
+    const refreshPush = () => {
+      const view = tagStore.getCurrentView()
+      if (view === undefined) {
         router.push('/userPage')
-        routerData.length=0
-        routerData.push({name:t('routeNames.userList'),path:'/userPage',parent:[{name:t('routeNames.sys')}]})
-      }else{
-        routerData.length=0
+        syncRouterData('/userPage')
+      } else {
         router.push(view.path)
-        routerData.push(...view.parent)
+        syncRouterData(view.path)
       }
-      /*routerData.length=0
-      routerData.push(view)*/
     }
-    onMounted(()=>{
-      console.log('onMounted')
+
+    onMounted(() => {
+      normalizeStoredViews()
       refreshPush()
       resetTag()
     })
-    watch(data,(o1,o2) => {
+
+    watch(data, (o1, o2) => {
       console.log(`watch ${o2.meunStat}`)
     })
-    onUpdated(()=>{
+
+    onUpdated(() => {
       resetTag()
     })
+
     return {
       tags,
       data,
