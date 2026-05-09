@@ -5,9 +5,6 @@
         <span>{{ data.deviceInstancePo.name }}</span>
       </template>
       <template #extra>
-        <el-button type="primary" style="margin-top: 5px" @click="editClick">
-          {{ $t('common.save') }}
-        </el-button>
       </template>
       <el-descriptions-item :label="$t('deviceInfo.deviceName')">
         <el-input v-model="data.deviceInstancePo.name" />
@@ -29,7 +26,7 @@
         </el-tree-select>
       </el-descriptions-item>
       <el-descriptions-item :label="$t('deviceInfo.productName')">
-        {{ data.productPo.name }}
+        <el-link type="primary" @click="goProduct">{{ data.productPo.name }}</el-link>
       </el-descriptions-item>
       <el-descriptions-item :label="$t('deviceInfo.productType')">
         <el-tag>{{ type }}</el-tag>
@@ -98,6 +95,7 @@
 <script>
 import { computed, defineComponent, getCurrentInstance, onMounted, ref, toRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { useRouter } from "vue-router";
 import handlerDimensionTree from "@/util/dimension/DimensionTree";
 
 export default defineComponent({
@@ -121,6 +119,7 @@ export default defineComponent({
   setup(props, context) {
     const { proxy } = getCurrentInstance();
     const { t } = useI18n();
+    const router = useRouter();
     const gatewayData = toRef(props, "gateways");
     const data = toRef(props, "deviceData");
     const parent = toRef(props, "parentData");
@@ -183,6 +182,10 @@ export default defineComponent({
       context.emit("detailSave", data.value.deviceInstancePo);
     };
 
+    const goProduct = () => {
+      router.push({ path: '/productInstance', query: { productId: data.value.deviceInstancePo.productId } });
+    };
+
     return {
       selectedGatewayId,
       gatewayData,
@@ -191,6 +194,7 @@ export default defineComponent({
       data,
       editClick,
       parentName,
+      goProduct,
     };
   },
 });

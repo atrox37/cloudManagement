@@ -137,7 +137,7 @@ export default defineComponent({
       default: () => ({ columns: [],notifyDtos:[], rulePo: { ruleData: {},ruleMeta:{sql:"",param:{}} } }),
     },
   },
-  emits: ["close", "reload"],
+  emits: ["close", "reload", "save"],
   setup(props, context) {
     const { t } = useI18n();
     const { proxy } = getCurrentInstance();
@@ -288,16 +288,7 @@ export default defineComponent({
       }
       data.delMeta.push(...delMap.values());
       console.log("saveAlarm");
-
-      proxy.$http.deviceAlarmUpdate(data).then((value) => {
-        console.log("保存成功");
-        ElMessage({
-          showClose: true,
-          message: t('common.modifySuccess'),
-          type: "success",
-        });
-        context.emit("reload");
-      });
+      context.emit("save", data);
     };
 
     onMounted(() => {

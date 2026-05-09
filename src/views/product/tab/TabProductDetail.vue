@@ -1,36 +1,28 @@
 <template>
   <div class="tab-pan-content">
-    <el-descriptions v-if="copyData != null" :column="3" border>
+    <el-descriptions v-if="editData != null" :column="3" border>
       <template #title>
-        <span>{{ copyData.productPo.name }}</span>
+        <span>{{ editData.name }}</span>
       </template>
       <template #extra>
-        <el-space wrap>
-          <el-button type="warning" plain :loading="btnload.load_asyn" @click="edgeProductAsyn">
-            {{ $t('productDetail.edgeSync') }}
-          </el-button>
-          <el-button type="info" plain :loading="btnload.load_edit" @click="editClick">
-            {{ $t('common.save') }}
-          </el-button>
-        </el-space>
       </template>
       <el-descriptions-item :label="$t('common.name')">
-        <el-input v-model="copyData.productPo.name" />
+        <el-input v-model="editData.name" />
       </el-descriptions-item>
       <el-descriptions-item :label="$t('productDetail.type')">
-        <el-tag v-if="copyData.productPo.type === 'gateway'">{{ $t('product.gateway') }}</el-tag>
-        <el-tag v-if="copyData.productPo.type === 'children'">{{ $t('product.childDevice') }}</el-tag>
-        <el-tag v-if="copyData.productPo.type === 'device'">{{ $t('product.directDevice') }}</el-tag>
+        <el-tag v-if="editData.type === 'gateway'">{{ $t('product.gateway') }}</el-tag>
+        <el-tag v-if="editData.type === 'children'">{{ $t('product.childDevice') }}</el-tag>
+        <el-tag v-if="editData.type === 'device'">{{ $t('product.directDevice') }}</el-tag>
       </el-descriptions-item>
       <el-descriptions-item :label="$t('productDetail.productModel')">
-        <el-input v-model="copyData.productPo.sn" />
+        <el-input v-model="editData.sn" />
       </el-descriptions-item>
       <el-descriptions-item :label="$t('common.creator')">
-        {{ copyData.sysUserPo.username }}
+        {{ productData.sysUserPo.username }}
       </el-descriptions-item>
       <el-descriptions-item :label="$t('common.org')">
         <el-tree-select
-          v-model="copyData.productPo.orgId"
+          v-model="editData.orgId"
           style="width: 220px;"
           :data="dimensionAllTree"
           check-strictly
@@ -42,12 +34,12 @@
         </el-tree-select>
       </el-descriptions-item>
       <el-descriptions-item :label="$t('common.updateTime')">
-        {{ copyData.productPo.updateTime }}
+        {{ editData.updateTime }}
       </el-descriptions-item>
       <el-descriptions-item :label="$t('productDetail.tags')">
         <el-space wrap>
           <el-tag
-            v-for="(item, index) in copyData.productPo.metadata.tags"
+            v-for="(item, index) in editData.metadata.tags"
             :key="index"
             closable
             @close="tagClose(index)"
@@ -94,17 +86,22 @@ export default defineComponent({
       type: Object,
       required: false,
     },
-    btnload: {
+    editData: {
       type: Object,
       required: true,
+    },
+    btnload: {
+      type: Object,
+      required: false,
       default: () => ({ load_edit: false, load_asyn: false }),
     },
   },
-  emits: ["dialogClick", "submit", "edgeAsyn"],
+  emits: ["edgeAsyn"],
   setup(props, context) {
     const { proxy } = getCurrentInstance();
     const { t } = useI18n();
     const btnloadData = toRef(props, "btnload");
+    const editData = toRef(props, "editData");
     const tagDialog = reactive({
       status: false,
       index: -1,
@@ -112,8 +109,6 @@ export default defineComponent({
     });
     const dimensionTree = ref([]);
     const tagForm = ref(null);
-    const data = toRef(props, "productData");
-    const copyData = ref(null);
 
     const dimensionAllTree = computed(() => {
       const rootTree = [];
@@ -122,27 +117,23 @@ export default defineComponent({
     });
 
     const validateSelect = (rule, value, callback) => {
-      console.log("validateSelect:" + rule.field);
       if (rule.field === "tagKey") {
         if (!tagDialog.tag.tagKey) {
           callback(t("productDetail.tagKeyRequired"));
           return;
         }
-
-        const exists = copyData.value.productPo.metadata.tags.some(
-          (item) => item !== copyData.value.productPo.metadata.tags[tagDialog.index] && item.tagKey === tagDialog.tag.tagKey
+        const exists = editData.value.metadata.tags.some(
+          (item, i) => i !== tagDialog.index && item.tagKey === tagDialog.tag.tagKey
         );
         if (exists) {
           callback(t("productDetail.tagKeyDuplicate"));
           return;
         }
       }
-
       if (rule.field === "tagName" && !tagDialog.tag.tagName) {
         callback(t("productDetail.tagNameRequired"));
         return;
       }
-
       callback();
     };
 
@@ -152,7 +143,6 @@ export default defineComponent({
         dimensionTree.value.length = 0;
         handlerDimensionTree(value.data, tree);
         dimensionTree.value.push(tree);
-        console.log("requestDimensionApi");
       });
     };
 
@@ -161,56 +151,40 @@ export default defineComponent({
       tagName: [{ validator: validateSelect, trigger: "blur" }],
     });
 
-    const initData = () => {
-      copyData.value = JSON.parse(JSON.stringify(data.value));
-    };
-
-    const editClick = () => {
-      context.emit("submit", copyData.value.productPo);
-    };
-
     const edgeProductAsyn = () => {
       context.emit("edgeAsyn");
     };
 
     const addTag = () => {
-      console.log("addTag");
       tagDialog.index = -1;
       tagDialog.tag = { tagKey: "", tagName: "", tagValue: "", optional: false };
       tagDialog.status = true;
     };
 
     const tagClose = (index) => {
-      console.log(index);
-      copyData.value.productPo.metadata.tags.splice(index, 1);
+      editData.value.metadata.tags.splice(index, 1);
     };
 
     const tagClick = (index) => {
-      console.log(index);
       tagDialog.index = index;
-      tagDialog.tag = { ...copyData.value.productPo.metadata.tags[index] };
+      tagDialog.tag = { ...editData.value.metadata.tags[index] };
       tagDialog.status = true;
     };
 
     const tagSave = () => {
-      console.log("tagSave");
-      tagForm.value.validate((valid, fields) => {
+      tagForm.value.validate((valid) => {
         if (valid) {
-          console.log("submit!:");
           tagDialog.status = false;
           if (tagDialog.index < 0) {
-            copyData.value.productPo.metadata.tags.push(tagDialog.tag);
+            editData.value.metadata.tags.push(tagDialog.tag);
           } else {
-            copyData.value.productPo.metadata.tags[tagDialog.index] = tagDialog.tag;
+            editData.value.metadata.tags[tagDialog.index] = tagDialog.tag;
           }
-        } else {
-          console.log("error submit!", fields);
         }
       });
     };
 
     onMounted(() => {
-      initData();
       requestDimensionApi();
     });
 
@@ -220,8 +194,8 @@ export default defineComponent({
       tagForm,
       rules,
       tagDialog,
-      copyData,
-      editClick,
+      editData,
+      productData: toRef(props, "productData"),
       tagSave,
       tagClick,
       addTag,

@@ -34,9 +34,6 @@
           <el-button @click="add()" class="login_btn" type="primary"
             ><el-icon><Plus /></el-icon>{{ $t('common.add') }}
           </el-button>
-          <el-button @click="saveAll" class="login_btn" type="primary"
-            ><el-icon><Finished /></el-icon>{{ $t('common.save') }}
-          </el-button>
         </template>
         <template #default="scope">
           <el-button-group>

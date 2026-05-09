@@ -1,5 +1,5 @@
 <template>
-    <el-tabs type="border-card" style="overflow: hidden;height: 100%" addable @tab-add="saveMeta" @tab-change="elTabChange">
+    <el-tabs type="border-card" style="overflow: hidden;height: 100%" @tab-change="elTabChange">
         <template #default>
             <el-tab-pane :label="$t('deviceMeta.tabProperties')">
 
@@ -67,10 +67,6 @@
                 </el-table-column>
             </el-table>
         </el-tab-pane>
-        </template>
-
-        <template #add-icon>
-            <el-icon size="20"><Finished /></el-icon>  <el-text tag="b" size="default">{{ $t('common.save') }}</el-text>
         </template>
     </el-tabs>
     <el-drawer v-if="selectTab=='0'&&selectMetaIndex>=0" v-model="property_draw" :before-close="propertyDrawClose" :size="'25%'" :title="$t('deviceMeta.propertyDrawer')">
@@ -301,6 +297,7 @@
     import {deviceTypes} from "@/model/device/DeviceUnit";
     import { toRef,ref,reactive,defineComponent,computed,onMounted,watch } from "vue";
     import { useI18n } from "vue-i18n";
+    import { ElMessage } from "element-plus";
     export default defineComponent({
         name: "DeviceMeta",
         props:{
@@ -451,7 +448,31 @@
                 func_draw.value=true
                 func_args_draw.value=false
             }
+            // 检查属性 id 是否被 rules 引用，返回引用该 id 的规则名称列表
+            const findRulesUsingPropertyId=(propId)=>{
+                if(!propId || !deviceMeta.value.metadata.rules) return []
+                return deviceMeta.value.metadata.rules
+                    .filter(rule => {
+                        const sql = rule.ruleMeta?.sql || ''
+                        const param = rule.ruleMeta?.param || {}
+                        // 检查 SQL 中是否包含该属性 id 作为列名
+                        const sqlHas = new RegExp(`\\b${propId}\\b`).test(sql)
+                        // 检查 param 中是否有该属性 id 的 key
+                        const paramHas = Object.prototype.hasOwnProperty.call(param, propId)
+                        return sqlHas || paramHas
+                    })
+                    .map(rule => rule.name || rule.id)
+            }
+
             const deletePropertyClick=function(row,index){
+                const usedByRules = findRulesUsingPropertyId(row.id)
+                if(usedByRules.length > 0){
+                    ElMessage({
+                        type: 'warning',
+                        message: `属性「${row.id}」已被告警规则「${usedByRules.join('、')}」使用，无法删除`
+                    })
+                    return
+                }
                 getPropertyIndex(row)
                 deviceMeta.value.metadata.properties.splice(selectMetaIndex.value,1)
                 selectMetaIndex.value=deviceMeta.value.metadata.properties.length-1
@@ -477,9 +498,11 @@
                     }
                 }
             }
+            let originalPropertyId = ''
             const editPropertyClick=function(row,index,target){
                 console.log("click")
                 getPropertyIndex(row)
+                originalPropertyId = row.id  // 记录打开时的原始 id
                 property_draw.value=true
             }
             const propertyTypeChange=function(value){
@@ -518,8 +541,23 @@
                 return regex.test(str);
             }
             const propertyDrawClose=(done)=>{
+                const prop = deviceMeta.value.metadata.properties[selectMetaIndex.value]
+                // 非新建属性，且 id 发生了变化，检查旧 id 是否被 rules 引用
+                if(prop && !(prop.create) && originalPropertyId && prop.id !== originalPropertyId){
+                    const usedByRules = findRulesUsingPropertyId(originalPropertyId)
+                    if(usedByRules.length > 0){
+                        ElMessage({
+                            type: 'warning',
+                            message: `属性「${originalPropertyId}」已被告警规则「${usedByRules.join('、')}」使用，不允许修改 ID`
+                        })
+                        // 回滚 id 修改
+                        prop.id = originalPropertyId
+                        return
+                    }
+                }
                 console.log('关闭侧边栏')
                 property_draw.value=false
+                originalPropertyId = ''
                 done()
             }
             const funcDrawClose=(done)=>{

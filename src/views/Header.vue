@@ -11,7 +11,7 @@
       <div class="content_view">
         <div class="route_container">
           <el-breadcrumb separator="/">
-            <el-breadcrumb-item v-for="(item,index) in data" :key="index" :index="index">{{item.name}}</el-breadcrumb-item>
+            <el-breadcrumb-item v-for="(item,index) in data" :key="index" :index="index">{{ $t('routeNames.' + item.name, item.name) }}</el-breadcrumb-item>
           </el-breadcrumb>
         </div>
         <div class="account_container">

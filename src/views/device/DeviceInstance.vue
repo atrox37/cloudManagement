@@ -8,7 +8,10 @@
           style="background-color: transparent"
         >
           <template #extra>
-            <el-button @click="syncApi" type="info" plain :loading="deviceSync.loading">{{ $t('deviceInstance.modelSync') }}</el-button>
+            <el-space wrap>
+              <el-button @click="syncApi" type="info" plain :loading="deviceSync.loading">{{ $t('deviceInstance.modelSync') }}</el-button>
+              <el-button @click="saveClick" type="primary" :loading="saving">{{ $t('common.save') }}</el-button>
+            </el-space>
           </template>
           <el-descriptions-item span="2">
             <template #label>
@@ -44,16 +47,15 @@
       <el-tab-pane :label="$t('deviceInstance.tabBasicInfo')" name="first">
         <DeviceDetail
           :gateways="gatewayData"
-          :deviceData="deviceData" 
-          :parentData="parentData"
-          @detailSave="detailSaveClick"></DeviceDetail>
+          :deviceData="deviceData"
+          :editData="editData"
+          :parentData="parentData"></DeviceDetail>
       </el-tab-pane>
       <el-tab-pane :label="$t('deviceInstance.tabModelProps')" name="five">
         <DeviceMeta
           ref="deviceMetaRef"
           :deviceUnit="deviceUnit"
-          :deviceMeta="deviceMeta"
-          @updateClick="updateDeviceInstanceApi"
+          :deviceMeta="editData"
         ></DeviceMeta>
       </el-tab-pane>
       <el-tab-pane :label="$t('deviceInstance.tabRunStatus')" name="second">
@@ -136,6 +138,7 @@
     :status="dialogAlarmState"
     @close="alarmClose"
     @reload="alarmReload"
+    @save="alarmSave"
   ></DialogAlarm>
   <DialogProperty
     :status="dialogPropertyStatus"
@@ -223,6 +226,9 @@ export default defineComponent({
     const lazyLoad = ref(false);
     const parentData = ref(null);
     const deviceData = ref({});
+    const editData = ref({});
+    const saving = ref(false);
+    let metadataSnapshot = '';
     const deviceMeta = ref({});
     const deviceFuncRef = ref();
     const deviceMetaRef = ref(null);
@@ -330,9 +336,9 @@ export default defineComponent({
 
     const connectFunc = function() {
       disConnectFunc();
-      const socketUrl = "http://" + import.meta.env.VITE_APP_URL + "/register-app/socket";
+      //const socketUrl = "http://" + import.meta.env.VITE_APP_URL + "/register-app/socket";
       //TODO 打包
-      //const socketUrl ="/api/register-app/socket";
+      const socketUrl ="/api/register-app/socket";
       console.log("socketUrl:" + socketUrl);
       socket = new SockJS(socketUrl);
       stomp = Stomp.over(socket);
@@ -535,6 +541,8 @@ export default defineComponent({
         proxy.$http.deviceSearch(params).then((value) => {
           console.log("requestApi");
           deviceData.value = value.data;
+          editData.value = value.data.deviceInstancePo;
+          metadataSnapshot = JSON.stringify(value.data.deviceInstancePo.metadata);
           deviceMeta.value = value.data.deviceInstancePo;
           if (value.data.deviceInstancePo.parentId != null) {
             parentApi(value.data.deviceInstancePo.parentId);
@@ -649,6 +657,27 @@ export default defineComponent({
       );
     };
 
+    const saveClick = () => {
+      saving.value = true;
+      const data = {
+        id: editData.value.id,
+        name: editData.value.name,
+        sn: editData.value.sn,
+        orgId: editData.value.orgId,
+        gatewayId: editData.value.gatewayId,
+        parentId: editData.value.parentId,
+        treeNode: editData.value.treeNode,
+        metadata: editData.value.metadata
+      };
+      proxy.$http.updateDeviceInstanceApi(data).then((value) => {
+        saving.value = false;
+        ElMessage({ message: t('common.operationSuccess'), type: "success" });
+        reload();
+      }, () => {
+        saving.value = false;
+      });
+    };
+
     const updateDeviceInstanceApi = (metaData) => {
       console.log("updateDeviceInstanceApi");
       /*console.log(JSON.stringify(deviceMetaRef.value.getCopyData()))
@@ -749,6 +778,33 @@ export default defineComponent({
       dialogAlarmState.value = false;
       reload()
     };
+    const alarmSave = async (ruleData) => {
+      try {
+        // 判断设备属性/基本信息是否有未保存的修改
+        const hasUnsavedChanges = JSON.stringify(editData.value.metadata) !== metadataSnapshot;
+        if (hasUnsavedChanges) {
+          // 先保存设备
+          await proxy.$http.updateDeviceInstanceApi({
+            id: editData.value.id,
+            name: editData.value.name,
+            sn: editData.value.sn,
+            orgId: editData.value.orgId,
+            gatewayId: editData.value.gatewayId,
+            parentId: editData.value.parentId,
+            treeNode: editData.value.treeNode,
+            metadata: editData.value.metadata
+          });
+          metadataSnapshot = JSON.stringify(editData.value.metadata);
+        }
+        // 再保存规则
+        await proxy.$http.deviceAlarmUpdate(ruleData);
+        ElMessage({ message: t('common.operationSuccess'), type: "success" });
+        dialogAlarmState.value = false;
+        reload();
+      } catch (e) {
+        ElMessage({ message: t('common.operationFail'), type: "error" });
+      }
+    };
     const alarmOpen = (data) => {
       console.log("alarmOpen");
       dialogAlarmState.value = true;
@@ -840,6 +896,8 @@ export default defineComponent({
       deviceTab,
       parentData,
       deviceData,
+      editData,
+      saving,
       deviceMeta,
       deviceRunView,
       activeName,
@@ -872,6 +930,7 @@ export default defineComponent({
       alarmOpen,
       alarmClose,
       alarmReload,
+      alarmSave,
       propertyDialogShow,
       propertyDialogCancel,
       queryDevicePropertyData,
@@ -883,7 +942,8 @@ export default defineComponent({
       writeProperty,
       propertyControlCancel,
       propertyControlSubmit,
-      syncApi
+      syncApi,
+      saveClick
     };
   }
 });

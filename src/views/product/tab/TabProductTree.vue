@@ -8,7 +8,6 @@
               <el-text type="info"tag="b">{{ $t('treeNode.structurePath') }}</el-text>
               <el-button-group>
                 <el-button @click="newClick">{{ $t('treeNode.append') }}</el-button>
-                <el-button @click="saveClick" :loading="load">{{ $t('common.save') }}</el-button>
               </el-button-group>
 
             </div>
@@ -69,22 +68,15 @@ export default defineComponent({
     productData: {
       type: Object,
       required: false
-    },
-    loading:{
-      type:Boolean,
-      required: true,
-      default: false
     }
   },
-  emits: ['submit'],
   setup(props, context) {
     const { t } = useI18n()
     const meta = toRef(props, 'productData')
-    const load = toRef(props,'loading')
     const direction = ref("horizontal")
     const fillRatio = ref(30)
     const renameDialog=reactive({status:false,node:{id:'',name:''}})
-    const testData = reactive([])
+    const testData = computed(() => meta.value.metadata.trees)
 
 
     const defaultProps = {
@@ -116,14 +108,14 @@ export default defineComponent({
       children.splice(index, 1)
       console.log('remove')
     }
-    const rename=(node,data)=>{
+    const rename=(data)=>{
       console.log('rename')
       renameDialog.status=true
-      renameDialog.node.id=node.id
-      renameDialog.node.name=node.name
+      renameDialog.node.id=data.id
+      renameDialog.node.name=data.name
     }
     const renameSubmit=()=>{
-      resetName(testData)
+      resetName(testData.value)
       renameDialog.status=false
     }
     const resetName=(source)=>{
@@ -139,19 +131,15 @@ export default defineComponent({
 
 
     const saveClick=()=>{
-      console.log("saveClick")
-      context.emit('submit',testData)
+      // no-op: save handled by parent
     }
     const newClick=()=>{
-      testData.push({id:''+createTagId(),name:'Node',children:[]})
+      meta.value.metadata.trees.push({id:''+createTagId(),name:'Node',children:[]})
     }
 
     onMounted(() => {
-      testData.length = 0
-      testData.push(...meta.value.metadata.trees)
     })
     return {
-      load,
       fillRatio,
       direction,
       testData,
