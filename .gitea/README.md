@@ -4,7 +4,7 @@ This repository uses Gitea Actions to build and deploy the frontend through manu
 
 ### Required repository secret
 
-Create the repository secret `DEPLOY_SSH_KEY` in Gitea and set it to the private key content that can log in to:
+Create the repository secret `DEPLOY_SSH_KEY_B64` in Gitea and set it to the base64 content of the private key that can log in to:
 
 - `voltage@192.168.30.10`
 
@@ -20,4 +20,4 @@ The workflow will:
 - The workflow file is `.gitea/workflows/deploy.yml`
 - The workflow only runs from `workflow_dispatch`
 - The current runner label is `ubuntu-latest`; if your Gitea runner uses a different label, update `runs-on`
-- If the private key was pasted from Windows or saved as a single line with literal `\n`, the workflow normalizes it before use
+- Store the key as base64 to avoid newline/format issues in the Gitea secret input
