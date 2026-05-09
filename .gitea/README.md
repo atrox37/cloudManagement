@@ -20,4 +20,4 @@ The workflow will:
 - The workflow file is `.gitea/workflows/deploy.yml`
 - The workflow only runs from `workflow_dispatch`
 - The current runner label is `ubuntu-latest`; if your Gitea runner uses a different label, update `runs-on`
-- If the private key was pasted from Windows, keep the content unchanged in Gitea; the workflow normalizes line endings before use
+- If the private key was pasted from Windows or saved as a single line with literal `\n`, the workflow normalizes it before use

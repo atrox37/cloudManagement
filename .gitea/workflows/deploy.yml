@@ -31,12 +31,21 @@ jobs:
 
       - name: Configure SSH key
         shell: bash
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
         run: |
           set -eu
           install -d -m 700 ~/.ssh
-          printf '%s' "${{ secrets.DEPLOY_SSH_KEY }}" | tr -d '\r' > ~/.ssh/id_ed25519
-          printf '\n' >> ~/.ssh/id_ed25519
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          raw = os.environ["DEPLOY_SSH_KEY"]
+          normalized = raw.replace("\r", "").replace("\\n", "\n").strip()
+          Path("/root/.ssh/id_ed25519").write_text(normalized + "\n", encoding="utf-8")
+          PY
           chmod 600 ~/.ssh/id_ed25519
+          ssh-keygen -y -f ~/.ssh/id_ed25519 > /dev/null
           ssh-keyscan -p "${DEPLOY_PORT}" -H "${DEPLOY_HOST}" >> ~/.ssh/known_hosts
 
       - name: Clear remote directory
