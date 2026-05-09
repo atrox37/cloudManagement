@@ -1,9 +1,6 @@
 name: Build And Deploy Frontend
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 env:
@@ -37,7 +34,8 @@ jobs:
         run: |
           set -eu
           install -d -m 700 ~/.ssh
-          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          printf '%s' "${{ secrets.DEPLOY_SSH_KEY }}" | tr -d '\r' > ~/.ssh/id_ed25519
+          printf '\n' >> ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -p "${DEPLOY_PORT}" -H "${DEPLOY_HOST}" >> ~/.ssh/known_hosts
 
@@ -46,7 +44,7 @@ jobs:
         run: |
           set -euo pipefail
           ssh -i ~/.ssh/id_ed25519 -p "${DEPLOY_PORT}" "${DEPLOY_USER}@${DEPLOY_HOST}" \
-            "set -euo pipefail; mkdir -p '${DEPLOY_PATH}'; find '${DEPLOY_PATH}' -mindepth 1 -maxdepth 1 -exec rm -rf {} +"
+            "bash -lc \"set -euo pipefail; mkdir -p '${DEPLOY_PATH}'; find '${DEPLOY_PATH}' -mindepth 1 -maxdepth 1 -exec rm -rf {} +\""
 
       - name: Upload dist to remote server
         shell: bash
@@ -54,4 +52,4 @@ jobs:
           set -euo pipefail
           tar -C dist -cf - . | \
             ssh -i ~/.ssh/id_ed25519 -p "${DEPLOY_PORT}" "${DEPLOY_USER}@${DEPLOY_HOST}" \
-            "set -euo pipefail; mkdir -p '${DEPLOY_PATH}'; tar -xf - -C '${DEPLOY_PATH}'"
+            "bash -lc \"set -euo pipefail; mkdir -p '${DEPLOY_PATH}'; tar -xf - -C '${DEPLOY_PATH}'\""
