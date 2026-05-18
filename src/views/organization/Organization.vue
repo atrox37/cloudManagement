@@ -64,6 +64,7 @@
     import SelectUser from "@/components/organization/SelectUser.vue";
     import OrgDialog from "@/components/organization/OrgDialog.vue";*/
     import {defineComponent, ref, onMounted, getCurrentInstance} from "vue"
+    import {ElMessageBox} from "element-plus"
     export default defineComponent({
         name: "Organization",
         components:{OrganizationChart,SelectUser,OrgDialog},/**,MenuContainerHeader,SelectUser,OrgDialog**/
@@ -192,7 +193,13 @@
                     orgDialogStatus.value=true
                 }
                 if(commandId==4){
-                    requestDeleteDimension()
+                    ElMessageBox.confirm(
+                        proxy.$t('organization.deleteConfirm'),
+                        proxy.$t('common.warning'),
+                        { confirmButtonText: proxy.$t('common.confirm'), cancelButtonText: proxy.$t('common.cancel'), type: 'warning' }
+                    ).then(() => {
+                        requestDeleteDimension()
+                    }).catch(() => {})
                 }
 
             }

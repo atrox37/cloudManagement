@@ -2,6 +2,7 @@ export default {
   common: {
     confirm: 'Confirm',
     cancel: 'Cancel',
+    warning: 'Warning',
     save: 'Save',
     close: 'Close',
     delete: 'Delete',
@@ -108,6 +109,7 @@ export default {
     members: 'Members',
     add: 'Add',
     delete: 'Delete',
+    deleteConfirm: 'Are you sure you want to delete this organization?',
     relatedUsers: 'Related Users',
     user: 'User',
     status: 'Status',
@@ -398,8 +400,8 @@ export default {
     notifyConfigRequired: 'Please select a notify config',
     titleRequired: 'Title is required',
     contentRequired: 'Content is required',
-    titlePlaceholder: 'Enter title, use {$varName} for variables',
-    contentPlaceholder: 'Enter content, use {$varName} for variables',
+    titlePlaceholder: 'Enter title, use $varName for variables',
+    contentPlaceholder: 'Enter content, use $varName for variables',
     enterVar: 'Enter ',
   },
   testEmail: {

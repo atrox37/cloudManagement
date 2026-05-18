@@ -1,6 +1,6 @@
 <template>
     <el-dialog v-model="dialogStatus" :title="(dataModel==null||dataModel.id==null) ? $t('organization.addTitle') : $t('organization.editTitle')" @close="cancelClick" width="30%">
-        <el-form :model="dataModel" label-width="80px">
+        <el-form :model="dataModel" label-width="auto">
             <el-form-item :label="$t('organization.orgId')" v-if="(dataModel!=null&&dataModel.id!=null)">
                 <el-input v-model="dataModel.id" disabled />
             </el-form-item>

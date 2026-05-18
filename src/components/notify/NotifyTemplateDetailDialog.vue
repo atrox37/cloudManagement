@@ -633,6 +633,17 @@ export default defineComponent({
             //templateData.value=value.data.templatePo
             templateData.msgContent = value.data.templatePo.msgContent;
             templateData.templatePo = value.data.templatePo;
+            // 确保 msgContent 是对象而非字符串
+            if (typeof templateData.templatePo.msgContent === 'string') {
+              try {
+                templateData.templatePo.msgContent = JSON.parse(templateData.templatePo.msgContent);
+              } catch (e) {
+                templateData.templatePo.msgContent = { title: "", content: "", type: "" };
+              }
+            }
+            if (!templateData.templatePo.msgContent) {
+              templateData.templatePo.msgContent = { title: "", content: "", type: "" };
+            }
             templateData.configPo = value.data.configPo;
             originalData.templateName = templateData.templatePo.name;
             originalData.configPo = templateData.configPo;

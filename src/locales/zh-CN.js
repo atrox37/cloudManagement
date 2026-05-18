@@ -2,6 +2,7 @@ export default {
   common: {
     confirm: '确认',
     cancel: '取消',
+    warning: '警告',
     save: '保存',
     close: '关闭',
     delete: '删除',
@@ -108,6 +109,7 @@ export default {
     members: '人员',
     add: '添加',
     delete: '删除',
+    deleteConfirm: '确定要删除该组织吗？',
     relatedUsers: '关联用户',
     user: '用户',
     status: '状态',
@@ -398,8 +400,8 @@ export default {
     notifyConfigRequired: '请选择通知配置',
     titleRequired: '请输入标题',
     contentRequired: '请输入内容',
-    titlePlaceholder: '请输入标题，支持使用 {$变量名} 格式定义变量',
-    contentPlaceholder: '请输入内容正文，使用 {$变量名} 格式定义变量',
+    titlePlaceholder: '请输入标题，支持使用 $变量名 格式定义变量',
+    contentPlaceholder: '请输入内容正文，使用 $变量名 格式定义变量',
     enterVar: '请输入',
   },
   testEmail: {
