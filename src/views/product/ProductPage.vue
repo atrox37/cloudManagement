@@ -133,9 +133,9 @@
                 page.value.terms.length=0
                 for(var item of searchParams){
                     if(item.column=='t.org_id'&&item.value>=0){
-                        page.value.terms.push(item)
+                        page.value.terms.push({ column: item.column, value: item.value, termType: item.termType, type: "and" })
                     }else if(item.column!='t.org_id'&&item.value!=undefined&&item.value!=''){
-                        page.value.terms.push(item)
+                        page.value.terms.push({ column: item.column, value: item.value, termType: item.termType, type: "and" })
                     }
                 }
                 console.log('productPageApi')

@@ -132,7 +132,7 @@
                 loading.value=true
                 page.terms.length = 0;
                 for (var item of searchParams) {
-                    page.terms.push(item);
+                    page.terms.push({ column: item.column, value: item.value, termType: item.termType, type: "and" });
                 }
                 proxy.$http.notifyPage(page).then(value => {
                     pageTotal.value=value.data.total

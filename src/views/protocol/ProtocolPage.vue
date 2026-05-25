@@ -167,7 +167,7 @@
             const requestApi = () => {
                 loading.value = true
                 page.terms.length=0
-                page.terms.push(...searchParams)
+                page.terms.push(...searchParams.map(item => ({ column: item.column, value: item.value, termType: item.termType, type: "and" })))
                 for(var i=page.terms.length-1;i>=0;i--){
                     if(page.terms[i].column=='t.org_id'&&page.terms[i].value<0){
                         page.terms.splice(i,1)

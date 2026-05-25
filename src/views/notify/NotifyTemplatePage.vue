@@ -194,7 +194,7 @@ export default defineComponent({
       console.log("pageApi");
       loading.value = true;
       page.terms.length = 0;
-      page.terms.push(...searchParams)
+      page.terms.push(...searchParams.map(item => ({ column: item.column, value: item.value, termType: item.termType, type: "and" })))
       proxy.$http.notifyTemplatePage(page).then((value) => {
         pageTotal.value = value.data.total;
         loading.value = false;

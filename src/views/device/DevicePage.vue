@@ -218,9 +218,9 @@ export default defineComponent({
       pageInfo.terms.length = 0;
       for (var item of searchParams) {
         if (item.column == "t.org_id" && item.value >= 0) {
-          pageInfo.terms.push(item);
+          pageInfo.terms.push({ column: item.column, value: item.value, termType: item.termType, type: "and" });
         } else if (item.column != "t.org_id" && item.value != undefined && item.value != "") {
-          pageInfo.terms.push(item);
+          pageInfo.terms.push({ column: item.column, value: item.value, termType: item.termType, type: "and" });
         }
       }
       console.log("devicePageApi");

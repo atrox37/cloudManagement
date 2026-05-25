@@ -305,7 +305,7 @@ export default defineComponent({
     }
     const queryClick=()=>{
       pageInfo.terms.length=0
-      pageInfo.terms.push(...searchParams)
+      pageInfo.terms.push(...searchParams.map(item => ({ column: item.column, value: item.value, termType: item.termType, type: "and" })))
       console.log('queryClick')
       pageApi()
     }
@@ -313,7 +313,7 @@ export default defineComponent({
       console.log('resetClick')
       resetParam()
       pageInfo.terms.length=0
-      pageInfo.terms.push(...searchParams)
+      pageInfo.terms.push(...searchParams.map(item => ({ column: item.column, value: item.value, termType: item.termType, type: "and" })))
       pageApi()
     }
     const handlerDimensionTree=(data,result)=>{
