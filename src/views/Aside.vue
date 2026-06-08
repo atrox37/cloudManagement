@@ -71,6 +71,7 @@ const pathKeyMap = {
   '/notifyAdd': 'routeNames.notifyAdd',
   '/notifyTemplatePage': 'routeNames.notifyTemplateList',
   '/notifyTemplateInfo': 'routeNames.notifyTemplateDetail',
+  '/audit': 'routeNames.auditLog',
 }
 
 // 后端菜单名 → i18n key 映射（父级分类，无 path）

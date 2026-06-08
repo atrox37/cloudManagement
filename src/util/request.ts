@@ -3,6 +3,12 @@ import {post, get, postHeader} from './http'
 export const captchaApi=function (){
     return get('/api/sys-app/common/captcha64',{})
 }
+export const auditLogPage = function(p: any) {
+    return post('/api/sys-app/audit_log/_page', p)
+}
+export const auditLogDeleteBatch = function(ids: any) {
+    return post('/api/sys-app/audit_log/_delete_batch', ids)
+}
 export const loginApi = function (p: any) {
     return post('/api/sys-app/login',p)
 }

@@ -18,6 +18,11 @@ const systemRouter ={
             path: "/organization",
             name: "organization",
             component: () => import("@/views/organization/Organization.vue")
+        },
+        {
+            path: "/audit",
+            name: "auditLog",
+            component: () => import("@/views/account/AuditLogPage.vue")
         }
     ]
 };
