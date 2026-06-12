@@ -49,6 +49,7 @@
             <div class="center-flex-contain">
               <el-button-group>
                 <el-button @click.native.stop="passClick(scope.row,scope.$index)"><font-awesome-icon :icon="['fas', 'lock']" /></el-button>
+                <el-button @click.native.stop="credentialClick(scope.row)"><font-awesome-icon :icon="['fas', 'key']" /></el-button>
               </el-button-group>
             </div>
           </template>
@@ -137,6 +138,8 @@
       </div>
     </template>
   </el-dialog>
+
+  <CredentialDrawer v-model="credentialDrawer" :userId="credentialUserId" />
 </template>
 
 <script>
@@ -144,8 +147,10 @@
   import {ElMessage} from "element-plus";
   import MD5 from 'crypto-js/md5'
   import { useI18n } from 'vue-i18n'
+  import CredentialDrawer from './CredentialDrawer.vue'
 export default defineComponent({
   name: "UserPage",
+  components: { CredentialDrawer },
   setup(props,context){
     const {proxy} = getCurrentInstance()
     const { t } = useI18n()
@@ -157,6 +162,9 @@ export default defineComponent({
     const searchParams=reactive([])
     const tableEmpty=ref('')
     const radioModel=ref(1)
+
+    const credentialDrawer=ref(false)
+    const credentialUserId=ref(null)
 
     const isDrawer=ref(false)
     const isAdd=ref(false)
@@ -347,6 +355,11 @@ export default defineComponent({
         passDialog.value=false
       }
     }
+    const credentialClick=(row)=>{
+      credentialUserId.value=row.sysUserPo.id
+      credentialDrawer.value=true
+    }
+
     const rules=ref({
       username:[{validator:validateSelect, trigger: 'blur' }],
       roleId:[{validator:validateSelect, trigger: 'blur' }],
@@ -386,7 +399,10 @@ export default defineComponent({
       deleteClick,
       pageChange,
       submitClick,
-      updatePassClick
+      updatePassClick,
+      credentialDrawer,
+      credentialUserId,
+      credentialClick
     }
   }
 })

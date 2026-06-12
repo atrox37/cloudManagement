@@ -90,6 +90,16 @@ export default {
     emailRequired: 'Email cannot be empty',
     phoneRequired: 'Phone cannot be empty',
     modifyPassword: 'Modify',
+    credential: 'Credential',
+  },
+  credential: {
+    title: 'API Credential',
+    accessKeyId: 'Access Key ID',
+    secretKey: 'Secret Key',
+    createTime: 'Create Time',
+    add: 'New Credential',
+    deleteConfirm: 'Confirm to delete selected credentials?',
+    copySuccess: 'Copied to clipboard',
   },
   role: {
     title: 'Role Management',

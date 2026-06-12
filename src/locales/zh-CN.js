@@ -90,6 +90,16 @@ export default {
     emailRequired: '邮箱不能为空',
     phoneRequired: '电话不能为空',
     modifyPassword: '修改',
+    credential: '凭证',
+  },
+  credential: {
+    title: 'API 凭证',
+    accessKeyId: 'Access Key ID',
+    secretKey: 'Secret Key',
+    createTime: '创建时间',
+    add: '新建凭证',
+    deleteConfirm: '确认删除选中的凭证？',
+    copySuccess: '已复制到剪切板',
   },
   role: {
     title: '角色管理',

@@ -93,6 +93,15 @@ export const sysUserPage = function(p:any){
 export const sysUserSaveUpdate = function(p : any){
     return post('/api/sys-app/sys_user/_save_or_update',p)
 }
+export const credentialPage = function(p: any) {
+    return post('/api/sys-app/sys_credential/_page', p)
+}
+export const credentialCreate = function(p: any) {
+    return post('/api/sys-app/sys_credential/_save_or_update', p)
+}
+export const credentialDeleteBatch = function(ids: any) {
+    return post('/api/sys-app/sys_credential/_delete_batch', ids)
+}
 export const querydimension=function (p: any) {
     return post('/api/sys-app/sys-dimension/_search_one',p)
 }
