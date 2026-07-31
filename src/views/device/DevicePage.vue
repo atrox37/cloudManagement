@@ -159,17 +159,19 @@ export default defineComponent({
       console.log("resetParam");
     };
 
-    const createDeviceClick = (tags) => {
+    const createDeviceClick = (payload) => {
       deviceCreateData.loading = true;
       console.log("createDeviceClick");
-      proxy.$http.updateDeviceInstanceApi(deviceCreateData.device).then(value => {
+      proxy.$http.updateDeviceInstanceApi(payload).then(value => {
         console.log('updateDeviceInstanceApi:'+JSON.stringify(value))
         deviceCreateData.loading = false
         deviceCreateData.status = false
+        deviceCreateData.device = { name: "" }
         ElMessage.success(t('common.createSuccess'))
+        pageInfo.current = 1
+        devicePageApi()
       }, error => {
         deviceCreateData.loading = false;
-        deviceCreateData.status = false;
         ElMessage.error(t('common.createFail'))
       });
     };

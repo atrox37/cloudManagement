@@ -49,10 +49,7 @@ export const devicePage = function (p: any) {
     return post('/api/iot-app/device/_page',p)
 }
 export const updateDeviceInstanceApi = function(p:any){
-    return post('/api/iot-app/device/_save_or_update',p)
-}
-export const updateBatchDeviceInstanceApi = function(p:any){
-    return post('/api/iot-app/device/_save_or_update_batch',p)
+    return post('/api/iot-app/device/_save_or_update_rule',p)
 }
 export const deleteDeviceInstanceApi = function (p:any){
     return get('/api/iot-app/device/_delete',p)
@@ -209,9 +206,6 @@ export const deviceAlarmPage=function (p: any) {
 }
 export const deviceAlarmParse=function (p: any) {
     return post('/api/iot-app/device/_rule_parse',p)
-}
-export const deviceAlarmUpdate=function(p:any){
-    return post('/api/iot-app/device/_rule_update',p)
 }
 export const deviceRuleSave=function (p: any) {
     return post('/api/iot-app/rule/save',p)

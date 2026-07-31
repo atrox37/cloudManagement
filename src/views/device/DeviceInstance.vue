@@ -85,9 +85,11 @@
       </el-tab-pane>
       <el-tab-pane :label="$t('deviceInstance.tabAlarm')" name="six">
         <DeviceAlarm
+          :key="'alarm-'+tabKey"
           ref="deviceAlarmRef"
           :deviceData="deviceData"
-          @updateMeta="updateDeviceInstanceApi"
+          :ruleChanges="pendingRuleChange"
+          @deleteRule="deleteRule"
           @open="alarmOpen"
         ></DeviceAlarm>
       </el-tab-pane>
@@ -105,9 +107,11 @@
         <DeviceChildren
           ref="deviceChildrenRef"
           :deviceData="deviceData"
+          :pendingBindings="pendingChildBinding"
+          :pendingRows="pendingChildRows"
           @addChildrenClick="addChildrenClick"
           @delChildrenClick="delChildrenClick"
-          @updateMeta="updateDeviceInstanceApi"
+          @updateMeta="childrenMetaChange"
         ></DeviceChildren>
       </el-tab-pane>
     </el-tabs>
@@ -193,10 +197,9 @@ import DialogAlarm from "@/components/device/DialogAlarm Copy.vue";
 import DialogProperty from "@/components/device/DeviceProperty.vue";
 import DialogChildrenAdd from "@/components/device/DialogChildrenAdd.vue";
 import DialogPropertyControl from "@/components/device/DialogPropertyControl.vue";
-import { column } from "element-plus/es/components/table-v2/src/common";
 import { ElMessage } from "element-plus";
-import { deviceSync } from "@/util/request";
 import { useI18n } from "vue-i18n";
+import { normalizeEnumRuleParams } from "@/util/deviceRule";
 
 export default defineComponent({
   name: "DeviceInstance",
@@ -228,7 +231,6 @@ export default defineComponent({
     const deviceData = ref({});
     const editData = ref({});
     const saving = ref(false);
-    let metadataSnapshot = '';
     const deviceMeta = ref({});
     const deviceFuncRef = ref();
     const deviceMetaRef = ref(null);
@@ -285,10 +287,52 @@ export default defineComponent({
     });
     watch(()=>route.query.deviceId, (value) => {
       console.log("route.query.deviceId-->" + value);
+      pendingRuleChange.value = [];
+      pendingChildBinding.value = [];
+      pendingChildRows.value = [];
       reload();
     });
     const dialogAlarmState = ref(false);
     const dialogAlarmData = ref(null);
+    const pendingRuleChange = ref([]);
+    const pendingChildBinding = ref([]);
+    const pendingChildRows = ref([]);
+    const tabKey = ref(0);
+
+    const cloneData = (value) => JSON.parse(JSON.stringify(value));
+
+    const upsertById = (items, item, getId) => {
+      const id = getId(item);
+      const index = items.findIndex((current) => getId(current) === id);
+      if (index >= 0) {
+        items.splice(index, 1, item);
+      } else {
+        items.push(item);
+      }
+    };
+
+    const refreshDeviceMetadataView = () => {
+      const metadata = cloneData(editData.value.metadata || {});
+      const rules = Array.isArray(metadata.rules) ? metadata.rules : [];
+      for (const change of pendingRuleChange.value) {
+        const rule = cloneData(change.ruleModel);
+        const index = rules.findIndex((item) => item.id === rule.id);
+        if (index >= 0) {
+          rules.splice(index, 1, { ...rules[index], ...rule });
+        } else {
+          rules.push(rule);
+        }
+      }
+      metadata.rules = rules;
+      deviceData.value = {
+        ...deviceData.value,
+        deviceInstancePo: {
+          ...deviceData.value.deviceInstancePo,
+          metadata
+        }
+      };
+      tabKey.value++;
+    };
 
     const handleClick = (tab, event) => {
       console.log(tab.paneName);
@@ -329,7 +373,8 @@ export default defineComponent({
       delete devicePo.treeNode;
       delete devicePo.productId;
       console.log("detailSaveClick");
-      updateDeviceInstance(devicePo);
+      // 本地合并到 editData，由顶部保存按钮统一提交
+      Object.assign(editData.value, devicePo);
     };
     let stomp = null;
     let socket = null;
@@ -541,8 +586,7 @@ export default defineComponent({
         proxy.$http.deviceSearch(params).then((value) => {
           console.log("requestApi");
           deviceData.value = value.data;
-          editData.value = value.data.deviceInstancePo;
-          metadataSnapshot = JSON.stringify(value.data.deviceInstancePo.metadata);
+          editData.value = cloneData(value.data.deviceInstancePo);
           deviceMeta.value = value.data.deviceInstancePo;
           if (value.data.deviceInstancePo.parentId != null) {
             parentApi(value.data.deviceInstancePo.parentId);
@@ -669,31 +713,27 @@ export default defineComponent({
         treeNode: editData.value.treeNode,
         metadata: editData.value.metadata
       };
-      proxy.$http.updateDeviceInstanceApi(data).then((value) => {
+      // 收集所有 pending 变更，一次性提交
+      const payload = cloneData({
+        device: data,
+        ruleChange: pendingRuleChange.value,
+        childBinding: pendingChildBinding.value
+      });
+      normalizeEnumRuleParams(payload.device.metadata, payload.ruleChange);
+      proxy.$http.updateDeviceInstanceApi(payload).then((value) => {
         saving.value = false;
         ElMessage({ message: t('common.operationSuccess'), type: "success" });
+        // 清空 pending
+        pendingRuleChange.value = [];
+        pendingChildBinding.value = [];
+        pendingChildRows.value = [];
         reload();
       }, () => {
         saving.value = false;
       });
     };
 
-    const updateDeviceInstanceApi = (metaData) => {
-      console.log("updateDeviceInstanceApi");
-      /*console.log(JSON.stringify(deviceMetaRef.value.getCopyData()))
-      const copyDeviceData=JSON.parse(JSON.stringify(deviceData.value.deviceInstancePo))
-      copyDeviceData.deviceMetadata=metaData*/
-      const data = {
-        id: deviceData.value.deviceInstancePo.id,
-        metadata: metaData,
-        parentId: deviceData.value.deviceInstancePo.parentId
-      };
-      updateDeviceInstance(data);
-    };
-
     const updateDeviceInstanceBase = (baseData) => {
-      /*const data={id:copyDeviceData.deviceId}
-      updateDeviceInstance(data)*/
       console.log("updateDeviceInstanceBase");
       dialogEdit.value = false;
       const data = {
@@ -703,19 +743,8 @@ export default defineComponent({
         orgId: baseData.orgId,
         parentId: baseData.parentId
       };
-      console.log(JSON.stringify(data));
-      updateDeviceInstance(data);
-    };
-
-    const updateDeviceInstance = (deviceData) => {
-      proxy.$http.updateDeviceInstanceApi(deviceData).then((value) => {
-        console.log("updateDeviceInstance success");
-        ElMessage({
-          message: t('common.operationSuccess'),
-          type: "success"
-        });
-        reload();
-      });
+      // 本地合并到 editData，由顶部保存按钮统一提交
+      Object.assign(editData.value, data);
     };
 
     const queryDevicePropertyData = (page, terms) => {
@@ -778,32 +807,29 @@ export default defineComponent({
       dialogAlarmState.value = false;
       reload()
     };
-    const alarmSave = async (ruleData) => {
-      try {
-        // 判断设备属性/基本信息是否有未保存的修改
-        const hasUnsavedChanges = JSON.stringify(editData.value.metadata) !== metadataSnapshot;
-        if (hasUnsavedChanges) {
-          // 先保存设备
-          await proxy.$http.updateDeviceInstanceApi({
-            id: editData.value.id,
-            name: editData.value.name,
-            sn: editData.value.sn,
-            orgId: editData.value.orgId,
-            gatewayId: editData.value.gatewayId,
-            parentId: editData.value.parentId,
-            treeNode: editData.value.treeNode,
-            metadata: editData.value.metadata
-          });
-          metadataSnapshot = JSON.stringify(editData.value.metadata);
-        }
-        // 再保存规则
-        await proxy.$http.deviceAlarmUpdate(ruleData);
-        ElMessage({ message: t('common.operationSuccess'), type: "success" });
-        dialogAlarmState.value = false;
-        reload();
-      } catch (e) {
-        ElMessage({ message: t('common.operationFail'), type: "error" });
-      }
+    const alarmSave = (ruleData) => {
+      upsertById(
+        pendingRuleChange.value,
+        cloneData(ruleData),
+        (item) => item.ruleModel.id
+      );
+      dialogAlarmState.value = false;
+      refreshDeviceMetadataView();
+    };
+    const deleteRule = (ruleId) => {
+      const rules = editData.value.metadata?.rules || [];
+      editData.value.metadata.rules = rules.filter((item) => item.id !== ruleId);
+      pendingRuleChange.value = pendingRuleChange.value.filter(
+        (item) => item.ruleModel.id !== ruleId
+      );
+      refreshDeviceMetadataView();
+    };
+    const childrenMetaChange = (metaData) => {
+      editData.value.metadata = {
+        ...(editData.value.metadata || {}),
+        trees: cloneData(metaData.trees || [])
+      };
+      refreshDeviceMetadataView();
     };
     const alarmOpen = (data) => {
       console.log("alarmOpen");
@@ -822,18 +848,27 @@ export default defineComponent({
     };
 
     const delChildrenClick = (row) => {
-      console.log("delChildrenClick:" + row.deviceInstancePo.id);
-        proxy.$http
-        .updateDeviceInstanceApi({ id: row.deviceInstancePo.id })
-        .then((value) => {
-          console.log("delChildrenClick success");
-          ElMessage({
-            message: t('common.operationSuccess'),
-            type: "success"
-          });
-          deviceChildrenRef.value.initPage();
-          reload();
-        });
+      const childId = row.deviceInstancePo.id;
+      console.log("delChildrenClick:" + childId);
+      const isNewBinding = pendingChildRows.value.some(
+        (item) => item.deviceInstancePo.id === childId
+      );
+      if (isNewBinding) {
+        pendingChildBinding.value = pendingChildBinding.value.filter(
+          (item) => item.id !== childId
+        );
+        pendingChildRows.value = pendingChildRows.value.filter(
+          (item) => item.deviceInstancePo.id !== childId
+        );
+        ElMessage({ message: t('common.operationSuccess'), type: "success" });
+        return;
+      }
+      upsertById(
+        pendingChildBinding.value,
+        { id: childId, parentId: null, treeNode: null },
+        (item) => item.id
+      );
+      ElMessage({ message: t('common.operationSuccess'), type: "success" });
     };
     const addChildrenClick = (treeNode) => {
       console.log("addChildrenClick");
@@ -841,13 +876,19 @@ export default defineComponent({
       dialogChildrenData.treeNode = treeNode;
       dialogChildrenRef.value.pageApi();
     };
-    const addChildrenSubmit = (vs) => {
-      ElMessage({
-        message: t('common.operationSuccess'),
-        type: "success"
-      });
+    const addChildrenSubmit = (bindings, rows) => {
+      for (const binding of bindings) {
+        upsertById(pendingChildBinding.value, cloneData(binding), (item) => item.id);
+      }
+      for (const row of rows) {
+        upsertById(
+          pendingChildRows.value,
+          cloneData(row),
+          (item) => item.deviceInstancePo.id
+        );
+      }
+      ElMessage({ message: t('common.operationSuccess'), type: "success" });
       dialogChildrenData.status = false;
-      deviceChildrenRef.value.initPage();
     };
 
     const closeChildrenClick = () => {
@@ -925,12 +966,16 @@ export default defineComponent({
       readExecution,
       handleClick,
       backClick,
-      updateDeviceInstanceApi,
       deviceLogApi,
       alarmOpen,
       alarmClose,
       alarmReload,
       alarmSave,
+      pendingRuleChange,
+      pendingChildBinding,
+      pendingChildRows,
+      deleteRule,
+      childrenMetaChange,
       propertyDialogShow,
       propertyDialogCancel,
       queryDevicePropertyData,

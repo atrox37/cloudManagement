@@ -76,14 +76,13 @@
                     for(var index in addSelect){
                         params.push({id:addSelect[index].deviceInstancePo.id,parentId:childrenData.value.deviceData.deviceInstancePo.id,treeNode:childrenData.value.treeNode})
                     }
-                    proxy.$http.updateBatchDeviceInstanceApi(params).then(value => {
-                        console.log("submit success")
-                        page.submitloading=false
-                        context.emit('submit')
-                    },error=>{
-                        page.submitloading=false
-                        console.log("submit error")
-                    })
+                    // 不直接调 API，通过 submit 事件将数据传给父组件统一保存
+                    context.emit(
+                        'submit',
+                        params,
+                        JSON.parse(JSON.stringify(addSelect))
+                    )
+                    page.submitloading=false
                 }
             }
             const pageChange = (current) => {

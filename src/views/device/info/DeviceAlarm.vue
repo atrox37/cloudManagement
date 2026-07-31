@@ -89,8 +89,12 @@ export default defineComponent({
       type: Object,
       required: false,
     },
+    ruleChanges: {
+      type: Array,
+      default: () => [],
+    },
   },
-  emits: ["open", "updateMeta"],
+  emits: ["open", "deleteRule"],
   setup(props, context) {
     const { proxy } = getCurrentInstance();
     const { t, locale } = useI18n();
@@ -103,6 +107,15 @@ export default defineComponent({
 
     const rowClick = (row) => {
       console.log("click->" + row.id);
+      const draft = props.ruleChanges.find((item) => item.ruleModel.id === row.id);
+      if (draft) {
+        context.emit("open", {
+          columns: JSON.parse(JSON.stringify(draft.columns || [])),
+          rulePo: JSON.parse(JSON.stringify(draft.ruleModel)),
+          notifyDtos: JSON.parse(JSON.stringify(draft.ruleMeta || [])),
+        });
+        return;
+      }
       apiInfo(row.id);
     };
 
@@ -113,9 +126,7 @@ export default defineComponent({
     };
 
     const confirmDelete = () => {
-      const metadata = JSON.parse(JSON.stringify(deviceInfo.value.metadata));
-      metadata.rules = metadata.rules.filter((item) => item.id !== selectedRow.value.id);
-      context.emit("updateMeta", metadata);
+      context.emit("deleteRule", selectedRow.value.id);
       deleteDialogVisible.value = false;
     };
 

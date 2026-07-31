@@ -45,7 +45,7 @@
         <el-input-number
           v-model="sourceAlarm.rulePo.ruleData.count"
           size="small"
-          :min="0"
+          :min="1"
         ></el-input-number>
       </el-form-item>
       <el-form-item :label="$t('alarmDialog.triggerCondition')">
@@ -53,8 +53,8 @@
           ref="alarmItems"
           :deviceData="sourceDevice"
           v-for="(columns, key) in alarmColumn"
-          @delGroup="delGroup(key)"
-          :key="key"
+          @delGroup="delGroup(columns)"
+          :key="getAlarmGroupKey(columns)"
           :alarmData="columns"
           style="
             width: 100%;
@@ -149,6 +149,15 @@ export default defineComponent({
     const notifyTemplateUser = reactive([]);
     const ruleNotifyData = reactive([]);
     const alarmColumn = ref([]);
+    const alarmGroupKeys = new WeakMap();
+    let alarmGroupKeySeed = 0;
+
+    const getAlarmGroupKey = (columns) => {
+      if (!alarmGroupKeys.has(columns)) {
+        alarmGroupKeys.set(columns, ++alarmGroupKeySeed);
+      }
+      return alarmGroupKeys.get(columns);
+    };
 
     // 轮询周期选项（i18n 包装）
     const pollIntervalOptionsI18n = computed(() =>
@@ -244,7 +253,9 @@ export default defineComponent({
     const addGroup = () => {
       alarmColumn.value.push([]);
     };
-    const delGroup = (index) => {
+    const delGroup = (columns) => {
+      const index = alarmColumn.value.indexOf(columns);
+      if (index < 0) return;
       alarmColumn.value.splice(index, 1);
       console.log("delGroup");
     };
@@ -268,6 +279,14 @@ export default defineComponent({
         if (item.getProperty().length > 0) {
           data.columns.push(item.getProperty());
         }
+      }
+      if (!sourceAlarm.value.rulePo.name?.trim()) {
+        ElMessage.error(t("alarmDialog.nameRequired"));
+        return;
+      }
+      if (data.columns.length === 0) {
+        ElMessage.error(t("alarmDialog.conditionRequired"));
+        return;
       }
       const notifyD = toRaw(alarmNotifys.value.notifyD);
       const delMap = toRaw(alarmNotifys.value.delMap);
@@ -308,6 +327,7 @@ export default defineComponent({
       sourceDevice,
       sourcestatus,
       sourceAlarm,
+      getAlarmGroupKey,
       addGroup,
       delGroup,
       saveAlarm,

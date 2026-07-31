@@ -41,7 +41,7 @@
       </el-aside>
       <el-container>
         <el-main>
-          <el-table height="100%" :data="tableData" v-loading="loading" border stripe @row-click="rowClick"
+          <el-table height="100%" :data="tableData" v-loading="page.loading" border stripe @row-click="rowClick"
                     style="width: 100%">
             <el-table-column prop="deviceInstancePo.name" :label="$t('device.deviceName')" width="150" header-align="center"
                              align="center"/>
@@ -121,7 +121,7 @@
   </el-dialog>
 </template>
 <script>
-import {defineComponent, reactive, ref, getCurrentInstance, onMounted, toRef} from "vue"
+import {computed, defineComponent, reactive, ref, getCurrentInstance, onMounted, toRef} from "vue"
 import {useRouter} from "vue-router";
 import {ElMessageBox,ElMessage} from "element-plus";
 import { useI18n } from "vue-i18n";
@@ -132,6 +132,14 @@ export default defineComponent({
     deviceData: {
       type: Object,
       required: false
+    },
+    pendingBindings: {
+      type: Array,
+      default: () => []
+    },
+    pendingRows: {
+      type: Array,
+      default: () => []
     }
   },
   emits: ['delChildrenClick', 'addChildrenClick','updateMeta'],
@@ -139,7 +147,39 @@ export default defineComponent({
     const { t } = useI18n()
     const {proxy} = getCurrentInstance()
     const data = toRef(props, 'deviceData')
-    const tableData = reactive([])
+    const serverTableData = reactive([])
+    const tableData = computed(() => {
+      const bindings = new Map(
+        props.pendingBindings.map((item) => [item.id, item])
+      )
+      const rows = serverTableData
+        .filter((row) => {
+          const binding = bindings.get(row.deviceInstancePo.id)
+          return !binding || binding.parentId != null
+        })
+        .map((row) => {
+          const copy = JSON.parse(JSON.stringify(row))
+          const binding = bindings.get(copy.deviceInstancePo.id)
+          if (binding) {
+            copy.deviceInstancePo.parentId = binding.parentId
+            copy.deviceInstancePo.treeNode = binding.treeNode
+          }
+          return copy
+        })
+
+      for (const binding of props.pendingBindings) {
+        if (binding.parentId !== data.value.deviceInstancePo.id) continue
+        const source = props.pendingRows.find(
+          (row) => row.deviceInstancePo.id === binding.id
+        )
+        if (!source || rows.some((row) => row.deviceInstancePo.id === binding.id)) continue
+        const row = JSON.parse(JSON.stringify(source))
+        row.deviceInstancePo.parentId = binding.parentId
+        row.deviceInstancePo.treeNode = binding.treeNode
+        rows.push(row)
+      }
+      return rows
+    })
     const childrenTree=reactive([])
     const selectTree=new Set()
     const page = ref({
@@ -160,9 +200,9 @@ export default defineComponent({
       page.value.loading = true
       proxy.$http.devicePage(page.value).then(value => {
         page.value.loading = false
-        tableData.length = 0
+        serverTableData.length = 0
         page.value.total = value.data.total
-        tableData.push(...value.data.records)
+        serverTableData.push(...value.data.records)
         console.log('page data->' + value.data.records)
       })
     }

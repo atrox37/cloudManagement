@@ -14,7 +14,7 @@
                 <el-form-item label="权限">
                     <el-checkbox-group v-model="checkboxGroup" @change="handlerPermissionCheck">
                         <el-checkbox v-for="(item,index) in sourceCheck" :key="String(index)"  :label="item.id" border style="margin: 0 4px 8px 0px;">
-                            {{item.name}}
+                            {{item.name.cn}}
                         </el-checkbox>
                     </el-checkbox-group>
                 </el-form-item>

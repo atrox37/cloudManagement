@@ -3,7 +3,7 @@
     <el-table :data="dataCondition" class="border-dash-table" border>
         <el-table-column :label="$t('alarmItem.property')" >
             <template #default="scope">
-                <el-select v-model="scope.row.column" placeholder="Select" style="margin: 0;width: calc(80% - 5px)" @change="(value)=>{handlerOperation(value,scope.$index);}">
+                <el-select v-model="scope.row.column" placeholder="Select" style="margin: 0;width: calc(80% - 5px)" @change="(value)=>{handlerOperation(value,scope.$index,true);}">
                     <el-option
                             v-for="(propertyitem,propertyindex) in property"
                             :key="propertyindex"
@@ -15,7 +15,7 @@
         </el-table-column>
         <el-table-column :label="$t('alarmItem.comparison')" >
             <template #default="scope">
-                <el-select v-model="scope.row.operation" placeholder="">
+                <el-select v-model="scope.row.operation" placeholder="" @change="handlerComparisonChange(scope.row)">
                     <el-option
                             v-for="itemChild in scope.row.condition"
                             :key="itemChild.value"
@@ -30,9 +30,9 @@
                 <el-select v-if="scope.row.valueType=='enum'" v-model="scope.row.value">
                     <el-option
                             v-for="itemChild in scope.row.enumData"
-                            :key="itemChild.value"
+                            :key="itemChild.key"
                             :label="itemChild.value"
-                            :value="itemChild.key"/>
+                            :value="String(itemChild.key)"/>
                 </el-select>
                 <el-input v-if="scope.row.valueType=='string' && scope.row.operation!='IS NOT NULL'" style="margin: 0;width: calc(80% - 5px)" v-model="scope.row.value" ></el-input>
             </template>
@@ -78,6 +78,9 @@
                 {value: '<',label: t('alarmItem.lessThan')},
                 {value: '=',label: t('alarmItem.equalTo')}
             ])
+            const compareEnum = computed(() => [
+                {value: '=',label: t('alarmItem.equalTo')}
+            ])
             const compareStr = computed(() => [
                 {value: '=',label: t('alarmItem.equalTo')},
                 {value: 'IS NOT NULL',label: t('alarmItem.notNull')}
@@ -90,14 +93,14 @@
                 const newIndex = dataCondition.length;
                 dataCondition.push({
                     column: property.value[0].id,
-                    operation: '=',
-                    value: '',
+                    operation: undefined,
+                    value: undefined,
                     condition: [],
                     valueType: ''
                 });
-                
+
                 // 初始化新添加的行
-                handlerOperation(property.value[0].id, newIndex);
+                handlerOperation(property.value[0].id, newIndex, true);
             }
             const delFunc=(index)=>{
                 console.log('delFunc:',index)
@@ -112,56 +115,53 @@
                 return dataCondition;
             }
 
-            const handlerOperation=(value,index)=>{
+            const handlerOperation=(value,index,resetValue=false)=>{
                 // 找到对应的属性
                 const selectedProperty = property.value.find(p => p.id === value);
                 if (!selectedProperty) return;
-                
+
                 // 确保当前行存在
                 if (!dataCondition[index]) return;
-                
-                // 根据属性类型设置条件选项
-                if(selectedProperty.valueType.type=='number'){
-                    selectedProperty.condition = compareNum.value;
+
+                const row = dataCondition[index];
+                const valueType = selectedProperty.valueType.type;
+                if(valueType === 'number'){
+                    row.condition = compareNum.value;
+                }else if(valueType === 'enum'){
+                    row.condition = compareEnum.value;
                 }else{
-                    selectedProperty.condition = compareStr.value;
+                    row.condition = compareStr.value;
+                }
+                row.valueType = valueType;
+
+                if(!row.condition.some(item => item.value === row.operation)){
+                    row.operation = row.condition[0].value;
                 }
 
-                // 直接更新当前行的数据
-                dataCondition[index].condition = selectedProperty.condition;
-                dataCondition[index].valueType = selectedProperty.valueType.type;
-                
-                // 如果是枚举类型，设置枚举数据
-                if(dataCondition[index].valueType=='enum'){
-                    dataCondition[index].enumData = selectedProperty.valueType.extra?.enumData || [];
-                } else {
-                    // 非枚举类型，清除 enumData
-                    delete dataCondition[index].enumData;
-                }
-                
-                // 设置默认操作符
-                if(dataCondition[index].condition && dataCondition[index].condition.length > 0 && dataCondition[index].operation == undefined){
-                    dataCondition[index].operation = dataCondition[index].condition[0].value;
-                }
-                
-                // 根据类型设置默认值
-                if(selectedProperty.valueType.type=='number' && dataCondition[index].value == undefined){
-                    dataCondition[index].value = 0;
-                }else if(selectedProperty.valueType.type=='enum' && dataCondition[index].value == undefined){
-                    if(selectedProperty.valueType.extra?.enumData && selectedProperty.valueType.extra.enumData.length>0){
-                        dataCondition[index].value = selectedProperty.valueType.extra.enumData[0].key;
-                    }else{
-                        dataCondition[index].value = '';
-                    }
-                }else if(selectedProperty.valueType.type=='string' && dataCondition[index].value == undefined){
-                    dataCondition[index].value = '';
+                if(valueType === 'number'){
+                    delete row.enumData;
+                    const numberValue = Number(row.value);
+                    row.value = resetValue || !Number.isFinite(numberValue) ? 0 : numberValue;
+                }else if(valueType === 'enum'){
+                    row.enumData = (selectedProperty.valueType.extra?.enumData || []).map(item => ({
+                        ...item,
+                        key: String(item.key)
+                    }));
+                    const currentValue = row.value == null ? '' : String(row.value);
+                    const hasCurrentValue = row.enumData.some(item => item.key === currentValue);
+                    row.value = !resetValue && hasCurrentValue
+                        ? currentValue
+                        : (row.enumData[0]?.key || '');
+                }else{
+                    delete row.enumData;
+                    row.value = resetValue || row.value == null ? '' : String(row.value);
                 }
             }
 
-            const handlerConditionChange=(index)=>{
-                // 这个方法现在主要用于重置值，但主要逻辑已经在 handlerOperation 中处理
-                // 保留这个方法以防其他地方调用
-                console.log('handlerConditionChange:'+JSON.stringify(dataCondition[index]))
+            const handlerComparisonChange=(row)=>{
+                if(row.valueType === 'string' && row.operation === '=' && typeof row.value !== 'string'){
+                    row.value = row.value == null ? '' : String(row.value)
+                }
             }
 
             const initPropertyCondition=()=>{
@@ -198,7 +198,7 @@
                 }
             })
           console.log('alarmItem')
-            return {sourceAlarmData,property,dataCondition,addFunc,delFunc,getProperty,delGroup,handlerOperation,handlerConditionChange}
+            return {sourceAlarmData,property,dataCondition,addFunc,delFunc,getProperty,delGroup,handlerOperation,handlerComparisonChange}
         }
     })
 </script>
