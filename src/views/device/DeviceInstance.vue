@@ -702,11 +702,32 @@ export default defineComponent({
     };
 
     const saveClick = () => {
+      if (!editData.value.name?.trim()) {
+        ElMessage({ message: t('deviceDialog.nameRequired'), type: "error" });
+        return;
+      }
+      if (!editData.value.sn?.trim()) {
+        ElMessage({ message: t('deviceDialog.snRequired'), type: "error" });
+        return;
+      }
+      if (editData.value.productId == null) {
+        ElMessage({ message: t('deviceDialog.productRequired'), type: "error" });
+        return;
+      }
+      if (
+        (deviceData.value.productPo.type === "gateway" ||
+          deviceData.value.productPo.type === "device") &&
+        editData.value.gatewayId == null
+      ) {
+        ElMessage({ message: t('deviceDialog.gatewayRequired'), type: "error" });
+        return;
+      }
       saving.value = true;
       const data = {
         id: editData.value.id,
         name: editData.value.name,
         sn: editData.value.sn,
+        productId: editData.value.productId,
         orgId: editData.value.orgId,
         gatewayId: editData.value.gatewayId,
         parentId: editData.value.parentId,
@@ -974,6 +995,7 @@ export default defineComponent({
       pendingRuleChange,
       pendingChildBinding,
       pendingChildRows,
+      tabKey,
       deleteRule,
       childrenMetaChange,
       propertyDialogShow,

@@ -1,7 +1,7 @@
 <template>
     <el-dialog v-model="dialogStatus" :title="$t('deviceDialog.edit')" :show-close="false" @close="closeHandler">
-        <el-form :model="copyData">
-            <el-form-item :label="$t('deviceDialog.deviceName')">
+        <el-form ref="editForm" :model="copyData" :rules="rules">
+            <el-form-item :label="$t('deviceDialog.deviceName')" prop="deviceInstancePo.name">
                 <el-input v-model="copyData.deviceInstancePo.name"></el-input>
             </el-form-item>
             <el-form-item :label="$t('deviceDialog.deviceGateway')">
@@ -24,6 +24,7 @@
 
 <script>
     import {defineComponent,ref,toRef,watch} from "vue"
+    import {useI18n} from "vue-i18n"
     export default defineComponent({
         name: "DialogDeviceEdit",
         props:{
@@ -44,11 +45,23 @@
         },
         emits:['save','cancel'],
         setup(props,context){
+            const {t}=useI18n()
             const dialogStatus=toRef(props,'status')
             const modelData=toRef(props,'data')
             const gatewayData=toRef(props,'gateways')
             const copyData=ref({})
             const networkType=ref({})
+            const editForm=ref(null)
+            const validateName=(rule,value,callback)=>{
+                if (!value || !value.trim()) {
+                    callback(new Error(t('deviceDialog.nameRequired')))
+                    return
+                }
+                callback()
+            }
+            const rules={
+                'deviceInstancePo.name': [{validator: validateName, trigger: 'blur'}]
+            }
 
             watch(modelData,value => {
                 copyData.value = JSON.parse(JSON.stringify(value))
@@ -73,14 +86,16 @@
             }
             const submitClick=()=>{
                 console.log('submitClick')
-                context.emit("save",copyData.value.deviceInstancePo)
+                editForm.value.validate((valid)=>{
+                    if (valid) context.emit("save",copyData.value.deviceInstancePo)
+                })
             }
 
             const closeHandler=()=>{
                 console.log('closeHandler')
                 context.emit("cancel")
             }
-            return {networkType,gatewayData,copyData,dialogStatus,closeClick,submitClick,closeHandler,selectChange}
+            return {networkType,gatewayData,copyData,dialogStatus,editForm,rules,closeClick,submitClick,closeHandler,selectChange}
         }
     })
 </script>

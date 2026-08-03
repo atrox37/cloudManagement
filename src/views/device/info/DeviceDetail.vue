@@ -2,19 +2,19 @@
   <div class="tab-pan-content">
     <el-descriptions :column="3" border>
       <template #title>
-        <span>{{ data.deviceInstancePo.name }}</span>
+        <span>{{ draft.name }}</span>
       </template>
       <template #extra>
       </template>
       <el-descriptions-item :label="$t('deviceInfo.deviceName')">
-        <el-input v-model="data.deviceInstancePo.name" />
+        <el-input v-model="draft.name" />
       </el-descriptions-item>
       <el-descriptions-item :label="$t('deviceInfo.deviceSN')">
-        <el-input v-model="data.deviceInstancePo.sn" />
+        <el-input v-model="draft.sn" />
       </el-descriptions-item>
       <el-descriptions-item :label="$t('deviceInfo.org')">
         <el-tree-select
-          v-model="data.deviceInstancePo.orgId"
+          v-model="draft.orgId"
           style="width: 220px;"
           :data="dimensionAllTree"
           check-strictly
@@ -65,7 +65,7 @@
         </el-select>
       </el-descriptions-item>
       <el-descriptions-item :label="$t('deviceInfo.collectType')">
-        <el-tag size="small">{{ data.networkConfigPo?.type ?? '' }}</el-tag>
+        <el-tag size="small">{{ collectType }}</el-tag>
       </el-descriptions-item>
       <el-descriptions-item :label="$t('common.createTime')">
         {{ data.deviceInstancePo.createTime }}
@@ -76,13 +76,13 @@
     </el-descriptions>
 
     <el-descriptions
-      v-if="data.deviceInstancePo.metadata.tags.length > 0"
+      v-if="draft.metadata?.tags?.length > 0"
       border
       :title="$t('deviceInfo.deviceTags')"
       style="margin-top: 30px"
     >
       <el-descriptions-item
-        v-for="(item, index) in data.deviceInstancePo.metadata.tags"
+        v-for="(item, index) in draft.metadata.tags"
         :key="index"
         :label="item.tagName"
       >
@@ -110,6 +110,10 @@ export default defineComponent({
       type: Object,
       required: false,
     },
+    editData: {
+      type: Object,
+      required: true,
+    },
     parentData: {
       type: Object,
       required: false,
@@ -122,6 +126,7 @@ export default defineComponent({
     const router = useRouter();
     const gatewayData = toRef(props, "gateways");
     const data = toRef(props, "deviceData");
+    const draft = toRef(props, "editData");
     const parent = toRef(props, "parentData");
     const dimensionTree = ref([]);
 
@@ -140,14 +145,21 @@ export default defineComponent({
     });
 
     const selectedGatewayId = computed({
-      get: () => data.value.deviceInstancePo.gatewayId ?? -1,
+      get: () => draft.value.gatewayId ?? null,
       set: (val) => {
         if (val === null || val === undefined || val === "") {
-          data.value.deviceInstancePo.gatewayId = null;
+          draft.value.gatewayId = null;
           return;
         }
-        data.value.deviceInstancePo.gatewayId = val;
+        draft.value.gatewayId = val;
       },
+    });
+
+    const collectType = computed(() => {
+      const selected = gatewayData.value.find(
+        (item) => item.gatewayPo.id === draft.value.gatewayId
+      );
+      return selected?.networkConfigPo?.type ?? data.value.networkConfigPo?.type ?? "";
     });
 
     watch(data, () => {
@@ -188,10 +200,12 @@ export default defineComponent({
 
     return {
       selectedGatewayId,
+      collectType,
       gatewayData,
       dimensionAllTree,
       type,
       data,
+      draft,
       editClick,
       parentName,
       goProduct,
