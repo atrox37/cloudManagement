@@ -249,7 +249,15 @@ export default defineComponent({
       console.log('addClick')
       isAdd.value=true
       isDrawer.value=true
-      selectUser.sysUserPo={state: 1}
+      selectUser.sysUserPo={
+        state: 1,
+        metadata: {
+          systemNotify: {sms: false, email: false},
+          reminders: {sms: false, email: false},
+          dayReport: {sms: false, email: false},
+          weekReport: {sms: false, email: false}
+        }
+      }
     }
     const deleteClick=(row,index)=>{
       console.log('deleteClick')

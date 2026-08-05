@@ -90,10 +90,7 @@ export default defineComponent({
     });
     const testClick = () => {
       formRef.value.validate((valid, fields) => {
-        var repo = { notifyPo: {}, templatePo: {variables: {}}, receiverPo: { userId: testData.value.userId,state:1 } };
-        if (testData.value.id != undefined) repo.receiverPo.id = testData.value.id;
-        if (testData.value.name != undefined) repo.receiverPo.name = testData.value.name;
-        if (testData.value.templateId != undefined) repo.receiverPo.templateId = testData.value.templateId;
+        const repo = { templatePo: {variables: {}}, userId: testData.value.userId };
         if (valid) {
           for (var item of testData.value.sendData) {
             repo.templatePo.variables[item.name] = item.value;

@@ -13,7 +13,7 @@
 
         </template>
         <template #default>
-          <el-select v-model="templateData.templatePo.notifyId" class="tiny-template-input">
+          <el-select v-model="templateData.templatePo.configId" class="tiny-template-input">
             <el-option v-for="(item,index) in configs" :key="index" :label="item.name" :value="item.id">
             </el-option>
           </el-select>
@@ -288,10 +288,16 @@ export default defineComponent({
     }
 
     const testClick = (testData) => {
-      const param = JSON.parse(JSON.stringify(testData))
-      param.notifyPo.id = templateData.value.templatePo.notifyId
-      param.templatePo.msgContent = templateData.value.templatePo.msgContent
-      param.templatePo.msgType = 0
+      const templatePo = JSON.parse(JSON.stringify(templateData.value.templatePo))
+      templatePo.configId = templatePo.configId ?? templateData.value.configPo.id
+      templatePo.variables = testData.templatePo.variables
+      templatePo.msgContent = templateData.value.templatePo.msgContent
+      templatePo.msgType = 0
+      const param = {
+        configId: templatePo.configId,
+        templatePo,
+        userId: testData.userId
+      }
       console.log('testClick->%s', JSON.stringify(param))
       sendTemplateApi(param)
     }

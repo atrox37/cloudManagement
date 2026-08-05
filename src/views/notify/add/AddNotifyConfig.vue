@@ -98,21 +98,19 @@
 
             const onSubmit=function(){
                 saveData.code=selectCode.value
-                saveData.configStr={}
+                const config={}
 
                 for(var item of selectConfig){
                     if(item.type == 'string'){
-                        saveData.configStr[item.name]=item.value
+                        config[item.name]=item.value
                     }else if(item.type == 'boolean'){
-                        saveData.configStr[item.name]=JSON.parse(item.value)
+                        config[item.name]=typeof item.value === 'boolean' ? item.value : JSON.parse(item.value)
                     }else if(item.type == 'number'){
-                        saveData.configStr[item.name]=parseFloat(item.value)
+                        config[item.name]=parseFloat(item.value)
                     }
                 }
-                let str=JSON.stringify(saveData.configStr)
-                delete saveData.config
-                delete saveData.configStr
-                saveData.configStr=str
+                config.type=selectCode.value
+                saveData.config=config
                 console.log('submit')
                 saveOrUpdateApi()
             }

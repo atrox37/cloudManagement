@@ -37,7 +37,7 @@
       data:{
         type: Object,
         required: false,
-        default: () => ({state:false,loading:false,data:{name:'',configId:undefined,msgType:1,variables:{}}})
+        default: () => ({state:false,loading:false,data:{name:'',configId:undefined,msgType:1,variables:{},msgContent:{title:'',content:'',type:''}}})
       },
       config:{
         type: Array,
@@ -69,7 +69,7 @@
       }
       const rules=ref({
         name:[{validator:validateSelect, trigger: 'blur' }],
-        notifyId:[{validator:validateSelect, trigger: 'blur' }]
+        configId:[{validator:validateSelect, trigger: 'change' }]
       })
       const submit=()=>{
         templateForm.value.validate((valid, fields) => {

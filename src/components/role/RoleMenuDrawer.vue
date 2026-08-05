@@ -151,7 +151,7 @@
             const submitAddFunc=(trees,updateData)=>{
                 for(let dataItem of trees){
                     if(dataItem.state!=dataItem.statusSource){
-                        updateData.push({roleId:role.value.id,menuId:dataItem.id,state:dataItem.state,id:dataItem.roleMenuId})
+                        updateData.push({roleId:role.value.sysRolePo.id,menuId:dataItem.id,state:dataItem.state,id:dataItem.roleMenuId})
                     }
                     if(dataItem.children!=null&&dataItem.children.length>0){
                         submitAddFunc(dataItem.children,updateData)

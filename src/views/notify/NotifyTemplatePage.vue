@@ -179,7 +179,7 @@ export default defineComponent({
     const newNotifyTempate = reactive({
       state: false,
       loading: false,
-      data: { name: "", configId: undefined, msgType: 1,variables:{} },
+      data: { name: "", configId: undefined, msgType: 1, variables: {}, msgContent: {title: "", content: "", type: ""} },
     });
     const notifyConfigAll = reactive([]);
     const templateDetailDialogRef = ref(null);
@@ -251,7 +251,7 @@ export default defineComponent({
       return label;
     };
     const addClick = () => {
-      newNotifyTempate.data = { name: "", configId: undefined, msgType: 1,variables:{} };
+      newNotifyTempate.data = { name: "", configId: undefined, msgType: 1, variables: {}, msgContent: {title: "", content: "", type: ""} };
       newNotifyTempate.state = true;
     };
     const editClick = (row) => {

@@ -144,6 +144,7 @@ export default defineComponent({
         id: productId,
         name: editData.value.name,
         sn: editData.value.sn,
+        type: editData.value.type,
         orgId: editData.value.orgId,
         metadata: editData.value.metadata
       };

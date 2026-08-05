@@ -429,17 +429,12 @@ export default defineComponent({
     const sendTemplateApi = () => {
       console.info('send test')
       testForm.loading = true;
+      const templatePo = JSON.parse(JSON.stringify(templateData.templatePo));
+      templatePo.variables = { ...templateVariablesData };
       const params = {
         userId: testForm.recipient,
-        configPo: {
-           id: templateData.templatePo.configId,
-        },
-        templatePo: {
-          type: templateData.configPo.code, // 使用 configPo.code 作为 type
-          msgContent: templateData.templatePo.msgContent,
-          variables: { ...templateVariablesData },
-          msgType: templateData.templatePo.msgType || 1, // 使用模板的 msgType，默认为 1
-        },
+        configId: templatePo.configId,
+        templatePo,
       };
       proxy.$http
         .notifyTemplateTest(params)
