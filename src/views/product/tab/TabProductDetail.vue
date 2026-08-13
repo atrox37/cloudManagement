@@ -45,7 +45,7 @@
             @close="tagClose(index)"
             @click="tagClick(index)"
           >
-            {{ item.tagName }}
+            {{ item.unit ? `${item.tagName} (${item.unit})` : item.tagName }}
           </el-tag>
           <el-button size="small" @click="addTag">+ New Tag</el-button>
         </el-space>
@@ -60,6 +60,21 @@
       </el-form-item>
       <el-form-item :label="$t('productDetail.tagName')" prop="tagName">
         <el-input v-model="tagDialog.tag.tagName" :placeholder="$t('productDetail.tagNamePlaceholder')" />
+      </el-form-item>
+      <el-form-item :label="$t('productDetail.unit')" prop="unit">
+        <el-select
+          v-model="tagDialog.tag.unit"
+          filterable
+          :placeholder="$t('productDetail.unitPlaceholder')"
+          style="width: 100%"
+        >
+          <el-option
+            v-for="item in tagUnits"
+            :key="item.unit"
+            :label="`${item.en} (${item.unit})`"
+            :value="item.unit"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item :label="$t('productDetail.required')">
         <el-radio-group v-model="tagDialog.tag.optional">
@@ -78,6 +93,7 @@
 import { computed, defineComponent, getCurrentInstance, onMounted, reactive, ref, toRef } from "vue";
 import { useI18n } from "vue-i18n";
 import handlerDimensionTree from "@/util/dimension/DimensionTree";
+import { deviceTypes } from "@/model/device/DeviceUnit";
 
 export default defineComponent({
   name: "TabProductDetail",
@@ -105,10 +121,11 @@ export default defineComponent({
     const tagDialog = reactive({
       status: false,
       index: -1,
-      tag: { tagKey: "", tagName: "", tagValue: "", optional: false },
+      tag: { tagKey: "", tagName: "", tagValue: "", unit: "", optional: false },
     });
     const dimensionTree = ref([]);
     const tagForm = ref(null);
+    const tagUnits = deviceTypes.filter((item) => item.unit?.trim());
 
     const dimensionAllTree = computed(() => {
       const rootTree = [];
@@ -134,6 +151,10 @@ export default defineComponent({
         callback(t("productDetail.tagNameRequired"));
         return;
       }
+      if (rule.field === "unit" && !tagDialog.tag.unit?.trim()) {
+        callback(t("productDetail.unitRequired"));
+        return;
+      }
       callback();
     };
 
@@ -149,6 +170,7 @@ export default defineComponent({
     const rules = ref({
       tagKey: [{ validator: validateSelect, trigger: "blur" }],
       tagName: [{ validator: validateSelect, trigger: "blur" }],
+      unit: [{ validator: validateSelect, trigger: "blur" }],
     });
 
     const edgeProductAsyn = () => {
@@ -157,7 +179,7 @@ export default defineComponent({
 
     const addTag = () => {
       tagDialog.index = -1;
-      tagDialog.tag = { tagKey: "", tagName: "", tagValue: "", optional: false };
+      tagDialog.tag = { tagKey: "", tagName: "", tagValue: "", unit: "", optional: false };
       tagDialog.status = true;
     };
 
@@ -192,6 +214,7 @@ export default defineComponent({
       btnloadData,
       dimensionAllTree,
       tagForm,
+      tagUnits,
       rules,
       tagDialog,
       editData,

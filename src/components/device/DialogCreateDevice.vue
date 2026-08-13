@@ -101,7 +101,9 @@
             :key="item.tagKey"
             :label="item.tagName"
           >
-            <el-input v-model="item.tagValue" />
+            <el-input v-model="item.tagValue">
+              <template v-if="item.unit" #append>{{ item.unit }}</template>
+            </el-input>
           </el-form-item>
         </div>
       </template>

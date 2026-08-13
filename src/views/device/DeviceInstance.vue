@@ -586,7 +586,18 @@ export default defineComponent({
         proxy.$http.deviceSearch(params).then((value) => {
           console.log("requestApi");
           deviceData.value = value.data;
-          editData.value = cloneData(value.data.deviceInstancePo);
+          const deviceDraft = cloneData(value.data.deviceInstancePo);
+          const productTagUnits = new Map(
+            (value.data.productPo?.metadata?.tags || [])
+              .filter((tag) => tag?.tagKey && tag?.unit)
+              .map((tag) => [tag.tagKey, tag.unit])
+          );
+          (deviceDraft.metadata?.tags || []).forEach((tag) => {
+            if (!tag.unit && productTagUnits.has(tag.tagKey)) {
+              tag.unit = productTagUnits.get(tag.tagKey);
+            }
+          });
+          editData.value = deviceDraft;
           deviceMeta.value = value.data.deviceInstancePo;
           if (value.data.deviceInstancePo.parentId != null) {
             parentApi(value.data.deviceInstancePo.parentId);

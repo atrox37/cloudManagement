@@ -10,6 +10,9 @@
       <el-form-item :label="$t('networkDrawer.servicePort')">
         <el-input-number v-model="dataInfo.data.networkConfigPo.configuration.port"/>
       </el-form-item>
+      <el-form-item :label="$t('networkDrawer.clientId')">
+        <el-input v-model="dataInfo.data.networkConfigPo.configuration.clientId" />
+      </el-form-item>
       <el-form-item :label="$t('networkDrawer.username')">
         <el-input v-model="dataInfo.data.networkConfigPo.configuration.username" />
       </el-form-item>
