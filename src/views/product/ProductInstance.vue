@@ -20,13 +20,18 @@
         ></DeviceMeta>
       </el-tab-pane>
       <el-tab-pane
-        :label="$t('productInstance.tabGatewayRoute')"
-        v-if="editData.type == 'gateway'"
-        name="third"
+        :label="$t('productInstance.tabTreeStructure')"
+        v-if="editData.type === 'gateway' && editData.metadata?.struct?.type === 'tree'"
+        name="structure-tree"
       >
-        <TabProductTree
-          :productData="editData"
-        ></TabProductTree>
+        <TabProductTree :productData="editData" />
+      </el-tab-pane>
+      <el-tab-pane
+        :label="$t('productInstance.tabNodeStructure')"
+        v-if="editData.type === 'gateway' && editData.metadata?.struct?.type === 'node'"
+        name="structure-node"
+      >
+        <TabProductNode :productData="editData" />
       </el-tab-pane>
       <el-tab-pane :label="$t('productInstance.tabAlarmRules')" name="fourth">
         <TabProductRule
@@ -60,6 +65,7 @@ import TabProductDetail from "@/views/product/tab/TabProductDetail.vue";
 import Loading from "@/components/load/Loading.vue";
 import DeviceMeta from "@/views/device/info/DeviceMeta.vue";
 import TabProductTree from "@/views/product/tab/TabProductTree.vue";
+import TabProductNode from "@/views/product/tab/TabProductNode.vue";
 import TabProductRule from "@/views/product/tab/TabProductRule.vue";
 import { useRouter, useRoute } from "vue-router";
 import DialogAlarmRule from "@/components/product/DialogAlarmRule.vue";
@@ -72,6 +78,7 @@ import {
 } from "vue";
 import { ElMessage } from "element-plus";
 import { useI18n } from "vue-i18n";
+import { ensureMetadataStruct } from "@/util/deviceStruct";
 
 export default defineComponent({
   name: "ProductInstance",
@@ -80,6 +87,7 @@ export default defineComponent({
     MenuContainerHeader,
     TabProductDetail,
     TabProductTree,
+    TabProductNode,
     TabProductRule,
     Loading,
     DialogAlarmRule,
@@ -133,6 +141,7 @@ export default defineComponent({
       proxy.$http.productDetail(params).then((value) => {
         productData.value = value.data;
         editData.value = value.data.productPo;
+        ensureMetadataStruct(editData.value.metadata);
         setTimeout(() => {
           loading.value = false;
         }, 1000);

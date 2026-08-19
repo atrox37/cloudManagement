@@ -36,6 +36,15 @@
       <el-descriptions-item :label="$t('common.updateTime')">
         {{ editData.updateTime }}
       </el-descriptions-item>
+      <el-descriptions-item
+        v-if="editData.type === 'gateway'"
+        :label="$t('struct.type')"
+      >
+        <el-radio-group v-model="structType">
+          <el-radio-button value="tree">{{ $t('struct.tree') }}</el-radio-button>
+          <el-radio-button value="node">{{ $t('struct.node') }}</el-radio-button>
+        </el-radio-group>
+      </el-descriptions-item>
       <el-descriptions-item :label="$t('productDetail.tags')">
         <el-space wrap>
           <el-tag
@@ -94,6 +103,7 @@ import { computed, defineComponent, getCurrentInstance, onMounted, reactive, ref
 import { useI18n } from "vue-i18n";
 import handlerDimensionTree from "@/util/dimension/DimensionTree";
 import { deviceTypes } from "@/model/device/DeviceUnit";
+import { changeMetadataStructType, ensureMetadataStruct } from "@/util/deviceStruct";
 
 export default defineComponent({
   name: "TabProductDetail",
@@ -131,6 +141,11 @@ export default defineComponent({
       const rootTree = [];
       rootTree.push(...dimensionTree.value);
       return rootTree;
+    });
+
+    const structType = computed({
+      get: () => ensureMetadataStruct(editData.value.metadata)?.type || "tree",
+      set: (value) => changeMetadataStructType(editData.value.metadata, value),
     });
 
     const validateSelect = (rule, value, callback) => {
@@ -215,6 +230,7 @@ export default defineComponent({
       dimensionAllTree,
       tagForm,
       tagUnits,
+      structType,
       rules,
       tagDialog,
       editData,

@@ -85,6 +85,7 @@
     import {productType} from '@/model/product/ProductType'
     import DialogProductOrg from '@/components/product/DialogProductOrg.vue'
     import DialogCreateProduct from '@/components/product/DialogCreateProduct.vue'
+    import { ensureMetadataStruct } from '@/util/deviceStruct'
     import {useRouter} from "vue-router";
     import { useI18n } from 'vue-i18n'
     export default defineComponent({
@@ -203,9 +204,10 @@
             }
             const addClick=()=>{
                 console.log('addClick')
-                dialogCreateProduct.value={status:true,loading:false,product:{name:'',sn:'',type:'device',metadata:{properties:[],functions:[],propertyTags:[],trees:[],rules:[],tags:[]}}}
+                dialogCreateProduct.value={status:true,loading:false,product:{name:'',sn:'',type:'device',metadata:{properties:[],functions:[],propertyTags:[],struct:{type:'tree',tree:[]},rules:[],tags:[]}}}
             }
             const creatProduct=()=>{
+                ensureMetadataStruct(dialogCreateProduct.value.product.metadata)
                 dialogCreateProduct.value.loading=true
                 proxy.$http.productUpdate(dialogCreateProduct.value.product).then(value=>{
                     console.log('creatProduct success')

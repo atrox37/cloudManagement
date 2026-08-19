@@ -25,7 +25,7 @@
         </el-container>
         <template #footer>
           <el-button :loading="page.submitloading" @click="closeClick">{{ $t('common.close') }}</el-button>
-            <el-button type="primary" :loading="page.submitloading" @click="submitClick">{{ $t('common.save') }}</el-button>
+            <el-button type="primary" :loading="page.submitloading" @click="submitClick">{{ $t('common.confirm') }}</el-button>
         </template>
 
     </el-dialog>

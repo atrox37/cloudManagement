@@ -1,181 +1,219 @@
 <template>
-  <div class="tab-pan-content" style="box-sizing: border-box;padding: 0 4px;">
-    <el-row :gutter="8" style="height: calc(100% - 10px)">
-      <el-col :span="12">
-        <el-card style="height:calc(100% - 10px)">
-          <template #header>
-            <div class="card-content">
-              <el-text type="info"tag="b">{{ $t('treeNode.structurePath') }}</el-text>
-              <el-button-group>
-                <el-button @click="newClick">{{ $t('treeNode.append') }}</el-button>
-              </el-button-group>
+  <div class="tree-layout">
+    <section class="tree-panel">
+      <header class="panel-header">
+        <el-text tag="b">{{ $t("treeNode.structurePath") }}</el-text>
+        <el-button :icon="Plus" @click="openAddDialog(null)">
+          {{ $t("struct.addNode") }}
+        </el-button>
+      </header>
 
+      <el-tree
+        v-if="trees.length"
+        :data="trees"
+        :props="treeProps"
+        node-key="id"
+        default-expand-all
+        highlight-current
+        :expand-on-click-node="false"
+      >
+        <template #default="{ data }">
+          <div class="tree-row">
+            <div class="tree-row__identity">
+              <span>{{ data.name }}</span>
+              <el-tag size="small" effect="plain">{{ data.id }}</el-tag>
             </div>
-
-          </template>
-          <div style="height: 100%">
-            <el-tree :props="defaultProps" node-key="id" :data="testData" @node-click="handleNodeClick" default-expand-all :expand-on-click-node="false">
-              <template #default="{ node, data }">
-                <div class="custom-tree-node">
-                  <span>{{ node.label }}</span>
-                  <div>
-                    <el-button-group>
-                      <el-button  size="small" @click="rename(data)">
-                        {{ $t('treeNode.rename') }}
-                      </el-button>
-                      <el-button  size="small" @click="append(data)">
-                        {{ $t('treeNode.append') }}
-                      </el-button>
-                      <el-button  size="small" @click="remove(node, data)">
-                        {{ $t('common.delete') }}
-                      </el-button>
-                    </el-button-group>
-
-                  </div>
-                </div>
-              </template>
-            </el-tree>
+            <el-button-group>
+              <el-button
+                :icon="Edit"
+                text
+                circle
+                :title="$t('struct.editNode')"
+                @click.stop="openEditDialog(data)"
+              />
+              <el-button
+                :icon="Plus"
+                text
+                circle
+                :title="$t('treeNode.append')"
+                @click.stop="openAddDialog(data.id)"
+              />
+              <el-button
+                :icon="Delete"
+                text
+                circle
+                type="danger"
+                :title="$t('common.delete')"
+                @click.stop="removeNode(data)"
+              />
+            </el-button-group>
           </div>
-        </el-card>
-
-      </el-col>
-      <el-col :span="6"></el-col>
-      <el-col :span="6"></el-col>
-    </el-row>
-
+        </template>
+      </el-tree>
+      <el-empty v-else :description="$t('common.noData')" />
+    </section>
   </div>
-  <el-dialog v-model="renameDialog.status" :title="$t('treeNode.renameTitle')">
-    <el-form :model="renameDialog">
-      <el-form-item :label="$t('treeNode.nodeName')">
-        <el-input v-model="renameDialog.node.name" />
+
+  <el-dialog
+    v-model="nodeDialog.visible"
+    :title="$t(nodeDialog.mode === 'edit' ? 'struct.editNodeTitle' : 'struct.addNodeTitle')"
+    width="480px"
+    destroy-on-close
+  >
+    <el-form ref="nodeFormRef" :model="nodeDialog.form" :rules="nodeRules" label-width="100px" @submit.prevent>
+      <el-form-item :label="$t('struct.nodeId')" prop="id">
+        <el-input v-model="nodeDialog.form.id" :disabled="nodeDialog.mode === 'edit'" />
+      </el-form-item>
+      <el-form-item :label="$t('treeNode.nodeName')" prop="name">
+        <el-input v-model="nodeDialog.form.name" />
       </el-form-item>
     </el-form>
     <template #footer>
-      <div class="right-flex-contain">
-        <el-button @click="renameSubmit">{{ $t('common.save') }}</el-button>
-      </div>
+      <el-button @click="nodeDialog.visible = false">{{ $t("common.cancel") }}</el-button>
+      <el-button type="primary" @click="confirmNode">{{ $t("common.confirm") }}</el-button>
     </template>
   </el-dialog>
 </template>
+
 <script>
-import {onMounted, defineComponent, getCurrentInstance, reactive, ref, watch, toRef, computed} from "vue"
-import { ElButton } from 'element-plus'
-import { useI18n } from "vue-i18n"
+import { computed, defineComponent, reactive, ref, toRef } from "vue";
+import { Delete, Edit, Plus } from "@element-plus/icons-vue";
+import { ElMessageBox } from "element-plus";
+import { useI18n } from "vue-i18n";
 
 export default defineComponent({
   name: "TabProductTree",
   props: {
-    productData: {
-      type: Object,
-      required: false
-    }
+    productData: { type: Object, required: true },
   },
-  setup(props, context) {
-    const { t } = useI18n()
-    const meta = toRef(props, 'productData')
-    const direction = ref("horizontal")
-    const fillRatio = ref(30)
-    const renameDialog=reactive({status:false,node:{id:'',name:''}})
-    const testData = computed(() => meta.value.metadata.trees)
+  setup(props) {
+    const { t } = useI18n();
+    const product = toRef(props, "productData");
+    const nodeFormRef = ref(null);
+    const trees = computed(() => product.value.metadata.struct.tree);
+    const treeProps = { children: "children", label: "name" };
+    const nodeDialog = reactive({
+      visible: false,
+      mode: "add",
+      parentId: null,
+      form: { id: "", name: "" },
+    });
 
-
-    const defaultProps = {
-      children: 'children',
-      label: 'name',
-    }
-
-    const createTagId=()=>{
-      var id=Math.floor(Math.random()*1000+1)+'';
-      return id
-    }
-
-    const handleNodeClick = (tree) => {
-      console.log('handleNodeClick')
-      console.log(meta.value)
-    }
-    const append=(data)=>{
-      const newChild={id:''+createTagId(),name:'Node',children:[]}
-      if (!data.children) {
-        data.children = []
+    const flattenNodes = (items, result = []) => {
+      for (const item of items || []) {
+        result.push(item);
+        flattenNodes(item.children, result);
       }
-      data.children.push(newChild)
-      console.log('append')
-    }
-    const remove=(node,data)=>{
-      const parent = node.parent
-      const children= parent?.data.children || parent?.data
-      const index = children.findIndex((d) => d.id === data.id)
-      children.splice(index, 1)
-      console.log('remove')
-    }
-    const rename=(data)=>{
-      console.log('rename')
-      renameDialog.status=true
-      renameDialog.node.id=data.id
-      renameDialog.node.name=data.name
-    }
-    const renameSubmit=()=>{
-      resetName(testData.value)
-      renameDialog.status=false
-    }
-    const resetName=(source)=>{
-      for(let index in source){
-        if(source[index].id==renameDialog.node.id){
-          source[index].name=renameDialog.node.name
-          break
-        }else if(source[index].children.length>0){
-          resetName(source[index].children)
+      return result;
+    };
+    const findNode = (id) => flattenNodes(trees.value).find((item) => item.id === id);
+    const nodeRules = computed(() => ({
+      id: [{
+        validator: (_rule, value, callback) => {
+          const id = value?.trim();
+          if (!id) callback(new Error(t("struct.nodeIdRequired")));
+          else if (nodeDialog.mode === "add" && findNode(id)) callback(new Error(t("struct.nodeIdExists")));
+          else callback();
+        },
+        trigger: "blur",
+      }],
+      name: [{ required: true, whitespace: true, message: t("struct.nodeNameRequired"), trigger: "blur" }],
+    }));
+
+    const openAddDialog = (parentId) => {
+      nodeDialog.mode = "add";
+      nodeDialog.parentId = parentId;
+      nodeDialog.form = { id: "", name: "" };
+      nodeDialog.visible = true;
+    };
+    const openEditDialog = (node) => {
+      nodeDialog.mode = "edit";
+      nodeDialog.parentId = null;
+      nodeDialog.form = { id: node.id, name: node.name };
+      nodeDialog.visible = true;
+    };
+    const confirmNode = async () => {
+      try {
+        await nodeFormRef.value.validate();
+      } catch {
+        return;
+      }
+      const id = nodeDialog.form.id.trim();
+      const name = nodeDialog.form.name.trim();
+      if (nodeDialog.mode === "edit") {
+        findNode(id).name = name;
+      } else {
+        const newNode = { id, name, children: [] };
+        if (nodeDialog.parentId) {
+          const parent = findNode(nodeDialog.parentId);
+          if (!Array.isArray(parent.children)) parent.children = [];
+          parent.children.push(newNode);
+        } else {
+          trees.value.push(newNode);
         }
       }
-    }
+      nodeDialog.visible = false;
+    };
+    const removeFrom = (items, id) => {
+      const index = items.findIndex((item) => item.id === id);
+      if (index >= 0) {
+        items.splice(index, 1);
+        return true;
+      }
+      return items.some((item) => removeFrom(item.children || [], id));
+    };
+    const removeNode = async (node) => {
+      try {
+        await ElMessageBox.confirm(
+          t("struct.deleteProductNodeConfirm", { name: node.name }),
+          t("struct.deleteNodeTitle"),
+          {
+            confirmButtonText: t("common.confirm"),
+            cancelButtonText: t("common.cancel"),
+            type: "warning",
+          }
+        );
+      } catch {
+        return;
+      }
+      removeFrom(trees.value, node.id);
+    };
 
-
-    const saveClick=()=>{
-      // no-op: save handled by parent
-    }
-    const newClick=()=>{
-      meta.value.metadata.trees.push({id:''+createTagId(),name:'Node',children:[]})
-    }
-
-    onMounted(() => {
-    })
     return {
-      fillRatio,
-      direction,
-      testData,
-      defaultProps,
-      renameDialog,
-      rename,
-      saveClick,
-      handleNodeClick,
-      append,
-      remove,
-      newClick,
-      renameSubmit
-    }
-  }
-})
+      Delete, Edit, Plus, trees, treeProps, nodeDialog, nodeFormRef, nodeRules,
+      openAddDialog, openEditDialog, confirmNode, removeNode,
+    };
+  },
+});
 </script>
-<style>
-@import url('style/index.scss');
-.custom-tree-node {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 14px;
-  padding-right: 8px;
-}
-.card-content{
-  display: flex;
-  flex-wrap: nowrap;
-  justify-content: space-between;
-  align-items: center;
-}
-</style>
+
 <style scoped>
-::v-deep .el-card__body{
-  height: 85%;
-  padding: var(--el-card-padding);
+.tree-layout { height: 100%; min-height: 640px; padding: 8px; box-sizing: border-box; }
+.tree-panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--el-border-color-light);
+  background: var(--el-bg-color);
 }
+.panel-header {
+  min-height: 48px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--el-border-color-light);
+}
+.tree-panel :deep(.el-tree) { flex: 1; padding: 8px; overflow: auto; }
+.tree-panel > :deep(.el-empty) { flex: 1; }
+.tree-row {
+  width: 100%;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.tree-row__identity { min-width: 0; display: flex; align-items: center; gap: 10px; }
+:deep(.el-tree-node__content) { height: auto; padding-right: 8px; }
 </style>

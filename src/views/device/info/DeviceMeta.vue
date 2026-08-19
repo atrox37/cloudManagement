@@ -69,7 +69,7 @@
         </el-tab-pane>
         </template>
     </el-tabs>
-    <el-drawer v-if="selectTab=='0'&&selectMetaIndex>=0" v-model="property_draw" :before-close="propertyDrawClose" :size="'25%'" :title="$t('deviceMeta.propertyDrawer')">
+    <el-drawer v-if="selectTab=='0'&&selectMetaIndex>=0" v-model="property_draw" :before-close="propertyDrawClose" :size="'36%'" :title="$t('deviceMeta.propertyDrawer')">
         <template #default>
             <el-form :data="deviceMeta.metadata.properties[selectMetaIndex]" label-position="top">
                 <el-form-item :label="$t('deviceMeta.propertyId')">
@@ -153,6 +153,37 @@
                       :options="propertyRW"
                       style="margin-bottom: 1rem"
                   />
+                </el-form-item>
+                <el-form-item :label="$t('deviceMeta.attributes')">
+                    <el-table :data="deviceMeta.metadata.properties[selectMetaIndex].attribute" border>
+                        <el-table-column :label="$t('deviceMeta.attributeName')" min-width="120">
+                            <template #default="scope">
+                                <el-input v-model="scope.row.name" />
+                            </template>
+                        </el-table-column>
+                        <el-table-column :label="$t('deviceMeta.attributeId')" min-width="120">
+                            <template #default="scope">
+                                <el-input v-model="scope.row.id" />
+                            </template>
+                        </el-table-column>
+                        <el-table-column :label="$t('deviceMeta.attributeValue')" min-width="120">
+                            <template #default="scope">
+                                <el-input v-model="scope.row.value" />
+                            </template>
+                        </el-table-column>
+                        <el-table-column width="64" align="center">
+                            <template #header>
+                                <el-button size="small" circle @click="addPropertyAttribute">
+                                    <font-awesome-icon :icon="['fasr', 'square-plus']" />
+                                </el-button>
+                            </template>
+                            <template #default="scope">
+                                <el-button size="small" circle @click="deletePropertyAttribute(scope.$index)">
+                                    <font-awesome-icon :icon="['fasr', 'trash']" />
+                                </el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
                 </el-form-item>
             </el-form>
         </template>
@@ -328,6 +359,13 @@
             const deviceUnit=toRef(props,'deviceUnit')
             let deviceMeta=toRef(props,'deviceMeta')
 
+            const ensurePropertyAttributes=()=>{
+                for(const item of deviceMeta.value.metadata?.properties || []){
+                    if(!Array.isArray(item.attribute)) item.attribute=[]
+                }
+            }
+            ensurePropertyAttributes()
+
             const deleteMeta=ref([])
             const selectMetaIndex=ref(-1)
             const selectArgIndex=ref(-1)
@@ -362,6 +400,7 @@
 
             watch(deviceMeta,(newData,oldData)=>{
                 console.log('deviceMeta数据发生变化')
+                ensurePropertyAttributes()
                 initData()
             })
             const filterProperty=computed(()=>{
@@ -437,9 +476,17 @@
             }
             const addPropertyClick=function(evt){
                 console.log('addPropertyCLick')
-                deviceMeta.value.metadata.properties.push({id:'',name:'',create:true,tagId:selectTagId.id,rw:'none',valueType:{type:'string',extra:{length:null},unit:'data'}})
+                deviceMeta.value.metadata.properties.push({id:'',name:'',create:true,tagId:selectTagId.id,rw:'none',attribute:[],valueType:{type:'string',extra:{length:null},unit:'data'}})
                 selectMetaIndex.value=deviceMeta.value.metadata.properties.length-1
                 property_draw.value=true
+            }
+            const addPropertyAttribute=()=>{
+                const property=deviceMeta.value.metadata.properties[selectMetaIndex.value]
+                if(!Array.isArray(property.attribute)) property.attribute=[]
+                property.attribute.push({name:'',id:'',value:''})
+            }
+            const deletePropertyAttribute=(index)=>{
+                deviceMeta.value.metadata.properties[selectMetaIndex.value].attribute.splice(index,1)
             }
             const addFunctionClick=function(evt){
                 //{inputs:[{id:'',name:'',type:'string',unit:'count',valueType:{length:null}}],outputs:[{id:'',name:'',type:'string',unit:'count',valueType:{length:null}}]}
@@ -502,6 +549,7 @@
             const editPropertyClick=function(row,index,target){
                 console.log("click")
                 getPropertyIndex(row)
+                if(!Array.isArray(row.attribute)) row.attribute=[]
                 originalPropertyId = row.id  // 记录打开时的原始 id
                 property_draw.value=true
             }
@@ -686,6 +734,8 @@
                 addPropertyTag,
                 propertyTagClick,
                 addPropertyClick,
+                addPropertyAttribute,
+                deletePropertyAttribute,
                 addFunctionClick,
                 batchDeleteProperty,
                 deletePropertyClick,

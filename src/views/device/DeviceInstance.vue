@@ -104,15 +104,17 @@
         :label="$t('deviceInstance.tabChildren')"
         name="seven"
       >
-        <DeviceChildren
-          ref="deviceChildrenRef"
+        <component
+          :is="deviceStructComponent"
+          ref="deviceStructureRef"
           :deviceData="deviceData"
+          :deviceDraft="editData"
           :pendingBindings="pendingChildBinding"
           :pendingRows="pendingChildRows"
           @addChildrenClick="addChildrenClick"
           @delChildrenClick="delChildrenClick"
-          @updateMeta="childrenMetaChange"
-        ></DeviceChildren>
+          @assignChild="assignChildToNode"
+        />
       </el-tab-pane>
     </el-tabs>
   </div>
@@ -186,7 +188,8 @@ import DeviceRun from "@/views/device/info/DeviceRun.vue";
 import DeviceFunction from "@/views/device/info/DeviceFunction.vue";
 import DeviceLog from "@/views/device/info/DeviceLog.vue";
 import DeviceAlarmLog from "@/views/device/info/DeviceAlarmLog.vue";
-import DeviceChildren from "@/views/device/info/DeviceChildren.vue";
+import DeviceTree from "@/views/device/info/DeviceTree.vue";
+import DeviceNode from "@/views/device/info/DeviceNode.vue";
 import ContentHeader from "@/components/menuContain/ContentHeader.vue";
 import MenuContainerHeader from "@/components/menuContain/MenuContainerHeader.vue";
 import DeviceMeta from "@/views/device/info/DeviceMeta.vue";
@@ -200,6 +203,7 @@ import DialogPropertyControl from "@/components/device/DialogPropertyControl.vue
 import { ElMessage } from "element-plus";
 import { useI18n } from "vue-i18n";
 import { normalizeEnumRuleParams } from "@/util/deviceRule";
+import { ensureMetadataStruct } from "@/util/deviceStruct";
 
 export default defineComponent({
   name: "DeviceInstance",
@@ -211,7 +215,8 @@ export default defineComponent({
     DeviceFunction,
     DeviceLog,
     DeviceAlarmLog,
-    DeviceChildren,
+    DeviceTree,
+    DeviceNode,
     DeviceMeta,
     DialogDeviceEdit,
     DeviceAlarm,
@@ -237,7 +242,7 @@ export default defineComponent({
     const deviceAlarmRef = ref(null);
     const deviceLogRef = ref(null);
     const deviceAlarmLogRef = ref(null);
-    const deviceChildrenRef = ref(null);
+    const deviceStructureRef = ref(null);
     const dialogChildrenRef = ref(null);
     const router = useRouter();
     const route = useRoute();
@@ -292,6 +297,9 @@ export default defineComponent({
       pendingChildRows.value = [];
       reload();
     });
+    const deviceStructComponent = computed(() =>
+      editData.value.metadata?.struct?.type === "node" ? DeviceNode : DeviceTree
+    );
     const dialogAlarmState = ref(false);
     const dialogAlarmData = ref(null);
     const pendingRuleChange = ref([]);
@@ -349,7 +357,7 @@ export default defineComponent({
           break;
         case "seven":
           console.log("seven");
-          deviceChildrenRef.value.initPage();
+          deviceStructureRef.value?.initPage();
           break;
         case "eight":
           console.log("eight");
@@ -382,8 +390,9 @@ export default defineComponent({
     const connectFunc = function() {
       disConnectFunc();
       //const socketUrl = "http://" + import.meta.env.VITE_APP_URL + "/register-app/socket";
+      const socketUrl = "http://" + import.meta.env.VITE_APP_URL + "/user-app/socket";
       //TODO 打包
-      const socketUrl ="/api/register-app/socket";
+      //const socketUrl ="/api/user-app/socket";
       console.log("socketUrl:" + socketUrl);
       socket = new SockJS(socketUrl);
       stomp = Stomp.over(socket);
@@ -587,6 +596,7 @@ export default defineComponent({
           console.log("requestApi");
           deviceData.value = value.data;
           const deviceDraft = cloneData(value.data.deviceInstancePo);
+          ensureMetadataStruct(deviceDraft.metadata);
           const productTagUnits = new Map(
             (value.data.productPo?.metadata?.tags || [])
               .filter((tag) => tag?.tagKey && tag?.unit)
@@ -856,12 +866,13 @@ export default defineComponent({
       );
       refreshDeviceMetadataView();
     };
-    const childrenMetaChange = (metaData) => {
-      editData.value.metadata = {
-        ...(editData.value.metadata || {}),
-        trees: cloneData(metaData.trees || [])
+    const assignChildToNode = (row, treeNode) => {
+      const binding = {
+        id: row.deviceInstancePo.id,
+        parentId: deviceData.value.deviceInstancePo.id,
+        treeNode,
       };
-      refreshDeviceMetadataView();
+      upsertById(pendingChildBinding.value, binding, (item) => item.id);
     };
     const alarmOpen = (data) => {
       console.log("alarmOpen");
@@ -892,7 +903,6 @@ export default defineComponent({
         pendingChildRows.value = pendingChildRows.value.filter(
           (item) => item.deviceInstancePo.id !== childId
         );
-        ElMessage({ message: t('common.operationSuccess'), type: "success" });
         return;
       }
       upsertById(
@@ -900,7 +910,6 @@ export default defineComponent({
         { id: childId, parentId: null, treeNode: null },
         (item) => item.id
       );
-      ElMessage({ message: t('common.operationSuccess'), type: "success" });
     };
     const addChildrenClick = (treeNode) => {
       console.log("addChildrenClick");
@@ -919,7 +928,6 @@ export default defineComponent({
           (item) => item.deviceInstancePo.id
         );
       }
-      ElMessage({ message: t('common.operationSuccess'), type: "success" });
       dialogChildrenData.status = false;
     };
 
@@ -980,7 +988,8 @@ export default defineComponent({
       deviceLogRef,
       deviceAlarmLogRef,
       deviceSync,
-      deviceChildrenRef,
+      deviceStructureRef,
+      deviceStructComponent,
       dialogChildrenRef,
       dialogAlarmState,
       dialogAlarmData,
@@ -1008,7 +1017,7 @@ export default defineComponent({
       pendingChildRows,
       tabKey,
       deleteRule,
-      childrenMetaChange,
+      assignChildToNode,
       propertyDialogShow,
       propertyDialogCancel,
       queryDevicePropertyData,

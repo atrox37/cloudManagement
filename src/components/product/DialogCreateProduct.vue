@@ -11,7 +11,7 @@
       <el-form-item :label="$t('productDialog.productSn')" prop="productSn">
         <el-input v-model="productDialog.product.sn"></el-input>
       </el-form-item>
-      <el-form-item :label="$t('productDialog.productType')">
+      <el-form-item :label="$t('productDialog.productType')" prop="type">
         <el-select v-model="productDialog.product.type">
           <el-option
             v-for="(item, index) in productTypeList"
@@ -21,6 +21,17 @@
           >
           </el-option>
         </el-select>
+      </el-form-item>
+
+      <el-form-item
+        v-if="productDialog.product.type === 'gateway'"
+        :label="$t('struct.type')"
+        prop="structType"
+      >
+        <el-radio-group v-model="structType">
+          <el-radio-button value="tree">{{ $t('struct.tree') }}</el-radio-button>
+          <el-radio-button value="node">{{ $t('struct.node') }}</el-radio-button>
+        </el-radio-group>
       </el-form-item>
 
       <el-divider content-position="left">{{ $t('productDetail.tags') }}</el-divider>
@@ -107,6 +118,7 @@ import {
 import { useI18n } from 'vue-i18n'
 import { Delete, Plus } from '@element-plus/icons-vue'
 import { deviceTypes } from '@/model/device/DeviceUnit'
+import { changeMetadataStructType, ensureMetadataStruct } from '@/util/deviceStruct'
 
 export default defineComponent({
   name: "DialogCreateProduct",
@@ -149,6 +161,10 @@ export default defineComponent({
       { type: "gateway", name: t('productDialog.gatewayDevice') },
       { type: "children", name: t('productDialog.childDevice') },
     ])
+    const structType = computed({
+      get: () => ensureMetadataStruct(productDialog.value.product.metadata)?.type || "tree",
+      set: (value) => changeMetadataStructType(productDialog.value.product.metadata, value),
+    });
 
     const validateSelect = (rule, value, callback) => {
       if (rule.field == "productName") {
@@ -189,6 +205,7 @@ export default defineComponent({
     };
     const submitClick = () => {
       console.log("submitClick!");
+      ensureMetadataStruct(productDialog.value.product.metadata);
       createForm.value.validate((valid, fields) => {
         if (valid) {
           context.emit("createClick");
@@ -207,6 +224,7 @@ export default defineComponent({
       tagUnits,
       createForm,
       productTypeList,
+      structType,
       productDialog,
       addTag,
       removeTag,
