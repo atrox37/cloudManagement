@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 env:
-  DEPLOY_HOST: 192.168.30.10
+  DEPLOY_HOST: 192.168.30.210
   DEPLOY_PORT: "22"
   DEPLOY_USER: voltage
   DEPLOY_PATH: /opt/iotcloud/front/disk
