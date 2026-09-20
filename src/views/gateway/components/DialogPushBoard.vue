@@ -272,7 +272,7 @@ export default defineComponent({
       }
       console.log("send:" + JSON.stringify(dataStr));
       stomp.send(
-        "/queue/queue_stomp_board",
+        "/amq/queue/queue_stomp_board",
         { "reply-to": "/temp-queue/foo" },
         JSON.stringify(dataStr)
       );

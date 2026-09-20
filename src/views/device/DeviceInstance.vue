@@ -390,9 +390,8 @@ export default defineComponent({
     const connectFunc = function() {
       disConnectFunc();
       //const socketUrl = "http://" + import.meta.env.VITE_APP_URL + "/register-app/socket";
-      const socketUrl = "http://" + import.meta.env.VITE_APP_URL + "/user-app/socket";
       //TODO 打包
-      //const socketUrl ="/api/user-app/socket";
+      const socketUrl ="/api/register-app/socket";
       console.log("socketUrl:" + socketUrl);
       socket = new SockJS(socketUrl);
       stomp = Stomp.over(socket);
@@ -686,7 +685,7 @@ export default defineComponent({
       };
       let functionDataStr = JSON.stringify(functionData);
       stomp.send(
-        "/queue/queue_stomp_function",
+        "/amq/queue/queue_stomp_function",
         { "reply-to": "/temp-queue/foo" },
         functionDataStr
       );
@@ -700,7 +699,7 @@ export default defineComponent({
       let readDataStr = JSON.stringify(readData);
       console.log(readData);
       stomp.send(
-        "/queue/queue_stomp_read",
+        "/amq/queue/queue_stomp_read",
         { "reply-to": "/temp-queue/foo" },
         readDataStr
       );
@@ -716,7 +715,7 @@ export default defineComponent({
       let writeDataStr = JSON.stringify(writeData);
       console.log(writeDataStr);
       stomp.send(
-        "/queue/queue_stomp_write",
+        "/amq/queue/queue_stomp_write",
         { "reply-to": "/temp-queue/foo" },
         writeDataStr
       );
